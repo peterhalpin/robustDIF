@@ -1,6 +1,3 @@
-# Note drop suffix 1 from functions
-# switch a0 and a1 in y_fun and grad_y
-
 #-------------------------------------------------------------------
 #' Extract and format 2PL item parms from mirt
 #'
