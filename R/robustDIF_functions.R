@@ -1,7 +1,6 @@
 # To do
-# Revert the starts and grid function back to their ugly versions.
-# Get on with programming the quadratic form test!
-
+# Plotting function for Rho
+# Ready to sim! Do small version without other methods then run it all!
 
 #-------------------------------------------------------------------
 #' Extract and format 2PL item parms from mirt
@@ -10,6 +9,7 @@
 #' @return a n.items X 2 data.frame of 2PL item parameter MLEs
 #' @export
 # -------------------------------------------------------------------
+
 get_mirt_mle <- function(mirt.fit.2pl ){
  n.items <- mirt.fit.2pl@Data$nitems
  parms <- Reduce(rbind, coef(mirt.fit.2pl, printSE = T)[1:(n.items)])[, 1:2]
@@ -70,7 +70,6 @@ y_intercept <- function(irt.mle) {
    (irt.mle$par1$d - irt.mle$par0$d) / irt.mle$par1$a
 }
 
-
 # -------------------------------------------------------------------
 #' The scaling function for item slopes.
 #'
@@ -96,8 +95,8 @@ y_slope <- function(irt.mle, log = F) {
 #' Computes the scaling function for item intercepts, Y = (d1 - d0)/a1, or for item slopes, Y = a1/d0.
 #'
 #' @param irt.mle The output of \code{robustDIF::get_irt_mle}.
-#' @param par Assess DIF on item intercepts or item slopes? One of \code{c("intercept", "slope")}
-#' @param log Logical: Return log Y instead of Y? Only applies if \code{par = "slope"}
+#' @param par Use scaling function for item intercepts or item slopes? One of \code{c("intercept", "slope")}.
+#' @param log Logical: Use log of scaling function? Only applies if \code{par = "slope"}.
 #'
 #' @return A n.items vector of Y values.
 #' @export
@@ -111,15 +110,14 @@ y_fun <- function(irt.mle, par = "intercept", log = F) {
   y
 }
 
-
 # -------------------------------------------------------------------
-#' Compute the gradient of \code{y_intercept}
+#' Compute the gradient of \code{y_intercept}.
 #'
 #' For each item, the non-null elements of the gradient are organized as \code{c(a0, d0, a1, d1)}. The parameters a0 and d0 are the item slope and intercept in the reference group. The parameters a1 and d1 are the item slope and intercept in the comparison group.
 #'
-#' @param theta IRT scale parameter (mu / sigma)
-#' @param irt.mle the output of \code{robustDIF::get_irt_mle}
-#' @return A matrix in which the columns are the 4*n.item-dimensional gradient vectors of \code{y_intercept} for each item
+#' @param theta IRT scale parameter (mu / sigma).
+#' @param irt.mle the output of \code{robustDIF::get_irt_mle}.
+#' @return A matrix in which the columns are the 4*n.item-dimensional gradient vectors of \code{y_intercept} for each item.
 #' @export
 # -------------------------------------------------------------------
 
@@ -138,24 +136,24 @@ grad_intercept <- function(theta, irt.mle) {
 #'
 #' For each item, the non-null elements of the gradient are organized as \code{c(a0, d0, a1, d1)}. The parameters a0 and d0 are the item slope and intercept in the reference group. The parameters a1 and d1 are the item slope and intercept in the comparison group.
 #'
-#' @param theta The IRT scale parameter (sigma).
+#' @param theta The IRT scale parameter (sigma or log sigma).
 #' @param irt.mle The output of \code{robustDIF::get_irt_mle}.
-#' @param log Return grad for log Y instead (Logical)?
+#' @param log Logical: Use log of scaling function?.
 #' @return A matrix in which the columns are the 4*n.item-dimensional gradient vectors of \code{y_slope} for each item.
 #' @export
 # -------------------------------------------------------------------
 
 grad_slope <- function(theta, irt.mle, log = F) {
-  a0 <- irt.mle$par0$a
-  delta.a0 <- - theta / a0
-  delta.d0 <- 0 / a0
-  delta.a1 <- 1 / a0
-  delta.d1 <- 0 / a0
-  grad.vec <- c(rbind(delta.a0, delta.d0, delta.a1, delta.d1))
-
+  a <- irt.mle$par0$a
   if (log) {
-    grad.vec <- c(rbind(delta.a0, delta.d0, delta.a1, delta.d1)) * a0 / irt.mle$par1$a
+    theta <- exp(theta)
+    a <- irt.mle$par1$a
   }
+  delta.a0 <- - theta / a
+  delta.d0 <- 0 / a
+  delta.a1 <- 1 / a
+  delta.d1 <- 0 / a
+  grad.vec <- c(rbind(delta.a0, delta.d0, delta.a1, delta.d1))
   grad_mat(grad.vec)
 }
 
@@ -171,11 +169,11 @@ grad_slope <- function(theta, irt.mle, log = F) {
 
 grad_mat <- function(grad.vec) {
   n.items <- length(grad.vec) / 4
-  Delta <- matrix(grad.vec, nrow = 4*n.items, ncol = n.items)
-  flag <- c(rep(1, times = 4), rep(0, times = 4*n.items))
-  Flag <- matrix(rep(flag, times = n.items)[1:(4*n.items^2)],
-                   nrow = 4*n.items, ncol = n.items)
-  Delta*Flag
+  Delta <- matrix(grad.vec, nrow = 4 * n.items, ncol = n.items)
+  flag <- c(rep(1, times = 4), rep(0, times = 4 * n.items))
+  Flag <- matrix(rep(flag, times = n.items)[1:(4 * n.items^2)],
+                   nrow = 4 * n.items, ncol = n.items)
+  Delta * Flag
 }
 
 # -------------------------------------------------------------------
@@ -183,8 +181,8 @@ grad_mat <- function(grad.vec) {
 #'
 #' Puts two 2PL models into a single block diagonal VCOV matrix that is conformable with the output of the \code{robustDIF} gradient functions.
 #'
-#' @param irt.mle the output of \code{robustDIF::get_irt_mle}
-#' @return a block diagonal VCOV matrix in which each block is the VCOV of an item
+#' @param irt.mle The output of \code{robustDIF::get_irt_mle}.
+#' @return A block diagonal VCOV matrix in which each block is the VCOV of an item.
 #' @export
 # -------------------------------------------------------------------
 
@@ -202,10 +200,10 @@ joint_vcov <- function(irt.mle) {
 # -------------------------------------------------------------------
 #' Computes the variance of asymptotic null distribution of IRT scaling functions.
 #'
-#' @param theta The IRT scale parameter (mu / sigma for intercepts, sigma for slopes).
+#' @param theta The IRT scale parameter (mu / sigma for intercepts, sigma or log sigma for slopes).
 #' @param irt.mle The output of \code{robustDIF::get_irt_mle}.
-#' @param par Assess DIF on item intercepts or item slopes? One of \code{c("intercept", "slope")}
-#' @param log Logical: return grad for log Y instead? Only applies if \code{par = "slope"}
+#' @param par Use scaling function for item intercepts or item slopes? One of \code{c("intercept", "slope")}.
+#' @param log Logical: Use log of scaling function? Only applies if \code{par = "slope"}.
 #' @return An n.item-dimensional vector that contains the variance of the IRT scaling function, for each item.
 #' @export
 # -------------------------------------------------------------------
@@ -222,13 +220,34 @@ var_y <- function(theta, irt.mle, par = "intercept", log = F) {
 
 
 # -------------------------------------------------------------------
-#' Computes the weights of the bi-square function for use with IRLS
+#' Computes the asymptotic covariance of IRT scaling functions for the item intercepts and the item slopes, under the null hypothesis.
 #'
-#' @param theta IRT scale parameter
-#' @param y the output of \code{robustDIF::y_fun}
-#' @param var.y the variance of y
-#' @param alpha the desired false positive rate for flagging items with DIF
-#' @return bi-square weights for (y - theta) / var.y, for each item
+#' Used to compute the the quadratic form test of item intercepts and slopes.
+#'
+#' @param theta.y The IRT scale parameter for the item intercepts (mu / sigma)
+#' @param theta.z The IRT scale parameter for the item slopes (sigma or log sigma).
+#' @param irt.mle The output of \code{robustDIF::get_irt_mle}.
+#' @param log Logical: Use log of scaling function for the slope?
+#' @return An n.item-dimensional vector that contains the covariance of the IRT scaling functions, for each item.
+#' @export
+# -------------------------------------------------------------------
+
+cov_yz <- function(theta.y, theta.z, irt.mle, log = F) {
+  grad.y <- grad_intercept(theta.y, irt.mle)
+  grad.z <- grad_slope(theta.z, irt.mle, log = log)
+  joint.vcov <- joint_vcov(irt.mle)
+  vcov.yz <- t(grad.y) %*% joint.vcov %*% grad.z
+  Matrix::diag(vcov.yz)
+}
+
+# -------------------------------------------------------------------
+#' Computes the weights of the bi-square function for use with IRLS.
+#'
+#' @param theta The IRT scale parameter.
+#' @param y The output of \code{robustDIF::y_fun}.
+#' @param var.y The variance of y.
+#' @param alpha The desired false positive rate for flagging items with DIF.
+#' @return The bi-square weights for (y - theta) / var.y, for each item.
 #' @export
 # -------------------------------------------------------------------
 
@@ -244,60 +263,59 @@ bsq_weight <- function(theta, y, var.y, alpha = .05){
 }
 
 # -------------------------------------------------------------------
-#' Computes the staring values for IRLS (or NR)
+#' Computes the staring values for IRLS (or NR).
 #'
-#' @param irt.mle the output of \code{robustDIF::get_irt_mle}
-#' @param par Assess DIF on item intercepts or item slopes? One of \code{c("intercept", "slope")}
-#' @param log Logical: return grad for log Y instead? Only applies if \code{par = "slope"}
-#' @param drops logical: omit items if y changes substantially when changing ref group?
-#' @return a vector with elements med(Y), LTS(Y), and min Rho
+#' @param irt.mle The output of \code{robustDIF::get_irt_mle}.
+#' @param par Use scaling function for item intercepts or item slopes? One of \code{c("intercept", "slope")}.
+#' @param log Logical: Use log of scaling function? Only applies if \code{par = "slope"}.
+#' @return A vector with elements med(Y), LTS(Y), and min Rho.
 #' @export
 # -------------------------------------------------------------------
 
-get_starts <- function(irt.mle, par = "intercepts", log = F, drops = T){
+get_starts <- function(irt.mle, par = "intercept", log = F, alpha = .05){
 
+  y <- y_fun(irt.mle, par, log)
+  var_fun <- function(theta) {var_y(theta, irt.mle, par, log = F)}
 
-# ALL this needs to be conditional on par == intercepts
-
-    y1 <- y_fun(irt.mle)
-    var.y1 <- var_y(0, irt.mle)
-
-    # again, switching the reference group
+  # This is combines both choices of reference group for intercepts
+  if (par == "intercept") {
+    y1 <- y
     irt.mle2 <- irt.mle
     names(irt.mle2)[1:2] <- names(irt.mle)[2:1]
     y2 <- -1 * y_fun(irt.mle2)
-    var.y2 <- var_y(0, irt.mle)
 
-    # rescale by variance of latent trait
-    s <- median(y1/y2)
-    y2 <- s*y2
+    s <- median(y/y2)
+    y2 <- s * y2
+
+    # Drop items if y1 - y2 / sd(y) > 1.5
+    var.y1 <- var_y(median(y1), irt.mle)
+    var.y2 <- var_y(median(y2), irt.mle)
     var.y2 <- s^2*var.y2
-
-    if (drops) {
-      drops  <- abs((y1 - y2) / sqrt(min(var.y1, var.y2))) < 1.5
-    } else {
-      drops <- T
+    drops <- abs((y1 - y2) / sqrt(min(var.y1, var.y2))) < 1.5
+    y <- c(y[drops], y2[drops])
+    var_fun <- function(theta) {
+      c(var_y(theta, irt.mle)[drops], s^2 * var_y(theta, irt.mle2)[drops])
     }
-    y <- c(y1[drops], y2[drops])
+  }
 
-    # median residual
-    s1 <- median(y)
+  # median residual
+  s1 <- median(y)
 
-    # lts with 50% of data
-    s2 <- lts(y)
+  # lts with 50% of data
+  s2 <- lts(y)
 
-    # grid search for min of Rho function
-    s3 <- grid(irt.mle, intercepts = intercepts, log = log, drops = drops)
+  # grid search for min of Rho function
+  s3 <- rho_grid(y, var_fun, alpha = .05)
 
-    c(s1, s2, s3)
+  c(s1, s2, s3)
 }
 
 # -------------------------------------------------------------------
 #' Compute the least trimmed squares (LTS) estimate of location
 #'
-#' @param y a vector of data points
-#' @param p is the proportion of data points to trim
-#' @return The LTS estimate of location
+#' @param y A vector of data points.
+#' @param p The proportion of data points to trim.
+#' @return The LTS estimate of location.
 #' @export
 # -------------------------------------------------------------------
 
@@ -315,61 +333,56 @@ lts <- function(y, p = .5){
 }
 
 # -------------------------------------------------------------------
-#' The bi-square rho function
+#' The bi-square rho function.
 #'
-#' @param u can be a single value, vector, or matrix
-#' @param k the tuning parameter of the bi-square
-#' @return The bi-square rho function
+#' If abs(u) > k , rho(u) = k^2 / 6. Else, rho(u) =  k^2 / 6 * (1 - (1 - (u/k))^3).
+#'
+#' @param u Can be a single value, vector, or matrix.
+#' @param k The tuning variable. Can be a scalar or the same dimension as \code{u}.
+#' @return The bi-square rho function.
 #' @export
 # -------------------------------------------------------------------
 
 rho <- function(u, k = 1.96) {
+  if (length(k) != length(u)) {k <- k[1] * u / u}
   w <- (u / k)^2
   out <- k^2 / 6 * (1 - (1 - w)^3)
-  out[abs(u) > k] <- k^2 / 6
+  out[abs(u) > k] <- k[abs(u) > k]^2 / 6
   return(out)
 }
 
 # -------------------------------------------------------------------
-#' Performs grid search for minimum value of the bi-square Rho function
+#' Performs grid search for minimum value of the bi-square Rho function.
 #'
-#' @param irt.mle the output of \code{robustDIF::get_irt_mle}
-#' @param par Assess DIF on item intercepts or item slopes? One of \code{c("intercept", "slope")}
-#' @param log Logical: return grad for log Y instead? Only applies if \code{par = "slope"}
-#' @param alpha the desired false positive rate for flagging items with DIF
-#' @param grid.width the width of grid points
-#' @param drops passed from \code{get_starts}; leave at default value (\code{TRUE}) to keep all items.
-#' @return The location parameter that minimizes the bi-square Rho function
-#' @export
+#' Internal function used by \code{get_starts} to get staring values based on minimizing the rho-function of the bi-square. For plotting use \code{rho_fun} instead.
+#'
+#' @param y Output of \code{y_fun}
+#' @param var_fun Computes variance of \code{y} as a function of only the scale parameter.
+#' @param alpha The desired false positive rate for flagging items with DIF.
+#' @param grid.width The width of grid points.
+#'
+#' @return The location parameter that minimizes the bi-square Rho function.
+
 # -------------------------------------------------------------------
 
-grid <- function(irt.mle, par = "intercepts", log = F, alpha = .05, grid.width = .05, drops = T){
+rho_grid <- function(y, var_fun, alpha = .05, grid.width = .05){
 
-# ALL this needs to be conditional on par == intercepts
-
-  y1 <- y_fun(irt.mle)
-  theta <- seq(from = max(min(y1), -1.5),
-               to = min(max(y1), 1.5),
+  theta <- seq(from = max(min(y), -1.5),
+               to = min(max(y), 1.5),
                by = grid.width)
 
-  n.items <- length(y1)
+  n.items <- length(y)
   n.theta <- length(theta)
 
+  Y <- matrix(y, nrow = n.items, ncol = n.theta)
+  Var.Y <- Reduce(cbind, lapply(theta, function(x) var_fun(x)))
   Theta <- matrix(theta, nrow = n.items, ncol = n.theta, byrow = T)
-  Y1 <- matrix(y1, nrow = n.items, ncol = n.theta)
-  SE.Y1 <- Reduce(cbind, lapply(theta, function(x) sqrt(var_y(x, irt.mle))))
-  U <- Y1 - Theta / SE.Y1
-
-  # Again, switching reference group
-  irt.mle2 <- irt.mle
-  names(irt.mle2)[1:2] <- names(irt.mle)[2:1]
-  y2 <- -1 * y_fun(irt.mle2)
-  s <- median(y1 / y2)
-  Y2 <- matrix(s * y2, nrow = n.items, ncol = n.theta)
-  SE.Y2 <- Reduce(cbind, lapply(theta, function(x) s * sqrt(var_y(x, irt.mle2))))
-  U2 <- Y2 - Theta / SE.Y2
-
-  R <- apply(rho(U)*drops + rho(U2)*drops, 2, sum)
+  Var.Theta <- matrix(1/apply(1/Var.Y, 1, sum),
+                      nrow = n.items, ncol = n.theta, byrow = T)
+  Omega <- (Var.Y - Var.Theta) / Var.Y^2
+  U <- Y - Theta / Var.Y
+  K <-  qnorm(1 - alpha/2, 0, sqrt(Omega))
+  R <- apply(rho(U, K), 2, sum)
   # plot(theta, R)
   theta[which.min(R)]
 }
@@ -378,8 +391,8 @@ grid <- function(irt.mle, par = "intercepts", log = F, alpha = .05, grid.width =
 #' IRLS for an IRT scale parameter using the bi-square function
 #'
 #' @param irt.mle the output of \code{robustDIF::irt_mle}
-#' @param par Assess DIF on item intercepts or item slopes? One of \code{c("intercept", "slope")}
-#' @param log Logical: return grad for log Y instead? Only applies if \code{par = "slope"}
+#' @param par Use scaling function for item intercepts or item slopes? One of \code{c("intercept", "slope")}.
+#' @param log Logical: Use log of scaling function? Only applies if \code{par = "slope"}.
 #' @param alpha the desired false positive rate for flagging items with DIF
 #' @param starting.value one of \code{c("med", "lts", "min_rho", "all")} or a numerical value to be used as the starting value. The default is \code{"all"} which returns the median of the other three.
 #' @param tol convergence criterion for comparing subsequent values of estimate
@@ -389,25 +402,24 @@ grid <- function(irt.mle, par = "intercepts", log = F, alpha = .05, grid.width =
 #' @export
 # -------------------------------------------------------------------
 
-irls <- function(irt.mle, par = "intercepts", log = F, alpha = .05, starting.value = "all", tol = 1e-5, maxit = 100){
+irls <- function(irt.mle, par = "intercept", log = F, alpha = .05, starting.value = "all", tol = 1e-5, maxit = 100){
   nit <- 0
   conv <- 1
 
   # Set up scaling function
-  y <- y_fun(irt.mle, intercepts, log)
+  y <- y_fun(irt.mle, par, log)
 
   # Starting value
-  starts <- get_starts(irt.mle, par, log)
+  starts <- get_starts(irt.mle, par, log, alpha)
   theta <- median(starts)
   if (starting.value == "med") {theta <- starts[1]}
   if (starting.value == "lts") {theta <- starts[2]}
   if (starting.value == "min_rho") {theta <- starts[3]}
   if (is.numeric(starting.value)) {theta <- starting.value}
 
-
   # Loop
    while(nit < maxit & conv > tol) {
-    var.y <- var_y(theta, irt.mle, intercepts, log)
+    var.y <- var_y(theta, irt.mle, par, log)
     w <- bsq_weight(theta, y, var.y, alpha)
     new.theta <- sum(w * y / var.y ) / sum(w / var.y)
     nit <- nit + 1
@@ -418,21 +430,78 @@ irls <- function(irt.mle, par = "intercepts", log = F, alpha = .05, starting.val
 }
 
 # -------------------------------------------------------------------
-#' R-DIF test for item intercepts
+#' R-DIF z-test.
 #'
-#' @param theta IRT scale parameter
-#' @param irt.mle the output of \code{robustDIF::irt_mle}
-#' @param alpha the desired false positive rate for flagging items with DIF
+#' Tests for DIF in either the item intercept or slopes using a asymptotic z-test.
 #'
-#' @return A n.items-dimensional vector of p-values
+#' @param theta The IRT scale parameter.
+#' @param irt.mle The output of \code{robustDIF::irt_mle}.
+#' @param par Use scaling function for item intercepts or item slopes? One of \code{c("intercept", "slope")}.
+#' @param log Logical: Use log of scaling function? Only applies if \code{par = "slope"}.
+#'
+#' @return A named list with containing the value of the z.test and p(|z| > z.test), for each item.
 #' @export
 # -------------------------------------------------------------------
 
-d_test <- function(theta, irt.mle, alpha = .05) {
-  y <- y_fun(irt.mle)
-  var.y <- var_y(scale, irt.mle)
+z_test <- function(theta, irt.mle, par = "intercept", log = F) {
+  y <- y_fun(irt.mle, par, log)
+  var.y <- var_y(theta, irt.mle, par, log)
   var.theta <- 1/(sum(1/var.y))
-  crit <- qnorm(1 - alpha/2)
-  abs(y - theta) / sqrt(var.y - var.theta) > crit
+  z.test <- (y - theta) / sqrt(var.y - var.theta)
+  p.val <- (1 - pnorm(abs(z.test))) * 2
+  list(z.test = z.test, p.val = p.val)
 }
 
+# -------------------------------------------------------------------
+#' Compute the asymptotic covariance of IRT scaling functions for the item intercepts and the item slopes, under the null hypothesis.
+#'
+#' Used to compute the the quadratic form test of item intercepts and slopes.
+#'
+#' @param theta.y The IRT scale parameter for the item intercepts (mu / sigma)
+#' @param theta.z The IRT scale parameter for the item slopes (sigma or log sigma).
+#' @param irt.mle The output of \code{robustDIF::irt_mle}
+#' @param log Logical: Use log of scaling function? Only applies if \code{par = "slope"}.
+#'
+#' @return A named list with containing the value of the chi.square.test and p(chi.square > chi.square.test), for each item.
+#' @export
+# -------------------------------------------------------------------
+
+chi2_test<- function(theta.y, theta.z, irt.mle, log = F) {
+
+  # Set up vectors of Q form
+  u <- y_fun(irt.mle, par = "intercept") - theta.y
+  v <- y_fun(irt.mle, par = "slope", log = log) - theta.z
+  uv.cbind <- cbind(u, v)
+  uv.list <- lapply(1:nrow(uv.cbind), function(i) uv.cbind[i,])
+  uv.bdiag <- Matrix::bdiag(uv.list)
+
+  # Set up Sigma matrix of Q form
+  var.y <- var_y(theta.y, irt.mle, par = "intercept")
+  var.theta.y <- 1/sum(1/var.y)
+  var.z <- var_y(theta.z, irt.mle, par = "slope", log = log)
+  var.theta.z <- 1/sum(1/var.z)
+  cov.yz <- cov_yz(theta.y, theta.z, irt.mle, log = log)
+
+  Sigma11 <- var.y - var.theta.y
+  Sigma22 <- var.z - var.theta.z
+  Sigma12 <- cov.yz * (1 - var.theta.y/var.y - var.theta.z/var.z) +
+             sum(var.theta.y/var.y * var.theta.z/var.z * cov.yz)
+
+  Sigma.cbind <- cbind(Sigma11, Sigma12, Sigma12, Sigma22)
+  Sigma.list <- lapply(1:nrow(Sigma.rbind),
+                       function(i) matrix(Sigma.rbind[i,], nrow = 2, ncol = 2))
+  Sigma.bdiag <- Matrix::bdiag(Sigma.list)
+  chi.square <- Matrix::diag(Matrix::t(uv.bdiag) %*% solve(Sigma.bdiag) %*% uv.bdiag)
+  p.val <- 1 - pchisq(chi.square, 2)
+  list(chi.square = chi.square, p.val = p.val)
+}
+
+y.est <- irls(irt.mle, par = "intercept")
+z.est <- irls(irt.mle, par = "slope" , log = F)
+logz.est <- irls(irt.mle, par = "slope" , log = T)
+
+z_test(y.est$theta, irt.mle)
+z_test(z.est$theta, irt.mle, par = "slope", log = F)
+z_test(logz.est$theta, irt.mle, par = "slope", log = T)
+chi2_test(y.est$theta, z.est$theta, irt.mle)
+chi2_test(y.est$theta, logz.est$theta, irt.mle, log = T)
