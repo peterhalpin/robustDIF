@@ -2,18 +2,18 @@
 % Please edit documentation in R/robustDIF_functions.R
 \name{rho}
 \alias{rho}
-\title{The bi-square rho function}
+\title{The bi-square rho function.}
 \usage{
 rho(u, k = 1.96)
 }
 \arguments{
-\item{u}{can be a single value, vector, or matrix}
+\item{u}{Can be a single value, vector, or matrix.}
 
-\item{k}{the tuning parameter of the bi-square}
+\item{k}{The tuning variable. Can be a scalar or the same dimension as \code{u}.}
 }
 \value{
-The bi-square rho function
+The bi-square rho function.
 }
 \description{
-The bi-square rho function
+If abs(u) > k , rho(u) = k^2 / 6. Else, rho(u) =  k^2 / 6 * (1 - (1 - (u/k))^3).
 }

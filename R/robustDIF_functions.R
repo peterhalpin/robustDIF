@@ -257,7 +257,7 @@ bsq_weight <- function(theta, y, var.y, alpha = .05){
   omega <- (var.y - var.theta)/var.y^2
   k <- qnorm(1 - alpha/2, 0, sqrt(omega))
   bsq.cuts <- var.y * k
-  w <- (1 - (r / bsq.cuts)^2)^2
+  w <- (1 - (r / bsq.cuts)^2)^2 * 6 / k^2
   w[abs(r) > bsq.cuts] <- 0
   w
 }
@@ -278,25 +278,24 @@ get_starts <- function(irt.mle, par = "intercept", log = F, alpha = .05){
   var_fun <- function(theta) {var_y(theta, irt.mle, par, log = log)}
 
   # This is combines both choices of reference group for intercepts
-  if (par == "intercept") {
-    y1 <- y
-    irt.mle2 <- irt.mle
-    names(irt.mle2)[1:2] <- names(irt.mle)[2:1]
-    y2 <- -1 * y_fun(irt.mle2)
-
-    s <- median(y/y2)
-    y2 <- s * y2
-
-    # Drop items if y1 - y2 / sd(y) > 1.5
-    var.y1 <- var_y(median(y1), irt.mle)
-    var.y2 <- var_y(median(y2), irt.mle)
-    var.y2 <- s^2*var.y2
-    drops <- abs((y1 - y2) / sqrt(min(var.y1, var.y2))) < 1.5
-    y <- c(y[drops], y2[drops])
-    var_fun <- function(theta) {
-      c(var_y(theta, irt.mle)[drops], s^2 * var_y(theta, irt.mle2)[drops])
-    }
-  }
+  # if (par == "intercept") {
+  #   y1 <- y
+  #   irt.mle2 <- irt.mle
+  #   names(irt.mle2)[1:2] <- names(irt.mle)[2:1]
+  #   y2 <- -1 * y_fun(irt.mle2)
+  #
+  #   s <- median(y1/y2)
+  #   y2 <- s * y2
+  #
+  #   # Drop items if y1 - y2 / sd(y) > 1.5
+  #   var.y1 <- var_y(median(y1), irt.mle)
+  #   var.y2 <- s^2 * var_y(median(y2), irt.mle)
+  #   drops <- abs((y1 - y2) / sqrt(min(var.y1, var.y2))) < 1.5
+  #   y <- c(y1[drops], y2[drops])
+  #   var_fun <- function(theta) {
+  #     c(var_y(theta, irt.mle)[drops], s^2 * var_y(theta, irt.mle2)[drops])
+  #   }
+  # }
 
   # median residual
   s1 <- median(y)
@@ -344,11 +343,11 @@ lts <- function(y, p = .5){
 # -------------------------------------------------------------------
 
 rho <- function(u, k = 1.96) {
-  if (length(k) != length(u)) {k <- k[1] * u / u}
+  if (length(k) != length(u)) {k <- k[1] + u - u}
   w <- (u / k)^2
   out <- k^2 / 6 * (1 - (1 - w)^3)
   out[abs(u) > k] <- k[abs(u) > k]^2 / 6
-  return(out)
+  out / (k^2 / 6) # to deal with different k values
 }
 
 # -------------------------------------------------------------------
@@ -377,14 +376,54 @@ rho_grid <- function(y, var_fun, alpha = .05, grid.width = .05){
   Y <- matrix(y, nrow = n.items, ncol = n.theta)
   Var.Y <- Reduce(cbind, lapply(theta, function(x) var_fun(x)))
   Theta <- matrix(theta, nrow = n.items, ncol = n.theta, byrow = T)
-  Var.Theta <- matrix(1/apply(1/Var.Y, 1, sum),
+  Var.Theta <- matrix(1/apply(1/Var.Y, 2, sum),
                       nrow = n.items, ncol = n.theta, byrow = T)
   Omega <- (Var.Y - Var.Theta) / Var.Y^2
-  U <- Y - Theta / Var.Y
+  U <- (Y - Theta) / Var.Y
   K <-  qnorm(1 - alpha/2, 0, sqrt(Omega))
   R <- apply(rho(U, K), 2, sum)
   # plot(theta, R)
   theta[which.min(R)]
+}
+
+
+# -------------------------------------------------------------------
+#' Computes the bi-square Rho function
+#'
+#'  Plotting the objective function of the minimization problem in theta. Useful for diagnosing local solutions.
+#'
+#' @param theta The IRT scale parameter (mu / sigma for intercepts, sigma or log sigma for slopes).
+#' @param irt.mle The output of \code{robustDIF::get_irt_mle}.
+#' @param par Use scaling function for item intercepts or item slopes? One of \code{c("intercept", "slope")}.
+#' @param log Logical: Use log of scaling function? Only applies if \code{par = "slope"}.
+#' @param alpha The desired false positive rate for flagging items with DIF.
+#' @param grid.width The width of grid points for \code{theta}.
+#'
+#' @return A named list with theta and Rho values, can be passed directly to plot.
+
+# -------------------------------------------------------------------
+
+rho_fun <- function(irt.mle, par = "intercept", log = F, alpha = .05, grid.width = .05){
+
+  y <- y_fun(irt.mle, par, log = log)
+  theta <- seq(from = max(min(y), -1.5), to = min(max(y), 2.5), by = grid.width)
+
+  var_fun <- function(theta) {var_y(theta, irt.mle, par, log = log)}
+  n.items <- length(y)
+  n.theta <- length(theta)
+
+  Y <- matrix(y, nrow = n.items, ncol = n.theta)
+  Var.Y <- Reduce(cbind, lapply(theta, function(x) var_fun(x)))
+  Theta <- matrix(theta, nrow = n.items, ncol = n.theta, byrow = T)
+  Var.Theta <- matrix(1/apply(1/Var.Y, 2, sum),
+                      nrow = n.items, ncol = n.theta, byrow = T)
+  U <- (Y - Theta) / Var.Y
+  Omega <- (Var.Y - Var.Theta) / Var.Y^2
+  K <- qnorm(1 - alpha/2, 0, sqrt(Omega))
+  r1 <- apply(rho(U, K), 2, sum)
+
+  r2 <- apply(rho((Y - Theta) / sqrt(Var.Y), 1.96), 2, sum)
+  list(theta = theta, rho = r)
 }
 
 # -------------------------------------------------------------------
@@ -426,7 +465,7 @@ irls <- function(irt.mle, par = "intercept", log = F, alpha = .05, starting.valu
     conv <- abs(theta - new.theta)
     theta <- new.theta
   }
-  list(theta = new.theta, weights = w, n.iter = nit, epsilon = conv)
+  list(est = new.theta, weights = w/sum(w), n.iter = nit, epsilon = conv)
 }
 
 # -------------------------------------------------------------------
@@ -453,16 +492,17 @@ z_test <- function(theta, irt.mle, par = "intercept", log = F) {
 }
 
 # -------------------------------------------------------------------
-#' Compute the asymptotic covariance of IRT scaling functions for the item intercepts and the item slopes, under the null hypothesis.
+#' R-DIF chi-square test.
 #'
-#' Used to compute the the quadratic form test of item intercepts and slopes.
+#' Simultaneously tests  for DIF in both the item intercept or slopes using a asymptotic chi-square test.
+#'
 #'
 #' @param theta.y The IRT scale parameter for the item intercepts (mu / sigma)
 #' @param theta.z The IRT scale parameter for the item slopes (sigma or log sigma).
 #' @param irt.mle The output of \code{robustDIF::irt_mle}
-#' @param log Logical: Use log of scaling function? Only applies if \code{par = "slope"}.
+#' @param log Logical: Use log of scaling function for item slopes?
 #'
-#' @return A named list with containing the value of the chi.square.test and p(chi.square > chi.square.test), for each item.
+#' @return A named list with containing the value of the chi2.test and p(chi.square > chi2.test), for each item.
 #' @export
 # -------------------------------------------------------------------
 
@@ -491,16 +531,10 @@ chi2_test<- function(theta.y, theta.z, irt.mle, log = F) {
   Sigma.list <- lapply(1:nrow(Sigma.cbind),
                        function(i) matrix(Sigma.cbind[i,], nrow = 2, ncol = 2))
   Sigma.bdiag <- Matrix::bdiag(Sigma.list)
+
+  # Compute test
   chi.square <- Matrix::diag(Matrix::t(uv.bdiag) %*% solve(Sigma.bdiag) %*% uv.bdiag)
   p.val <- 1 - pchisq(chi.square, 2)
   list(chi.square = chi.square, p.val = p.val)
 }
 
-y.est <- irls(irt.mle, par = "intercept")
-z.est <- irls(irt.mle, par = "slope" , log = F)
-
-z_test(y.est$theta, irt.mle)
-z_test(z.est$theta, irt.mle, par = "slope", log = F)
-z_test(logz.est$theta, irt.mle, par = "slope", log = T)
-chi2_test(y.est$theta, z.est$theta, irt.mle)
-chi2_test(y.est$theta, logz.est$theta, irt.mle, log = T)

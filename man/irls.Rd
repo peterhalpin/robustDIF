@@ -4,10 +4,22 @@
 \alias{irls}
 \title{IRLS for an IRT scale parameter using the bi-square function}
 \usage{
-irls(irt.mle, alpha = 0.05, starting.value = "all", tol = 1e-05, maxit = 100)
+irls(
+  irt.mle,
+  par = "intercept",
+  log = F,
+  alpha = 0.05,
+  starting.value = "all",
+  tol = 1e-07,
+  maxit = 100
+)
 }
 \arguments{
 \item{irt.mle}{the output of \code{robustDIF::irt_mle}}
+
+\item{par}{Use scaling function for item intercepts or item slopes? One of \code{c("intercept", "slope")}.}
+
+\item{log}{Logical: Use log of scaling function? Only applies if \code{par = "slope"}.}
 
 \item{alpha}{the desired false positive rate for flagging items with DIF}
 

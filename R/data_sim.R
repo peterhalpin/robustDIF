@@ -5,16 +5,19 @@ require(difR)
 # -------------------------------------------------------------------
 #' Apply bias to a random subset of item intercepts
 #'
-#' @param b0 item difficult (not intercept) in reference group
-#' @param n.biased number of items to bias
-#' @param max.bias maximum amount of bias to apply
-#' @param worst.case logical: apply worst case bias? Default is \code{TRUE}. If set to \code{FALSE}, bias is sampled from \code{runif(max.bias/2, max.bias)}
+#' Applies additive bias (parm + bias) or multiplicative bias (parm + bias*parm) to a vector of item parameters. Use additive for item difficulties (not intercepts) and multiplicative for item slopes.
+#'
+#' @param b0 Vector of item parameters in the reference group
+#' @param n.biased Number of biased items
+#' @param max.bias Maximum amount of bias to apply
+#' @param worst.case Logical: apply worst case bias? Default is \code{TRUE}. If set to \code{FALSE}, bias is sampled from \code{runif(max.bias/2, max.bias)}
+#' @param type String: one of \code{c("add", "mult")}. See comments
 #'
 #' @return A vector of item intercepts, with bias added
 #'
 # -------------------------------------------------------------------
 
-apply_bias <- function(b0, n.biased = 1, max.bias = .5, worst.case = T){
+apply_bias <- function(b0, n.biased = 1, max.bias = .5, worst.case = T, multiplicative = F) {
   n.items <- length(b0)
   biased.items <- sample(n.items, n.biased)
   bias.vector <- 0 * b0
@@ -23,7 +26,9 @@ apply_bias <- function(b0, n.biased = 1, max.bias = .5, worst.case = T){
   } else {
     bias.vector[biased.items] <- runif(n.biased, max.bias/2, max.bias)
   }
-  b0 + bias.vector
+  if (!multiplicative) {out <- b0 + bias.vector}
+  if (multiplicative) {out <- b0 + bias.vector *  b0}
+  return(out)
 }
 
 # -------------------------------------------------------------------
@@ -112,7 +117,7 @@ lasso <- function(dat0, dat1) {
 #'
 # -------------------------------------------------------------------
 
-sim_study <- function(n.reps = 100, n.persons = 500, n.items = 15, n.biased = 0, bias = 0, impact = c(0, 1)){
+sim_study1 <- function(n.reps = 100, n.persons = 500, n.items = 15, n.biased = 0, bias = 0, impact = c(0, 1)){
 
   # Item hyper-parms
   a.lower <- .8
@@ -124,9 +129,8 @@ sim_study <- function(n.reps = 100, n.persons = 500, n.items = 15, n.biased = 0,
 
     # DGP
     a0 <- runif(n.items, a.lower, a.upper)
-    a1 <- apply_bias(a0, n.biased, bias)
     b0 <- sort(runif(n.items, -b.lim, b.lim))
-    b1 <- b0 #apply_bias(b0, n.biased, bias)
+    b1 <- apply_bias(b0, n.biased, bias)
     d0 <- b0*a0
     d1 <- b1*a0
     x0 <- rnorm(n.persons)
@@ -134,45 +138,36 @@ sim_study <- function(n.reps = 100, n.persons = 500, n.items = 15, n.biased = 0,
 
     # Data gen
     dat0 <- simdata(a0, d0, n.persons, '2PL', Theta = matrix(x0))
-    dat1 <- simdata(a1, d1, n.persons, '2PL', Theta = matrix(x1))
+    dat1 <- simdata(a0, d1, n.persons, '2PL', Theta = matrix(x1))
 
     # Fit IRT models
     fit0 <- mirt(dat0, 1, SE = T, SE.type = 'Oakes')
     fit1 <- mirt(dat1, 1, SE = T, SE.type = 'Oakes')
-    irt.mle <- get_irt_mle(list(fit0, fit1))
-    (bsq.sigma.out <- irls(irt.mle, par = "slope", log = T))
-    (bsq.sigma.out <- irls(irt.mle, par = "slope", log = F))
-    a1 != a0
+
     # DIF Procedures
     irt.mle <- get_irt_mle(list(fit0, fit1))
     bsq.theta.out <- irls(irt.mle)
     true.theta.out <- bsq_weight(impact[1], y_fun(irt.mle), var_y(impact[1], irt.mle))
-    bsq.sigma.out <- irls(irt.mle, par = "slope", log = T)
-    true.sigma.out <- bsq_weight(impact[2],
-                                 y_fun(irt.mle, par = "slope", log = log),
-                                 var_y(impact[2], irt.mle, par = "slope", log = log))
-    chi2.test <- chi2_test(bsq.theta.out$theta, bsq.sigma.out$theta, irt.mle, log = log)
-    #lr.out <- lr(dat0, dat1)
-    #mh.out <- mh(dat0, dat1)
-    #lasso.out <- lasso(dat0, dat1)
+    bsq.sigma.out <- irls(irt.mle, par = "slope")
+    chi2.test <- chi2_test(bsq.theta.out$est, bsq.sigma.out$est, irt.mle)
+    lr.out <- lr(dat0, dat1)
+    mh.out <- mh(dat0, dat1)
+    lasso.out <- lasso(dat0, dat1)
 
     # Format output
     dif <- data.frame(a0 = a0,
                       d0 = d0,
-                      dgp.a = a1-a0 != 0,
-                      dgp.d = d1-d0 != 0,
-                      rdif.theta.true = true.theta.out,
-                      rdif.sigma.true = true.sigma.out,
-                      rdif.theta = bsq.theta.out$weights,
-                      rdif.sigma = bsq.sigma.out$weights,
-                      chi2 = chi2.test$p.val < .05
-                      #lr = lr.out$p,
-                      #mh = mh.out$p,
-                      #lasso = lasso.out$dif
+                      dgp = d1-d0 != 0,
+                      rdif.true = true.theta.out,
+                      rdif.flag = bsq.theta.out$weights,
+                      rdif.chi2 = chi2.test$p.val,
+                      lr = lr.out$p,
+                      mh = mh.out$p,
+                      lasso = lasso.out$dif
                       )
 
-    scale <- data.frame(theta = bsq.theta.out$theta,
-                        sigma = bsq.sigma.out$theta
+    scale <- data.frame(theta = bsq.theta.out$est,
+                        sigma = bsq.sigma.out$est
     #                    lr = lr.out$scale.parms[1],
     #                    mh = mh.out$mu,
     #                    lasso = lasso.out$mu
@@ -186,15 +181,14 @@ sim_study <- function(n.reps = 100, n.persons = 500, n.items = 15, n.biased = 0,
 # -------------------------------------------------------------------
 #' Post processing for \code{sim_study} to compute decision errors
 #'
-#' @param ds the DIF table output from  \code{sim_study}
+#' @param dif The DIF table output from  \code{sim_study}
 #' @export
 #' @return A data.frame with false and true positives for each method length
 #'
 # -------------------------------------------------------------------
 
-
-decision_errors <-function(ds){
-  test_names <- c("rdif.true", "rdif", "lr", "mh", "lasso")
+decision_errors <-function(dif){
+  test_names <- c("rdif.theta.true", "rdif.theta", "lr", "mh", "lasso")
   cuts <- c(1e-6, 1e-6, .05, .05, 1e-6)
   decisions <- data.frame(t(t(ds[,test_names]) < cuts))
   decisions$lasso <- decisions$lasso == F

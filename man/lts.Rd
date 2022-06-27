@@ -7,12 +7,12 @@
 lts(y, p = 0.5)
 }
 \arguments{
-\item{y}{a vector of data points}
+\item{y}{A vector of data points.}
 
-\item{p}{is the proportion of data points to trim}
+\item{p}{The proportion of data points to trim.}
 }
 \value{
-The LTS estimate of location
+The LTS estimate of location.
 }
 \description{
 Compute the least trimmed squares (LTS) estimate of location

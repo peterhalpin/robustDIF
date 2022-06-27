@@ -2,18 +2,22 @@
 % Please edit documentation in R/robustDIF_functions.R
 \name{var_y}
 \alias{var_y}
-\title{Computes the variance of asymptotic null distribution of y, for each item}
+\title{Computes the variance of asymptotic null distribution of IRT scaling functions.}
 \usage{
-var_y(theta, irt.mle)
+var_y(theta, irt.mle, par = "intercept", log = F)
 }
 \arguments{
-\item{theta}{IRT scale parameter (mu / sigma)}
+\item{theta}{The IRT scale parameter (mu / sigma for intercepts, sigma or log sigma for slopes).}
 
-\item{irt.mle}{the output of \code{robustDIF::get_irt_mle}}
+\item{irt.mle}{The output of \code{robustDIF::get_irt_mle}.}
+
+\item{par}{Use scaling function for item intercepts or item slopes? One of \code{c("intercept", "slope")}.}
+
+\item{log}{Logical: Use log of scaling function? Only applies if \code{par = "slope"}.}
 }
 \value{
-an n.items-dimensional vector that contains the variance of y for each item
+An n.item-dimensional vector that contains the variance of the IRT scaling function, for each item.
 }
 \description{
-Computes the variance of asymptotic null distribution of y, for each item
+Computes the variance of asymptotic null distribution of IRT scaling functions.
 }
