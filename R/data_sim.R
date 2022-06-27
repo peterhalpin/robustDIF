@@ -124,8 +124,9 @@ sim_study <- function(n.reps = 100, n.persons = 500, n.items = 15, n.biased = 0,
 
     # DGP
     a0 <- runif(n.items, a.lower, a.upper)
+    a1 <- apply_bias(a0, n.biased, bias)
     b0 <- sort(runif(n.items, -b.lim, b.lim))
-    b1 <- apply_bias(b0, n.biased, bias)
+    b1 <- b0 #apply_bias(b0, n.biased, bias)
     d0 <- b0*a0
     d1 <- b1*a0
     x0 <- rnorm(n.persons)
@@ -133,38 +134,51 @@ sim_study <- function(n.reps = 100, n.persons = 500, n.items = 15, n.biased = 0,
 
     # Data gen
     dat0 <- simdata(a0, d0, n.persons, '2PL', Theta = matrix(x0))
-    dat1 <- simdata(a0, d1, n.persons, '2PL', Theta = matrix(x1))
+    dat1 <- simdata(a1, d1, n.persons, '2PL', Theta = matrix(x1))
 
     # Fit IRT models
     fit0 <- mirt(dat0, 1, SE = T, SE.type = 'Oakes')
     fit1 <- mirt(dat1, 1, SE = T, SE.type = 'Oakes')
-
+    irt.mle <- get_irt_mle(list(fit0, fit1))
+    (bsq.sigma.out <- irls(irt.mle, par = "slope", log = T))
+    (bsq.sigma.out <- irls(irt.mle, par = "slope", log = F))
+    a1 != a0
     # DIF Procedures
     irt.mle <- get_irt_mle(list(fit0, fit1))
-    (bsq.out <- irls(irt.mle))
-    true.out <- bsq_weight(impact[1], y_fun(irt.mle), var_y(impact[1], irt.mle))
-    lr.out <- lr(dat0, dat1)
-    mh.out <- mh(dat0, dat1)
-    lasso.out <- lasso(dat0, dat1)
+    bsq.theta.out <- irls(irt.mle)
+    true.theta.out <- bsq_weight(impact[1], y_fun(irt.mle), var_y(impact[1], irt.mle))
+    bsq.sigma.out <- irls(irt.mle, par = "slope", log = T)
+    true.sigma.out <- bsq_weight(impact[2],
+                                 y_fun(irt.mle, par = "slope", log = log),
+                                 var_y(impact[2], irt.mle, par = "slope", log = log))
+    chi2.test <- chi2_test(bsq.theta.out$theta, bsq.sigma.out$theta, irt.mle, log = log)
+    #lr.out <- lr(dat0, dat1)
+    #mh.out <- mh(dat0, dat1)
+    #lasso.out <- lasso(dat0, dat1)
 
     # Format output
     dif <- data.frame(a0 = a0,
                       d0 = d0,
-                      dgp = d1-d0 != 0,
-                      rdif.true = true.out,
-                      rdif = bsq.out$weights,
-                      lr = lr.out$p,
-                      mh = mh.out$p,
-                      lasso = lasso.out$dif
+                      dgp.a = a1-a0 != 0,
+                      dgp.d = d1-d0 != 0,
+                      rdif.theta.true = true.theta.out,
+                      rdif.sigma.true = true.sigma.out,
+                      rdif.theta = bsq.theta.out$weights,
+                      rdif.sigma = bsq.sigma.out$weights,
+                      chi2 = chi2.test$p.val < .05
+                      #lr = lr.out$p,
+                      #mh = mh.out$p,
+                      #lasso = lasso.out$dif
                       )
 
-    scale <- data.frame(bsq = bsq.out$theta,
-                        lr = lr.out$scale.parms[1],
-                        mh = mh.out$mu,
-                        lasso = lasso.out$mu
+    scale <- data.frame(theta = bsq.theta.out$theta,
+                        sigma = bsq.sigma.out$theta
+    #                    lr = lr.out$scale.parms[1],
+    #                    mh = mh.out$mu,
+    #                    lasso = lasso.out$mu
                         )
 
-    list(dif = dif, scale = scale, irt.mle = irt.mle)
+    list(dif = dif, scale = scale) #, irt.mle = irt.mle)
   }
   parallel::mclapply(1:n.reps, loop)
 }

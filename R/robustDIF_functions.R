@@ -274,8 +274,8 @@ bsq_weight <- function(theta, y, var.y, alpha = .05){
 
 get_starts <- function(irt.mle, par = "intercept", log = F, alpha = .05){
 
-  y <- y_fun(irt.mle, par, log)
-  var_fun <- function(theta) {var_y(theta, irt.mle, par, log = F)}
+  y <- y_fun(irt.mle, par, log = log)
+  var_fun <- function(theta) {var_y(theta, irt.mle, par, log = log)}
 
   # This is combines both choices of reference group for intercepts
   if (par == "intercept") {
@@ -402,7 +402,7 @@ rho_grid <- function(y, var_fun, alpha = .05, grid.width = .05){
 #' @export
 # -------------------------------------------------------------------
 
-irls <- function(irt.mle, par = "intercept", log = F, alpha = .05, starting.value = "all", tol = 1e-5, maxit = 100){
+irls <- function(irt.mle, par = "intercept", log = F, alpha = .05, starting.value = "all", tol = 1e-7, maxit = 100){
   nit <- 0
   conv <- 1
 
@@ -488,8 +488,8 @@ chi2_test<- function(theta.y, theta.z, irt.mle, log = F) {
              sum(var.theta.y/var.y * var.theta.z/var.z * cov.yz)
 
   Sigma.cbind <- cbind(Sigma11, Sigma12, Sigma12, Sigma22)
-  Sigma.list <- lapply(1:nrow(Sigma.rbind),
-                       function(i) matrix(Sigma.rbind[i,], nrow = 2, ncol = 2))
+  Sigma.list <- lapply(1:nrow(Sigma.cbind),
+                       function(i) matrix(Sigma.cbind[i,], nrow = 2, ncol = 2))
   Sigma.bdiag <- Matrix::bdiag(Sigma.list)
   chi.square <- Matrix::diag(Matrix::t(uv.bdiag) %*% solve(Sigma.bdiag) %*% uv.bdiag)
   p.val <- 1 - pchisq(chi.square, 2)
@@ -498,7 +498,6 @@ chi2_test<- function(theta.y, theta.z, irt.mle, log = F) {
 
 y.est <- irls(irt.mle, par = "intercept")
 z.est <- irls(irt.mle, par = "slope" , log = F)
-logz.est <- irls(irt.mle, par = "slope" , log = T)
 
 z_test(y.est$theta, irt.mle)
 z_test(z.est$theta, irt.mle, par = "slope", log = F)
