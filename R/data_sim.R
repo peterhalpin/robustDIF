@@ -92,16 +92,17 @@ lasso <- function(dat0, dat1) {
   mod <- as.formula(paste("cbind(",
                     paste(colnames(dat.g)[1:n.items],collapse=","),") ~ group"))
   gpcm <- GPCMlasso(mod, dat.g, model = "2PL",
-                    control = ctrl_GPCMlasso(l.lambda = 20,
-                                             adaptive = T,
+                    control = ctrl_GPCMlasso(l.lambda = 25,
+                                             #adaptive = T,
                                              steptol = 1e-4,
                                              gradtol = 1e-4,
                                              iterlim = 50))
-  mu <- coef(gpcm)[which.min(gpcm$BIC), ][(n.items+1)]
-  dif <- abs(coef(gpcm)[which.min(gpcm$BIC), ][(n.items+2):(2*n.items+1)])
+
+  solution.index <- which.min(gpcm$BIC)
+  mu <- coef(gpcm)[solution.index, ][(n.items+1)]
+  dif <- abs(coef(gpcm)[solution.index, ][(n.items+2):(2*n.items+1)])
   list(dif = dif, mu = mu)
 }
-
 
 # -------------------------------------------------------------------
 #' Runs a simulation study comparing R-DIF, the likelihood ratio test, the Mantel-Haenszel test, and the output of GPMClasso
@@ -120,8 +121,8 @@ lasso <- function(dat0, dat1) {
 sim_study1 <- function(n.reps = 100, n.persons = 500, n.items = 15, n.biased = 0, bias = 0, impact = c(0, 1)){
 
   # Item hyper-parms
-  a.lower <- .8
-  a.upper <- 2
+  a.lower <- .9
+  a.upper <- 2.5
   b.lim <- 1.5
 
   # Sim loop for parallelization via mclapply
@@ -187,9 +188,10 @@ sim_study1 <- function(n.reps = 100, n.persons = 500, n.items = 15, n.biased = 0
 #'
 # -------------------------------------------------------------------
 
-decision_errors <-function(dif){
-  test_names <- c("rdif.theta.true", "rdif.theta", "lr", "mh", "lasso")
-  cuts <- c(1e-6, 1e-6, .05, .05, 1e-6)
+decision_errors <-function(ds){
+  test_names <- c("rdif.true", "rdif.flag", "rdif.chi2", "lr", "mh", "lasso")
+  #cuts <- c(1e-6, 1e-6, .05)
+  cuts <- c(1e-6, 1e-6, .05, .05, .05, 1e-6)
   decisions <- data.frame(t(t(ds[,test_names]) < cuts))
   decisions$lasso <- decisions$lasso == F
   tp <- apply(decisions[ds$dgp == T, ], 2, mean)

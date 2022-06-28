@@ -257,7 +257,7 @@ bsq_weight <- function(theta, y, var.y, alpha = .05){
   omega <- (var.y - var.theta)/var.y^2
   k <- qnorm(1 - alpha/2, 0, sqrt(omega))
   bsq.cuts <- var.y * k
-  w <- (1 - (r / bsq.cuts)^2)^2 * 6 / k^2
+  w <- (1 - (r / bsq.cuts)^2)^2 / k^2
   w[abs(r) > bsq.cuts] <- 0
   w
 }
@@ -277,25 +277,25 @@ get_starts <- function(irt.mle, par = "intercept", log = F, alpha = .05){
   y <- y_fun(irt.mle, par, log = log)
   var_fun <- function(theta) {var_y(theta, irt.mle, par, log = log)}
 
-  # This is combines both choices of reference group for intercepts
-  # if (par == "intercept") {
-  #   y1 <- y
-  #   irt.mle2 <- irt.mle
-  #   names(irt.mle2)[1:2] <- names(irt.mle)[2:1]
-  #   y2 <- -1 * y_fun(irt.mle2)
-  #
-  #   s <- median(y1/y2)
-  #   y2 <- s * y2
-  #
-  #   # Drop items if y1 - y2 / sd(y) > 1.5
-  #   var.y1 <- var_y(median(y1), irt.mle)
-  #   var.y2 <- s^2 * var_y(median(y2), irt.mle)
-  #   drops <- abs((y1 - y2) / sqrt(min(var.y1, var.y2))) < 1.5
-  #   y <- c(y1[drops], y2[drops])
-  #   var_fun <- function(theta) {
-  #     c(var_y(theta, irt.mle)[drops], s^2 * var_y(theta, irt.mle2)[drops])
-  #   }
-  # }
+  #This is combines both choices of reference group for intercepts
+  if (par == "intercept") {
+    y1 <- y
+    irt.mle2 <- irt.mle
+    names(irt.mle2)[1:2] <- names(irt.mle)[2:1]
+    y2 <- -1 * y_fun(irt.mle2)
+
+    s <- median(y1/y2)
+    y2 <- s * y2
+
+    # Drop items if y1 - y2 / sd(y) > 1.5
+    var.y1 <- var_y(median(y1), irt.mle)
+    var.y2 <- s^2 * var_y(median(y2), irt.mle)
+    drops <- abs((y1 - y2) / sqrt(min(var.y1, var.y2))) < 1.5
+    y <- c(y1[drops], y2[drops])
+    var_fun <- function(theta) {
+      c(var_y(theta, irt.mle)[drops], s^2 * var_y(theta, irt.mle2)[drops])
+    }
+  }
 
   # median residual
   s1 <- median(y)
@@ -334,7 +334,7 @@ lts <- function(y, p = .5){
 # -------------------------------------------------------------------
 #' The bi-square rho function.
 #'
-#' If abs(u) > k , rho(u) = k^2 / 6. Else, rho(u) =  k^2 / 6 * (1 - (1 - (u/k))^3).
+#' If abs(u) > k , rho(u) = 1. Else, rho(u) = (1 - (1 - (u/k))^3).
 #'
 #' @param u Can be a single value, vector, or matrix.
 #' @param k The tuning variable. Can be a scalar or the same dimension as \code{u}.
@@ -345,9 +345,9 @@ lts <- function(y, p = .5){
 rho <- function(u, k = 1.96) {
   if (length(k) != length(u)) {k <- k[1] + u - u}
   w <- (u / k)^2
-  out <- k^2 / 6 * (1 - (1 - w)^3)
-  out[abs(u) > k] <- k[abs(u) > k]^2 / 6
-  out / (k^2 / 6) # to deal with different k values
+  out <- 1 - (1 - w)^3
+  out[abs(u) > k] <- 1
+  out
 }
 
 # -------------------------------------------------------------------
