@@ -72,25 +72,25 @@ ds8 <- sim_study1(n.reps, n.persons, n.items, n.biased = 8, bias, impact)
 
 sim.study2 <- list(ds0=ds0, ds1=ds1, ds2=ds2, ds3=ds3, ds4=ds4, ds5=ds5, ds6=ds6, ds7=ds7, ds8=ds8)
 
-sim.study2.path <- "~/Dropbox/Academic/Manuscripts/DIF_via_scaling/data_analyses/sim1.june28.2022.RData"
-save(sim.study2, file = sim.study2.path)
-
-load(file = sim.study2.path)
-
+# sim.study2.path <- "~/Dropbox/Academic/Manuscripts/DIF_via_scaling/data_analyses/sim1.june28.2022.RData"
+# save(sim.study2, file = sim.study2.path)
+# load(file = sim.study2.path)
 # Pullng everything out...sheesh
-temp.dif <- lapply(sim.study1, function(x) {lapply(x, function(y) y$dif)})
+
+temp.dif <- lapply(sim.study2, function(x) {lapply(x, function(y) y$dif)})
 ds.dif <- Reduce(rbind, lapply(temp.dif, function(x) decision_errors(Reduce(rbind, x))))
 ds.dif$n.biased <- as.factor(rep(0:8, each = 6))
 ds.dif.long <- ds.dif %>% tidyr::gather("fp", "tp", key = decision, value = Value)
 
-temp.scale <- lapply(ds, function(x) {lapply(x, function(y) y$scale)})
+temp.scale <- lapply(sim.study2, function(x) {lapply(x, function(y) y$scale)})
 ds.scale <-  Reduce(rbind, lapply(temp.scale, function(x) Reduce(rbind, x)))
 ds.scale$n.biased <- as.factor(rep(0:8, each = n.reps))
-ds.scale.long <- ds.scale %>% gather("bsq", "lr", "mh", "lasso", key = Method, value = Value)
 
 ### Plots
 
 # Error rates
+library(ggplot2)
+ds.dif.long <- ds.dif.long[ds.dif.long$method != "rdif.chi2", ]
 ds.dif.long$method <- ordered(ds.dif.long$method, unique(ds.dif.long$method))
 ds.dif.long$decision[ds.dif.long$decision == "fp"] <- "False positive rate"
 ds.dif.long$decision[ds.dif.long$decision == "tp"] <- "True positive rate"
@@ -102,34 +102,21 @@ p1 <- ggplot(ds.dif.long, aes(y = Value, x = n.biased, group = Method)) +
             geom_hline(yintercept = .05, col = 'grey65', linetype = 2) +
             ylab("Value") +
             xlab("Number of biased items (out of 15)") +
-            theme(text = element_text(size=15)) +
+            theme(text = element_text(size=20)) +
             scale_colour_brewer(palette = "Paired")
 p1 + facet_wrap(~ decision, nrow = 2)
 
-# Scale bias
-my_colors <- RColorBrewer::brewer.pal(5, "Paired")[2:5]
-ds.scale.long$Method <- ordered(ds.scale.long$Method, unique(ds.scale.long$Method))
-ggplot(ds.scale.long, aes(y = Value, x = n.biased)) +
-            geom_boxplot(aes(fill = Method)) +
-            geom_hline(yintercept = .5, col = 1, linetype = 2) +
-            ylab("IRT scale (mu)") +
-            xlab("Number of biased items (out of 15)") +
-            theme(text = element_text(size=15)) +
-            scale_fill_manual(values = my_colors,
-                              labels = c("bsq", "lr", "mh", "lasso"))
-
-
 # Scale distribution
-facet.labels <- paste0("N.biased = ", 0:8,  " out of 15")
+facet.labels <- paste0("N.DIF: ", 0:8,  " out of 15")
 facet_labeller <- function(variable, value){
   return(facet.labels[value])
 }
 
-p2 <- ggplot(ds.scale.long[ds.scale.long$Method == "bsq", ], aes(x = Value)) +
-            geom_histogram(col = "white", fill = my_colors[1]) +
+p2 <- ggplot(ds.scale, aes(x = theta)) +
+            geom_histogram(col = "white", fill = 'grey65') +
             ylab("Count") +
-            xlab("IRT scale (mu)") +
-            theme(text = element_text(size=15))
+            xlab("R-DIF estimate of the IRT scale parameter") +
+            theme(text = element_text(size=20))
 p2 + facet_wrap(~ n.biased, nrow = 3, labeller = facet_labeller)
 
 
