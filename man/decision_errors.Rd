@@ -7,7 +7,7 @@
 decision_errors(ds)
 }
 \arguments{
-\item{ds}{the DIF table output from  \code{sim_study}}
+\item{dif}{The DIF table output from  \code{sim_study}}
 }
 \value{
 A data.frame with false and true positives for each method length

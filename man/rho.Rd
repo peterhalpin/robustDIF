@@ -15,5 +15,5 @@ rho(u, k = 1.96)
 The bi-square rho function.
 }
 \description{
-If abs(u) > k , rho(u) = k^2 / 6. Else, rho(u) =  k^2 / 6 * (1 - (1 - (u/k))^3).
+If abs(u) > k , rho(u) = 1. Else, rho(u) = (1 - (1 - (u/k))^3).
 }

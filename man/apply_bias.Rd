@@ -4,20 +4,28 @@
 \alias{apply_bias}
 \title{Apply bias to a random subset of item intercepts}
 \usage{
-apply_bias(b0, n.biased = 1, max.bias = 0.5, worst.case = T)
+apply_bias(
+  b0,
+  n.biased = 1,
+  max.bias = 0.5,
+  worst.case = T,
+  multiplicative = F
+)
 }
 \arguments{
-\item{b0}{item difficult (not intercept) in reference group}
+\item{b0}{Vector of item parameters in the reference group}
 
-\item{n.biased}{number of items to bias}
+\item{n.biased}{Number of biased items}
 
-\item{max.bias}{maximum amount of bias to apply}
+\item{max.bias}{Maximum amount of bias to apply}
 
-\item{worst.case}{logical: apply worst case bias? Default is \code{TRUE}. If set to \code{FALSE}, bias is sampled from \code{runif(max.bias/2, max.bias)}}
+\item{worst.case}{Logical: apply worst case bias? Default is \code{TRUE}. If set to \code{FALSE}, bias is sampled from \code{runif(max.bias/2, max.bias)}}
+
+\item{type}{String: one of \code{c("add", "mult")}. See comments}
 }
 \value{
 A vector of item intercepts, with bias added
 }
 \description{
-Apply bias to a random subset of item intercepts
+Applies additive bias (parm + bias) or multiplicative bias (parm + bias*parm) to a vector of item parameters. Use additive for item difficulties (not intercepts) and multiplicative for item slopes.
 }
