@@ -32,29 +32,53 @@ apply_bias <- function(b0, n.biased = 1, max.bias = .5, worst.case = T, multipli
 }
 
 # -------------------------------------------------------------------
-#' Wrapper for mirt's implementation of the likelihood ratio (LR) test of DIF
+#' Wrapper for mirt's implementation of the likelihood ratio (LR) test of DIF for item intercept only
 #'
 #' @param dat0 item response data for reference group
 #' @param dat1 item response data for comparison group
-#' @param parms which parameters to tests for DIF
 #'
 #' @return A named list with p values from the LR test and the scale parameters estimated in the model that assumes invariance
 # -------------------------------------------------------------------
 
-lr <- function(dat0, dat1, parms = c("d")){
+lr_intercept <- function(dat0, dat1){
   dat <- rbind(dat0, dat1)
   group <- c(rep("0", nrow(dat0)), rep("1", nrow(dat1)))
   mg.mod <- multipleGroup(dat,
               model = 1,
               group = group,
-              invariance = c("intercepts",  "free_means"))
-  lr.test <- DIF(mg.mod, which.par = parms, scheme = "drop", Wald = F)
+              invariance = c("intercepts", "free_means"))
+  lr.test <- DIF(mg.mod, which.par = "d", scheme = "drop", Wald = F)
 
   #p2 <- DIF(mg.mod, which.par = parms, scheme = "drop_sequential",
   #          seq_stat = .05, max_run = 2, p.adjust = "BH", Wald = F)
 
   list(p = lr.test$p, scale.parms = coef(mg.mod)$`1`$GroupPars)
 }
+
+# -------------------------------------------------------------------
+#' Wrapper for mirt's implementation of the likelihood ratio (LR) test of DIF for item slopes and intercepts.
+#'
+#' @param dat0 item response data for reference group
+#' @param dat1 item response data for comparison group
+#'
+#' @return A named list with p values from the LR test and the scale parameters estimated in the model that assumes invariance
+# -------------------------------------------------------------------
+
+lr <- function(dat0, dat1){
+  dat <- rbind(dat0, dat1)
+  group <- c(rep("0", nrow(dat0)), rep("1", nrow(dat1)))
+  mg.mod <- multipleGroup(dat,
+              model = 1,
+              group = group,
+              invariance = c("intercepts", "slopes", "free_means", "free_vars"))
+  lr.test <- DIF(mg.mod, which.par = c("a1", "d"), scheme = "drop", Wald = F)
+
+  #p2 <- DIF(mg.mod, which.par = parms, scheme = "drop_sequential",
+  #          seq_stat = .05, max_run = 2, p.adjust = "BH", Wald = F)
+
+  list(p = lr.test$p, scale.parms = coef(mg.mod)$`1`$GroupPars)
+}
+
 
 # -------------------------------------------------------------------
 #' Wrapper for difR's implementation of the Mantel-Haenszel test of (uniform) DIF
@@ -105,7 +129,7 @@ lasso <- function(dat0, dat1) {
 }
 
 # -------------------------------------------------------------------
-#' Runs a simulation study comparing R-DIF, the likelihood ratio test, the Mantel-Haenszel test, and the output of GPMClasso
+#' Runs a simulation study comparing R-DIF, the likelihood ratio test, the Mantel-Haenszel test, and  GPMClasso
 #'
 #' @param n.reps number of replications
 #' @param n.persons number of respondents per group
@@ -151,7 +175,7 @@ sim_study1 <- function(n.reps = 100, n.persons = 500, n.items = 15, n.biased = 0
     true.theta.out <- bsq_weight(impact[1], y_fun(irt.mle), var_y(impact[1], irt.mle))
     bsq.sigma.out <- irls(irt.mle, par = "slope")
     chi2.test <- chi2_test(bsq.theta.out$est, bsq.sigma.out$est, irt.mle)
-    lr.out <- lr(dat0, dat1)
+    lr.out <- lr_intercept(dat0, dat1)
     mh.out <- mh(dat0, dat1)
     lasso.out <- lasso(dat0, dat1)
 
@@ -179,21 +203,134 @@ sim_study1 <- function(n.reps = 100, n.persons = 500, n.items = 15, n.biased = 0
   parallel::mclapply(1:n.reps, loop)
 }
 
+
 # -------------------------------------------------------------------
-#' Post processing for \code{sim_study} to compute decision errors
+#' Runs a simulation study comparing R-DIF and the likelihood ratio test
 #'
-#' @param dif The DIF table output from  \code{sim_study}
+#' @param n.reps number of replications
+#' @param n.persons number of respondents per group
+#' @param n.item number of items
+#' @param n.biased number of items with DIF on item intercepts
+#' @param bias magnitude of bias (the same for all items with bias)
+#' @param impact the mean and variance of the latent trait in the reference groups
 #' @export
+#' @return A n.reps length list, where each element is a list containing (a) a data.frame with the output of the DIF procedures, and (b) a vector with estimates of impact from the procedures.
+#'
+# -------------------------------------------------------------------
+
+sim_study2 <- function(n.reps = 100, n.persons = 500, n.items = 15, bias = c(.5, 1)){
+
+  # Item hyper-parms
+  a.lower <- .9
+  a.upper <- 2.5
+  b.lim <- 1.5
+  mu.lim <- .5
+  sigma.lower <- sqrt(.5)
+  sigma.upper <- sqrt(2)
+
+  # Sim loop for parallelization via mclapply
+  loop <- function(i){
+
+    # DGP
+    mu <- runif(1, -mu.lim, mu.lim)
+    sigma <- runif(1, sigma.lower, sigma.upper)
+    theta <- mu/sigma
+    biased.item <- sample(n.items, 1)
+
+    # Bias on slope is proportional
+    a0 <- a1 <- runif(n.items, a.lower, a.upper)
+    a1[biased.item] <-  a1[biased.item] +  bias[2] * a1[biased.item]
+
+    # Bias on intercept is additive; make y_intercept = bias[1] even if bias[2] != 0 ?
+    b0 <- b1 <- sort(runif(n.items, -b.lim, b.lim))
+    b1[biased.item] <-  b1[biased.item] + bias[1] #+ bias[2] * bias[1]
+
+    d0 <- a0*b0
+    d1 <- a1*b1
+    # (d1 - d0) / a1
+
+    x0 <- rnorm(n.persons)
+    x1 <- sigma * rnorm(n.persons) + mu
+
+    # Data gen
+    dat0 <- simdata(a0, d0, n.persons, '2PL', Theta = matrix(x0))
+    dat1 <- simdata(a1, d1, n.persons, '2PL', Theta = matrix(x1))
+
+    # Fit IRT models
+    fit0 <- mirt(dat0, 1, SE = T, SE.type = 'Oakes')
+    fit1 <- mirt(dat1, 1, SE = T, SE.type = 'Oakes')
+
+    # DIF Procedures
+    irt.mle <- get_irt_mle(list(fit0, fit1))
+
+    # par(mfrow = c(1,2))
+    # rho.theta <- rho_fun(irt.mle)
+    # plot(rho.theta$theta, rho.theta$rho)
+    #
+    # rho.sigma <- rho_fun(irt.mle, par = "slope")
+    # plot(rho.sigma$theta, rho.sigma$rho)
+
+    true.theta.out <- bsq_weight(theta, y_fun(irt.mle),
+                                 var_y(theta, irt.mle))
+    rdif.theta.out <- irls(irt.mle)
+    z.test.theta <- z_test(rdif.theta.out$est, irt.mle)
+
+    true.sigma.out <- bsq_weight(sigma, y_fun(irt.mle, par = "slope"),
+                                 var_y(sigma, irt.mle, par = "slope"))
+    rdif.sigma.out <- irls(irt.mle, par = "slope")
+    z.test.sigma <- z_test(rdif.sigma.out$est, irt.mle , par = "slope")
+
+    chi2 <- chi2_test(rdif.theta.out$est, rdif.sigma.out$est, irt.mle)
+    chi2.true <- chi2_test(theta, sigma, irt.mle)
+
+
+    #lr.out <- lr(dat0, dat1)
+
+    # Format output
+    dif <- data.frame(a0 = a0,
+                      d0 = d0,
+                      dgp = d1-d0 != 0,
+                      theta.true = true.theta.out,
+                      theta.flag = rdif.theta.out$weights,
+                      theta.test = z.test.theta$p.val,
+                      sigma.true = true.theta.out,
+                      sigma.flag = rdif.sigma.out$weights,
+                      sigma.test = z.test.sigma$p.val,
+                      rdif.chi2.true = chi2.true$p.val,
+                      rdif.chi2 = chi2$p.val
+                      # lr = lr.out$p
+                      )
+
+    scale <- data.frame(theta = theta,
+                        sigma = sigma,
+                        rdif.theta = rdif.theta.out$est,
+                        rdif.sigma = rdif.sigma.out$est
+    #                    lr = lr.out$scale.parms[1],
+    #                    mh = mh.out$mu,
+    #                    lasso = lasso.out$mu
+                        )
+
+    list(dif = dif, scale = scale) #, irt.mle = irt.mle)
+  }
+  parallel::mclapply(1:n.reps, loop)
+}
+
+# -------------------------------------------------------------------
+#' Post processing for sim studies, to compute decision errors
+#'
+#' @param dif The DIF table output from one for the \code{robustDiF} simulation study functions.
+#' @param test.names The col.names \code{dif} that correspond to DIF method.
+#' @param cut.offs  Values used to make a decision about each DIF method in \code{test.names}. Can a single value or a vector of same length as \code{test.names}.
+#'
 #' @return A data.frame with false and true positives for each method length
 #'
 # -------------------------------------------------------------------
 
-decision_errors <-function(ds){
-  test_names <- c("rdif.true", "rdif.flag", "rdif.chi2", "lr", "mh", "lasso")
-  #cuts <- c(1e-6, 1e-6, .05)
-  cuts <- c(1e-6, 1e-6, .05, .05, .05, 1e-6)
-  decisions <- data.frame(t(t(ds[,test_names]) < cuts))
-  decisions$lasso <- decisions$lasso == F
+decision_errors <-function(ds, test.names, cut.offs){
+  decisions <- data.frame(t(t(ds[,test.names]) < cut.offs))
+  if(length(grep("lasso", test.names)) > 0) {
+    decisions$lasso <- decisions$lasso == F
+  }
   tp <- apply(decisions[ds$dgp == T, ], 2, mean)
   fp <- apply(decisions[ds$dgp == F, ], 2, mean)
   out <- data.frame(cbind(fp, tp))

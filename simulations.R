@@ -1,84 +1,65 @@
-# Sim study 1 June 27 - 28, 2022
+# Sim study 2 June 30, 2022
 
-n.reps = 500
-n.persons = 500
-n.items = 15
-bias = .5
-n.biased = 7
-impact = c(.5,1)
+ds1  <- sim_study2(n.reps, 500, n.items, bias = c(.5, 0))
+ds2  <- sim_study2(n.reps, 500, n.items, bias = c(.5, 1))
+ds3  <- sim_study2(n.reps, 500, n.items, bias = c(.5, -.5))
 
-
-  # Sim loop for parallelization via mclapply
-#   loop <- function(i){
-#
-#     # DGP
-#     a0 <- runif(n.items, a.lower, a.upper)
-#     b0 <- sort(runif(n.items, -b.lim, b.lim))
-#     b1 <- apply_bias(b0, n.biased, bias)
-#     d0 <- b0*a0
-#     d1 <- b1*a0
-#     x0 <- rnorm(n.persons)
-#     x1 <- impact[2]*rnorm(n.persons) + impact[1]
-#
-#     # Data gen
-#     dat0 <- simdata(a0, d0, n.persons, '2PL', Theta = matrix(x0))
-#     dat1 <- simdata(a0, d1, n.persons, '2PL', Theta = matrix(x1))
-#
-#     # Fit IRT models
-#     fit0 <- mirt(dat0, 1, SE = T, SE.type = 'Oakes')
-#     fit1 <- mirt(dat1, 1, SE = T, SE.type = 'Oakes')
-#
-#     # DIF Procedures
-#     irt.mle <- get_irt_mle(list(fit0, fit1))
-#     bsq.theta.out <- irls(irt.mle)
-#     true.theta.out <- bsq_weight(impact[1], y_fun(irt.mle), var_y(impact[1], irt.mle))
-#     bsq.sigma.out <- irls(irt.mle, par = "slope")
-#     chi2.test <- chi2_test(bsq.theta.out$est, bsq.sigma.out$est, irt.mle)
-#     #lr.out <- lr(dat0, dat1)
-#     #mh.out <- mh(dat0, dat1)
-#     #lasso.out <- lasso(dat0, dat1)
-#
-#     # Format output
-#     dif <- data.frame(a0 = a0,
-#                       d0 = d0,
-#                       dgp = d1-d0 != 0,
-#                       rdif.true = true.theta.out,
-#                       rdif.flag = bsq.theta.out$weights,
-#                       rdif.chi2 = chi2.test$p.val
-#                       #lr = lr.out$p,
-#                       #mh = mh.out$p,
-#                       #lasso = lasso.out$dif > 0
-#                       )
-#
-#     scale <- data.frame(theta = bsq.theta.out$est,
-#                         sigma = bsq.sigma.out$est
-#     #                    lr = lr.out$scale.parms[1],
-#     #                    mh = mh.out$mu,
-#     #                    lasso = lasso.out$mu
-#                         )
-#
-#     list(dif = dif, scale = scale)
-# }
-
-ds0 <- sim_study1(n.reps, n.persons, n.items, n.biased = 0, bias, impact)
-ds1 <- sim_study1(n.reps, n.persons, n.items, n.biased = 1, bias, impact)
-ds2 <- sim_study1(n.reps, n.persons, n.items, n.biased = 2, bias, impact)
-ds3 <- sim_study1(n.reps, n.persons, n.items, n.biased = 3, bias, impact)
-ds4 <- sim_study1(n.reps, n.persons, n.items, n.biased = 4, bias, impact)
-ds5 <- sim_study1(n.reps, n.persons, n.items, n.biased = 5, bias, impact)
-ds6 <- sim_study1(n.reps, n.persons, n.items, n.biased = 6, bias, impact)
-ds7 <- sim_study1(n.reps, n.persons, n.items, n.biased = 7, bias, impact)
-ds8 <- sim_study1(n.reps, n.persons, n.items, n.biased = 8, bias, impact)
-
-sim.study2 <- list(ds0=ds0, ds1=ds1, ds2=ds2, ds3=ds3, ds4=ds4, ds5=ds5, ds6=ds6, ds7=ds7, ds8=ds8)
+ds <- list(ds1 = ds1, ds2 = ds2, ds3 = ds3)
+ds.1
 
 # sim.study2.path <- "~/Dropbox/Academic/Manuscripts/DIF_via_scaling/data_analyses/sim1.june28.2022.RData"
 # save(sim.study2, file = sim.study2.path)
 # load(file = sim.study2.path)
 # Pullng everything out...sheesh
 
-temp.dif <- lapply(sim.study2, function(x) {lapply(x, function(y) y$dif)})
-ds.dif <- Reduce(rbind, lapply(temp.dif, function(x) decision_errors(Reduce(rbind, x))))
+test.names <- names(ds[[1]][[1]]$dif)[-c(1:3)] #,lr")
+cut.offs <- c(1e-6, 1e-6, .05, 1e-6, 1e-6, .05, .05, .05)
+
+de <- function(x){
+  decision_errors(x, test.names, cut.offs)
+}
+
+# not trying to correct effect sizes
+temp.dif <- lapply(ds, function(x) {lapply(x, function(y) y$dif)})
+Reduce(rbind, lapply(temp.dif, function(x) de(Reduce(rbind, x))))
+
+# large / large
+ds.ll200  <- sim_study2(n.reps, 200, n.items, bias = c(.5, 1))
+ds.ll350  <- sim_study2(n.reps, 350, n.items, bias = c(.5, 1))
+ds.ll500  <- sim_study2(n.reps, 500, n.items, bias = c(.5, 1))
+
+# large / small
+ds.ls200  <- sim_study2(n.reps, 200, n.items, bias = c(.5, .5))
+ds.ls350  <- sim_study2(n.reps, 350, n.items, bias = c(.5, .5))
+ds.ls500  <- sim_study2(n.reps, 500, n.items, bias = c(.5, .5))
+
+# small / large
+ds.sl200  <- sim_study2(n.reps, 200, n.items, bias = c(.25, 1))
+ds.sl350  <- sim_study2(n.reps, 350, n.items, bias = c(.25, 1))
+ds.sl500  <- sim_study2(n.reps, 500, n.items, bias = c(.25, 1))
+
+# small / small
+ds.ss200  <- sim_study2(n.reps, 200, n.items, bias = c(.25, .5))
+ds.ss350  <- sim_study2(n.reps, 350, n.items, bias = c(.25, .5))
+ds.ss500  <- sim_study2(n.reps, 500, n.items, bias = c(.25, .5))
+
+ds <- list(ds.ll500 = ds.ll500)
+ds1 <- ds
+# sim.study2.path <- "~/Dropbox/Academic/Manuscripts/DIF_via_scaling/data_analyses/sim1.june28.2022.RData"
+# save(sim.study2, file = sim.study2.path)
+# load(file = sim.study2.path)
+# Pullng everything out...sheesh
+
+test.names <- names(ds[[1]][[1]]$dif)[-c(1:3)] #,lr")
+cut.offs <- c(1e-6, 1e-6, .05, 1e-6, 1e-6, .05, .05, .05)
+
+de <- function(x){
+  decision_errors(x, test.names, cut.offs)
+}
+
+
+temp.dif <- lapply(ds, function(x) {lapply(x, function(y) y$dif)})
+ds.dif <- Reduce(rbind, lapply(temp.dif, function(x) de(Reduce(rbind, x))))
 ds.dif$n.biased <- as.factor(rep(0:8, each = 6))
 ds.dif.long <- ds.dif %>% tidyr::gather("fp", "tp", key = decision, value = Value)
 

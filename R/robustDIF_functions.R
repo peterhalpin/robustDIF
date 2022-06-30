@@ -1,6 +1,16 @@
-# To do
-# Plotting function for Rho
-# Ready to sim! Do small version without other methods then run it all!
+# To do:
+# Do two-sided starting values work when there is DIF on slope?
+  # I dont think so. Nothing noticeable in 1-item sim with / without DIF on slope.
+
+# What to do about flagging with per item k?
+  # Putting item specific k in psi fucks things up when slope has DIF (why)
+  # But doesnt make much (any) of a difference when slope does not have DIF (so sim1 didnt show)
+  # But item specific K in psi is out.
+  # Can still use Rho without item specific k to get starts.
+  # OR maybe revisit using SD instead of var?
+
+# Re-run sim 1 with: one versus sided starts; per item k in psi or not.
+# Won't make a difference for small number of biased items but may for larger number
 
 #-------------------------------------------------------------------
 #' Extract and format 2PL item parms from mirt
@@ -257,7 +267,7 @@ bsq_weight <- function(theta, y, var.y, alpha = .05){
   omega <- (var.y - var.theta)/var.y^2
   k <- qnorm(1 - alpha/2, 0, sqrt(omega))
   bsq.cuts <- var.y * k
-  w <- (1 - (r / bsq.cuts)^2)^2 / k^2
+  w <- (1 - (r / bsq.cuts)^2)^2 # / k^2 ??
   w[abs(r) > bsq.cuts] <- 0
   w
 }
@@ -420,9 +430,9 @@ rho_fun <- function(irt.mle, par = "intercept", log = F, alpha = .05, grid.width
   U <- (Y - Theta) / Var.Y
   Omega <- (Var.Y - Var.Theta) / Var.Y^2
   K <- qnorm(1 - alpha/2, 0, sqrt(Omega))
-  r1 <- apply(rho(U, K), 2, sum)
+  r <- apply(rho(U, K), 2, sum)
 
-  r2 <- apply(rho((Y - Theta) / sqrt(Var.Y), 1.96), 2, sum)
+  #r2 <- apply(rho((Y - Theta) / sqrt(Var.Y), 1.96), 2, sum)
   list(theta = theta, rho = r)
 }
 
@@ -447,7 +457,6 @@ irls <- function(irt.mle, par = "intercept", log = F, alpha = .05, starting.valu
 
   # Set up scaling function
   y <- y_fun(irt.mle, par, log)
-
   # Starting value
   starts <- get_starts(irt.mle, par, log, alpha)
   theta <- median(starts)
@@ -465,7 +474,7 @@ irls <- function(irt.mle, par = "intercept", log = F, alpha = .05, starting.valu
     conv <- abs(theta - new.theta)
     theta <- new.theta
   }
-  list(est = new.theta, weights = w/sum(w), n.iter = nit, epsilon = conv)
+  list(est = new.theta, weights = w, n.iter = nit, epsilon = conv)
 }
 
 # -------------------------------------------------------------------
