@@ -378,7 +378,7 @@ rho_grid <- function(y, var_fun, alpha = .05, grid.width = .05){
 
   theta <- seq(from = max(min(y), -1.5),
                to = min(max(y), 1.5),
-               by = grid.width)
+               by = min(grid.width, (max(y) - min(y)) / 10))
 
   n.items <- length(y)
   n.theta <- length(theta)

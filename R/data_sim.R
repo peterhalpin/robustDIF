@@ -224,8 +224,8 @@ sim_study2 <- function(n.reps = 100, n.persons = 500, n.items = 15, bias = c(.5,
   a.lower <- .9
   a.upper <- 2.5
   b.lim <- 1.5
-  mu.lim <- .5
-  sigma.lower <- sqrt(.5)
+  mu.lim <- 0
+  sigma.lower <- sqrt(2)
   sigma.upper <- sqrt(2)
 
   # Sim loop for parallelization via mclapply
@@ -241,12 +241,11 @@ sim_study2 <- function(n.reps = 100, n.persons = 500, n.items = 15, bias = c(.5,
     a0 <- a1 <- runif(n.items, a.lower, a.upper)
     a1[biased.item] <-  a1[biased.item] +  bias[2] * a1[biased.item]
 
-    # Bias on intercept is additive; make y_intercept = bias[1] even if bias[2] != 0 ?
+        # Bias on intercept is additive; make y_intercept = bias[1] even if bias[2] != 0 ?
     b0 <- b1 <- sort(runif(n.items, -b.lim, b.lim))
-    b1[biased.item] <-  b1[biased.item] + bias[1] #+ bias[2] * bias[1]
-
     d0 <- a0*b0
     d1 <- a1*b1
+    d1[biased.item] <-  d1[biased.item] + bias[1] / a1[biased.item]
     # (d1 - d0) / a1
 
     x0 <- rnorm(n.persons)

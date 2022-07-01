@@ -1,11 +1,10 @@
 # Sim study 2 June 30, 2022
 
-ds1  <- sim_study2(n.reps, 500, n.items, bias = c(.5, 0))
-ds2  <- sim_study2(n.reps, 500, n.items, bias = c(.5, 1))
-ds3  <- sim_study2(n.reps, 500, n.items, bias = c(.5, -.5))
+ds1  <- sim_study2(n.reps, 500, n.items = 10, bias = c(.5, 0))
+ds2  <- sim_study2(n.reps, 500, n.items = 10, bias = c(.5, 1))
+ds3  <- sim_study2(n.reps, 500, n.items = 10, bias = c(.5, -.5))
 
-ds <- list(ds1 = ds1, ds2 = ds2, ds3 = ds3)
-ds.1
+ds <- list(ds1 = ds1, ds2 = ds2)
 
 # sim.study2.path <- "~/Dropbox/Academic/Manuscripts/DIF_via_scaling/data_analyses/sim1.june28.2022.RData"
 # save(sim.study2, file = sim.study2.path)
