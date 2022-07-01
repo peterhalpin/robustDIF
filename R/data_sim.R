@@ -40,14 +40,17 @@ apply_bias <- function(b0, n.biased = 1, max.bias = .5, worst.case = T, multipli
 #' @return A named list with p values from the LR test and the scale parameters estimated in the model that assumes invariance
 # -------------------------------------------------------------------
 
-lr_intercept <- function(dat0, dat1){
+lr_z <- function(dat0, dat1, which.par = "d"){
   dat <- rbind(dat0, dat1)
   group <- c(rep("0", nrow(dat0)), rep("1", nrow(dat1)))
+  if (which.par == "d") {invariance = c("intercepts", "free_means")}
+  if (which.par == "a1") {invariance = c("slopes", "free_vars")}
+
   mg.mod <- multipleGroup(dat,
               model = 1,
               group = group,
-              invariance = c("intercepts", "free_means"))
-  lr.test <- DIF(mg.mod, which.par = "d", scheme = "drop", Wald = F)
+              invariance = invariance)
+  lr.test <- DIF(mg.mod, which.par = which.par, scheme = "drop", Wald = F)
 
   #p2 <- DIF(mg.mod, which.par = parms, scheme = "drop_sequential",
   #          seq_stat = .05, max_run = 2, p.adjust = "BH", Wald = F)
@@ -64,7 +67,7 @@ lr_intercept <- function(dat0, dat1){
 #' @return A named list with p values from the LR test and the scale parameters estimated in the model that assumes invariance
 # -------------------------------------------------------------------
 
-lr <- function(dat0, dat1){
+lr_chi <- function(dat0, dat1){
   dat <- rbind(dat0, dat1)
   group <- c(rep("0", nrow(dat0)), rep("1", nrow(dat1)))
   mg.mod <- multipleGroup(dat,
@@ -224,8 +227,8 @@ sim_study2 <- function(n.reps = 100, n.persons = 500, n.items = 15, bias = c(.5,
   a.lower <- .9
   a.upper <- 2.5
   b.lim <- 1.5
-  mu.lim <- 0
-  sigma.lower <- sqrt(2)
+  mu.lim <- .5
+  sigma.lower <- sqrt(.5)
   sigma.upper <- sqrt(2)
 
   # Sim loop for parallelization via mclapply
@@ -241,11 +244,11 @@ sim_study2 <- function(n.reps = 100, n.persons = 500, n.items = 15, bias = c(.5,
     a0 <- a1 <- runif(n.items, a.lower, a.upper)
     a1[biased.item] <-  a1[biased.item] +  bias[2] * a1[biased.item]
 
-        # Bias on intercept is additive; make y_intercept = bias[1] even if bias[2] != 0 ?
+    # Bias on intercept is additive; make y_intercept = bias[1] even if bias[2] != 0 ?
     b0 <- b1 <- sort(runif(n.items, -b.lim, b.lim))
+    b1[biased.item] <-  b1[biased.item] + bias[1]+ bias[1] * bias[2]
     d0 <- a0*b0
-    d1 <- a1*b1
-    d1[biased.item] <-  d1[biased.item] + bias[1] / a1[biased.item]
+    d1 <- a0*b1
     # (d1 - d0) / a1
 
     x0 <- rnorm(n.persons)
@@ -283,12 +286,14 @@ sim_study2 <- function(n.reps = 100, n.persons = 500, n.items = 15, bias = c(.5,
     chi2.true <- chi2_test(theta, sigma, irt.mle)
 
 
-    #lr.out <- lr(dat0, dat1)
+    lr.int <- lr_z(dat0, dat1, which.par = "d")
+    lr.slope <- lr_z(dat0, dat1, which.par = "a1")
+    lr.chi <- lr(dat0, dat1)
 
     # Format output
     dif <- data.frame(a0 = a0,
                       d0 = d0,
-                      dgp = d1-d0 != 0,
+                      dgp = d1-d0 != 0 | a1-a0 != 0 ,
                       theta.true = true.theta.out,
                       theta.flag = rdif.theta.out$weights,
                       theta.test = z.test.theta$p.val,
@@ -296,8 +301,10 @@ sim_study2 <- function(n.reps = 100, n.persons = 500, n.items = 15, bias = c(.5,
                       sigma.flag = rdif.sigma.out$weights,
                       sigma.test = z.test.sigma$p.val,
                       rdif.chi2.true = chi2.true$p.val,
-                      rdif.chi2 = chi2$p.val
-                      # lr = lr.out$p
+                      rdif.chi2 = chi2$p.val,
+                      lr.intercept = lr.int$p,
+                      lr.slope = lr.slope$p,
+                      lr.chi = lr.chi$p
                       )
 
     scale <- data.frame(theta = theta,

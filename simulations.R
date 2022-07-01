@@ -1,10 +1,10 @@
 # Sim study 2 June 30, 2022
 
 ds1  <- sim_study2(n.reps, 500, n.items = 10, bias = c(.5, 0))
-ds2  <- sim_study2(n.reps, 500, n.items = 10, bias = c(.5, 1))
-ds3  <- sim_study2(n.reps, 500, n.items = 10, bias = c(.5, -.5))
-
-ds <- list(ds1 = ds1, ds2 = ds2)
+ds2  <- sim_study2(n.reps, 500, n.items = 10, bias = c(0, 1))
+ds3  <- sim_study2(n.reps, 500, n.items = 10, bias = c(.35, 1.5))
+ds.prev <- ds
+ds <- list(ds1 = ds1, ds2 = ds2, ds3 = ds3)
 
 # sim.study2.path <- "~/Dropbox/Academic/Manuscripts/DIF_via_scaling/data_analyses/sim1.june28.2022.RData"
 # save(sim.study2, file = sim.study2.path)
@@ -12,7 +12,7 @@ ds <- list(ds1 = ds1, ds2 = ds2)
 # Pullng everything out...sheesh
 
 test.names <- names(ds[[1]][[1]]$dif)[-c(1:3)] #,lr")
-cut.offs <- c(1e-6, 1e-6, .05, 1e-6, 1e-6, .05, .05, .05)
+cut.offs <- c(1e-6, 1e-6, .05, 1e-6, 1e-6, .05, .05, .05, .05, .05, .05)
 
 de <- function(x){
   decision_errors(x, test.names, cut.offs)
