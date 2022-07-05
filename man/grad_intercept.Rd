@@ -2,7 +2,7 @@
 % Please edit documentation in R/robustDIF_functions.R
 \name{grad_intercept}
 \alias{grad_intercept}
-\title{Compute the gradient of \code{y_intercept}.}
+\title{Compute the gradient of \link[robustDIF::y_intercept]{y_intercept}.}
 \usage{
 grad_intercept(theta, irt.mle)
 }

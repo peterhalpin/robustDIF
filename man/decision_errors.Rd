@@ -2,16 +2,20 @@
 % Please edit documentation in R/data_sim.R
 \name{decision_errors}
 \alias{decision_errors}
-\title{Post processing for \code{sim_study} to compute decision errors}
+\title{Post processing for sim studies, to compute decision errors}
 \usage{
-decision_errors(ds)
+decision_errors(ds, test.names, cut.offs)
 }
 \arguments{
-\item{dif}{The DIF table output from  \code{sim_study}}
+\item{test.names}{The col.names \code{dif} that correspond to DIF method.}
+
+\item{cut.offs}{Values used to make a decision about each DIF method in \code{test.names}. Can a single value or a vector of same length as \code{test.names}.}
+
+\item{dif}{The DIF table output from one for the \code{robustDiF} simulation study functions.}
 }
 \value{
 A data.frame with false and true positives for each method length
 }
 \description{
-Post processing for \code{sim_study} to compute decision errors
+Post processing for sim studies, to compute decision errors
 }

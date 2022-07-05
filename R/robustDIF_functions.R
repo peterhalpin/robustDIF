@@ -1,26 +1,14 @@
 # To do:
-# Do two-sided starting values work when there is DIF on slope?
-  # I dont think so. Nothing noticeable in 1-item sim with / without DIF on slope.
-
-# What to do about flagging with per item k?
-  # Putting item specific k in psi fucks things up when slope has DIF (why)
-  # But doesnt make much (any) of a difference when slope does not have DIF (so sim1 didnt show)
-  # But item specific K in psi is out.
-  # Can still use Rho without item specific k to get starts.
-  # OR maybe revisit using SD instead of var?
-
-# Re-run sim 1 with: one versus sided starts; per item k in psi or not.
-# Won't make a difference for small number of biased items but may for larger number
 
 #-------------------------------------------------------------------
-#' Extract and format 2PL item parms from mirt
+#' Extract 2PL item parameter estimates from \link[mirt]{mirt}.
 #'
-#' @param mirt.fit.2pl a mirt object (SingleGroupClass) for the 2PL model
-#' @return a n.items X 2 data.frame of 2PL item parameter MLEs
+#' @param mirt.fit.2pl A \link[mirt]{mirt} object (\code{SingleGroupClass}) estimated for the 2PL model.
+#' @return A data frame of 2PL item parameter estimates, in slope-intercept form.
 #' @export
 # -------------------------------------------------------------------
 
-get_mirt_mle <- function(mirt.fit.2pl ){
+get_mirt_pars <- function(mirt.fit.2pl ){
  n.items <- mirt.fit.2pl@Data$nitems
  parms <- Reduce(rbind, coef(mirt.fit.2pl, printSE = T)[1:(n.items)])[, 1:2]
  parms <- parms[row.names(parms) == "par", ]
@@ -30,10 +18,9 @@ get_mirt_mle <- function(mirt.fit.2pl ){
 }
 
 # -------------------------------------------------------------------
-#' Extract and format 2PL VCOV from mirt
-#'
-#' @param mirt.fit.2pl a mirt object (SingleGroupClass) for the 2PL model
-#' @return a n.items X n.items covariance matrix for item parms
+#' Extract 2PL covariance matrix of item parameter estimates from \link[mirt]{mirt}.
+#' @inheritParams get_mirt_pars
+#' @return The covariance matrix of 2PL item parameter estimates.
 #' @export
 # -------------------------------------------------------------------
 
@@ -45,19 +32,21 @@ get_mirt_vcov <- function(mirt.fit.2pl) {
 }
 
 # -------------------------------------------------------------------
-#' Extract and format 2PL MLEs and their asymptotic VCOV matrix
+#' Extract 2PL item parameter estimates their covariance matrix.
 #'
-#' Takes a list of 2PL model fits and formats the MLEs and their VCOV matrix for use with \code{robustDIF}. Current implementation only supports lists of length 2 (i.e., two groups) and the first fit is treated as the reference group. The only type of fit currently supported is the \code{SingleGroupClass} of the \code{mirt} package. To use fits from other software, the user can manually format the MLEs and VCOVs in the same format as this function.
+#' Takes a list of 2PL model fits and formats the item parameter estimates  and their covariance matrix. The R-DIF procedure assumes that the estimates were obtained by maximum likelihood and the covariance is asymptotically correct.
 #'
-#' @param fit.list a list of model fits.
-#' @param type a string indicating the package that produced the fits
-#' @return a named list of MLEs and VCOVs
+#' Note that current implementation only supports lists of length 2 (i.e., two groups) and the first fit is treated as the reference group. The only type of fit currently supported is the \code{SingleGroupClass} of the \link[mirt]{mirt} package. To use fits from other software, use the format \code{list(par0 = est[[1]], par1 = est[[2]], vcov0 = vcov[[1]], vcov1 = vcov[[2]])}
+#'
+#' @param fit.list A list of 2PL model fits.
+#' @param type A string indicating the package that produced the fits.
+#' @return A named list of item parameter estimates and covariance matrices.
 #' @export
 # -------------------------------------------------------------------
 
-get_irt_mle <- function(fit.list, type = "mirt") {
+get_irt_pars <- function(fit.list, type = "mirt") {
  if (type == "mirt") {
-  est <- lapply(fit.list, get_mirt_mle)
+  est <- lapply(fit.list, get_mirt_pars)
   v <- lapply(fit.list, get_mirt_vcov)
   out <- list(par0 = est[[1]], par1 = est[[2]],
               vcov0 = v[[1]], vcov1 = v[[2]])
@@ -66,13 +55,12 @@ get_irt_mle <- function(fit.list, type = "mirt") {
 }
 
 # -------------------------------------------------------------------
-#' The scaling function for item intercepts.
+#' The R-DIF scaling function for item intercepts.
 #'
-#' Computes Y = (d1 - d0)/a1, used to test DIF on it em intercepts.
+#' Computes \code{Y = (d1 - d0)/a1}. Used to test DIF on item intercepts.
 #'
-#' @param irt.mle The output of \code{robustDIF::get_irt_mle}.
-#'
-#' @return A n.items vector of Y values.
+#' @param irt.mle The output of \link[robustDIF::get_irt_pars]{get_irt_pars}.
+#' @return A vector of Y values.
 #' @export
 # -------------------------------------------------------------------
 
@@ -81,14 +69,14 @@ y_intercept <- function(irt.mle) {
 }
 
 # -------------------------------------------------------------------
-#' The scaling function for item slopes.
+#' The R-DIF scaling function for item slopes.
 #'
-#' Computes Y = a1/d0, or its log; used to test DIF on item slopes.
+#' Computes \code{Y = a1/d0}, or its log. Used to test DIF on item slopes.
 #'
-#' @param irt.mle The output of \code{robustDIF::get_irt_mle}.
+#' @inheritParams y_intercept
 #' @param log Logical: return log Y instead of Y?
 #'
-#' @return A n.items vector of Y values.
+#' @return A vector of Y values.
 #' @export
 # -------------------------------------------------------------------
 
@@ -100,15 +88,16 @@ y_slope <- function(irt.mle, log = F) {
 
 
 # -------------------------------------------------------------------
-#' Computes IRT scaling functions.
+#' Computes R-DIF scaling functions.
 #'
-#' Computes the scaling function for item intercepts, Y = (d1 - d0)/a1, or for item slopes, Y = a1/d0.
+#' Computes the R-DIF scaling function for item intercepts or for item slopes.
 #'
-#' @param irt.mle The output of \code{robustDIF::get_irt_mle}.
-#' @param par Use scaling function for item intercepts or item slopes? One of \code{c("intercept", "slope")}.
-#' @param log Logical: Use log of scaling function? Only applies if \code{par = "slope"}.
+#' @inheritParams y_intercept
+#' @param par Character: Use scaling function for item intercepts or item slopes? One of \code{c("intercept", "slope")}.
+#' @param log Logical: return log Y instead of Y? Only applies if \code{par = "slope"}.
 #'
-#' @return A n.items vector of Y values.
+#' @return A vector of Y values.
+#' @seealso \link[robustDIF::y_intercept]{y_intercept}, \link[robustDIF::y_slope]{y_slope}.
 #' @export
 # -------------------------------------------------------------------
 
@@ -121,9 +110,9 @@ y_fun <- function(irt.mle, par = "intercept", log = F) {
 }
 
 # -------------------------------------------------------------------
-#' Compute the gradient of \code{y_intercept}.
+#' Compute the gradient of \link[robustDIF::y_intercept]{y_intercept}.
 #'
-#' For each item, the non-null elements of the gradient are organized as \code{c(a0, d0, a1, d1)}. The parameters a0 and d0 are the item slope and intercept in the reference group. The parameters a1 and d1 are the item slope and intercept in the comparison group.
+#' For each item, the gradient are organized as \code{c(a0, d0, a1, d1)}. The parameters \code{a0} and \code{d0} are the item slope and intercept in the reference group. The parameters \code{a1} and \code{d1} are the item slope and intercept in the comparison group.
 #'
 #' @param theta IRT scale parameter (mu / sigma).
 #' @param irt.mle the output of \code{robustDIF::get_irt_mle}.
@@ -267,7 +256,7 @@ bsq_weight <- function(theta, y, var.y, alpha = .05){
   omega <- (var.y - var.theta)/var.y^2
   k <- qnorm(1 - alpha/2, 0, sqrt(omega))
   bsq.cuts <- var.y * k
-  w <- (1 - (r / bsq.cuts)^2)^2 # / k^2 ??
+  w <- (1 - (r / bsq.cuts)^2)^2
   w[abs(r) > bsq.cuts] <- 0
   w
 }
@@ -437,7 +426,9 @@ rho_fun <- function(irt.mle, par = "intercept", log = F, alpha = .05, grid.width
 }
 
 # -------------------------------------------------------------------
-#' IRLS for an IRT scale parameter using the bi-square function
+#' Estimates IRT scale parameters using the RDIF procedure
+#'
+#' Estimation is via iteratively reweighted least squares using the bi-square loss function.
 #'
 #' @param irt.mle the output of \code{robustDIF::irt_mle}
 #' @param par Use scaling function for item intercepts or item slopes? One of \code{c("intercept", "slope")}.
@@ -451,7 +442,7 @@ rho_fun <- function(irt.mle, par = "intercept", log = F, alpha = .05, grid.width
 #' @export
 # -------------------------------------------------------------------
 
-irls <- function(irt.mle, par = "intercept", log = F, alpha = .05, starting.value = "all", tol = 1e-7, maxit = 100){
+rdif <- function(irt.mle, par = "intercept", log = F, alpha = .05, starting.value = "all", tol = 1e-7, maxit = 100){
   nit <- 0
   conv <- 1
 

@@ -2,7 +2,7 @@
 % Please edit documentation in R/data_sim.R
 \name{sim_study1}
 \alias{sim_study1}
-\title{Runs a simulation study comparing R-DIF, the likelihood ratio test, the Mantel-Haenszel test, and the output of GPMClasso}
+\title{Runs a simulation study comparing R-DIF, the likelihood ratio test, the Mantel-Haenszel test, and  GPMClasso}
 \usage{
 sim_study1(
   n.reps = 100,
@@ -30,5 +30,5 @@ sim_study1(
 A n.reps length list, where each element is a list containing (a) a data.frame with the output of the DIF procedures, and (b) a vector with estimates of impact from the procedures.
 }
 \description{
-Runs a simulation study comparing R-DIF, the likelihood ratio test, the Mantel-Haenszel test, and the output of GPMClasso
+Runs a simulation study comparing R-DIF, the likelihood ratio test, the Mantel-Haenszel test, and  GPMClasso
 }

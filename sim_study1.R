@@ -1,4 +1,6 @@
-# Sim study 1 June 28-29, 2022
+# Sim study 1
+# First run: June 28-29, 2022
+# Second run: July 5-6, 2022 (new bsq_weights)
 library(ggplot2)
 library(dplyr)
 
@@ -21,9 +23,9 @@ ds7 <- sim_study1(n.reps, n.persons, n.items, n.biased = 7, bias, impact)
 ds8 <- sim_study1(n.reps, n.persons, n.items, n.biased = 8, bias, impact)
 
 sim.study1 <- list(ds0=ds0, ds1=ds1, ds2=ds2, ds3=ds3, ds4=ds4, ds5=ds5, ds6=ds6, ds7=ds7, ds8=ds8)
-sim.study1.path <- "~/Dropbox/Academic/Manuscripts/DIF_via_scaling/data_analyses/sim1.june29.2022.RData"
-#save(sim.study1, file = sim.study1.path)
-load(file = sim.study1.path)
+sim.study1.path <- "~/Dropbox/Academic/Manuscripts/DIF_via_scaling/data_analyses/sim1.july6.2022.RData"
+save(sim.study1, file = sim.study1.path)
+#load(file = sim.study1.path)
 
 
 
@@ -36,7 +38,7 @@ d_e <- function(x){
   decision_errors(x, test.names, cut.offs)
 }
 
-temp.dif <- lapply(sim.study1, function(x) {lapply(x, function(y) y$dif)})
+temp.dif <- lapply(sim.study2, function(x) {lapply(x, function(y) y$dif)})
 ds.dif <- Reduce(rbind, lapply(temp.dif, function(x) d_e(Reduce(rbind, x))))
 ds.dif$n.biased <- as.factor(rep(0:8, each = 6))
 ds.dif.long <- ds.dif %>% tidyr::gather("fp", "tp", key = decision, value = Value)

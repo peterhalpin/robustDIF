@@ -2,18 +2,18 @@
 % Please edit documentation in R/robustDIF_functions.R
 \name{y_slope}
 \alias{y_slope}
-\title{The scaling function for item slopes.}
+\title{The R-DIF scaling function for item slopes.}
 \usage{
 y_slope(irt.mle, log = F)
 }
 \arguments{
-\item{irt.mle}{The output of \code{robustDIF::get_irt_mle}.}
+\item{irt.mle}{The output of \link[robustDIF::get_irt_pars]{get_irt_pars}.}
 
 \item{log}{Logical: return log Y instead of Y?}
 }
 \value{
-A n.items vector of Y values.
+A vector of Y values.
 }
 \description{
-Computes Y = a1/d0, or its log; used to test DIF on item slopes.
+Computes \code{Y = a1/d0}, or its log. Used to test DIF on item slopes.
 }

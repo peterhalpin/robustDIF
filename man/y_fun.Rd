@@ -2,20 +2,23 @@
 % Please edit documentation in R/robustDIF_functions.R
 \name{y_fun}
 \alias{y_fun}
-\title{Computes IRT scaling functions.}
+\title{Computes R-DIF scaling functions.}
 \usage{
 y_fun(irt.mle, par = "intercept", log = F)
 }
 \arguments{
-\item{irt.mle}{The output of \code{robustDIF::get_irt_mle}.}
+\item{irt.mle}{The output of \link[robustDIF::get_irt_pars]{get_irt_pars}.}
 
-\item{par}{Use scaling function for item intercepts or item slopes? One of \code{c("intercept", "slope")}.}
+\item{par}{Character: Use scaling function for item intercepts or item slopes? One of \code{c("intercept", "slope")}.}
 
-\item{log}{Logical: Use log of scaling function? Only applies if \code{par = "slope"}.}
+\item{log}{Logical: return log Y instead of Y? Only applies if \code{par = "slope"}.}
 }
 \value{
-A n.items vector of Y values.
+A vector of Y values.
 }
 \description{
-Computes the scaling function for item intercepts, Y = (d1 - d0)/a1, or for item slopes, Y = a1/d0.
+Computes the R-DIF scaling function for item intercepts or for item slopes.
+}
+\seealso{
+\link[robustDIF::y_intercept]{y_intercept}, \link[robustDIF::y_slope]{y_slope}.
 }

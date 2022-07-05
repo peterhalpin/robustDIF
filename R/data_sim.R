@@ -47,15 +47,16 @@ lr_z <- function(dat0, dat1, which.par = "d"){
   if (which.par == "a1") {invariance = c("slopes", "free_vars")}
 
   mg.mod <- multipleGroup(dat,
-              model = 1,
-              group = group,
-              invariance = invariance)
-  lr.test <- DIF(mg.mod, which.par = which.par, scheme = "drop", Wald = F)
+                          model = 1,
+                          group = group,
+                          invariance = invariance)
 
-  #p2 <- DIF(mg.mod, which.par = parms, scheme = "drop_sequential",
-  #          seq_stat = .05, max_run = 2, p.adjust = "BH", Wald = F)
+  lr.test <- DIF(mg.mod,
+                 which.par = which.par,
+                 scheme = "drop",
+                 Wald = F)
 
-  list(p = lr.test$p, scale.parms = coef(mg.mod)$`1`$GroupPars)
+  list(p = lr.test$p)
 }
 
 # -------------------------------------------------------------------
@@ -70,16 +71,18 @@ lr_z <- function(dat0, dat1, which.par = "d"){
 lr_chi <- function(dat0, dat1){
   dat <- rbind(dat0, dat1)
   group <- c(rep("0", nrow(dat0)), rep("1", nrow(dat1)))
+  invariance <- c("intercepts", "slopes", "free_means", "free_vars")
   mg.mod <- multipleGroup(dat,
-              model = 1,
-              group = group,
-              invariance = c("intercepts", "slopes", "free_means", "free_vars"))
-  lr.test <- DIF(mg.mod, which.par = c("a1", "d"), scheme = "drop", Wald = F)
+                          model = 1,
+                          group = group,
+                           invariance = invariance)
 
-  #p2 <- DIF(mg.mod, which.par = parms, scheme = "drop_sequential",
-  #          seq_stat = .05, max_run = 2, p.adjust = "BH", Wald = F)
+  lr.test <- DIF(mg.mod,
+                 which.par = c("a1", "d"),
+                 scheme = "drop",
+                 Wald = F)
 
-  list(p = lr.test$p, scale.parms = coef(mg.mod)$`1`$GroupPars)
+  list(p = lr.test$p)
 }
 
 
@@ -96,9 +99,7 @@ lr_chi <- function(dat0, dat1){
 mh <- function(dat0, dat1){
   dat <- rbind(dat0, dat1)
   group <- c(rep("0", nrow(dat0)), rep("1", nrow(dat1)))
-  p <- difR::difMH(dat, group, focal.name = 0)$p.value
-  mu <- mean(apply(dat1, 1, sum) - apply(dat0, 1, sum)) / sd(apply(dat1, 1, sum))
-  list(p = p, mu = mu)
+  list(p = difR::difMH(dat, group, focal.name = 0)$p.value)
 }
 
 # -------------------------------------------------------------------
@@ -120,15 +121,14 @@ lasso <- function(dat0, dat1) {
                     paste(colnames(dat.g)[1:n.items],collapse=","),") ~ group"))
   gpcm <- GPCMlasso(mod, dat.g, model = "2PL",
                     control = ctrl_GPCMlasso(l.lambda = 25,
-                                             #adaptive = T,
+                                             adaptive = T,
                                              steptol = 1e-4,
                                              gradtol = 1e-4,
                                              iterlim = 50))
 
   solution.index <- which.min(gpcm$BIC)
-  mu <- coef(gpcm)[solution.index, ][(n.items+1)]
   dif <- abs(coef(gpcm)[solution.index, ][(n.items+2):(2*n.items+1)])
-  list(dif = dif, mu = mu)
+  list(dif = dif)
 }
 
 # -------------------------------------------------------------------
@@ -169,16 +169,17 @@ sim_study1 <- function(n.reps = 100, n.persons = 500, n.items = 15, n.biased = 0
     dat1 <- simdata(a0, d1, n.persons, '2PL', Theta = matrix(x1))
 
     # Fit IRT models
-    fit0 <- mirt(dat0, 1, SE = T, SE.type = 'Oakes')
-    fit1 <- mirt(dat1, 1, SE = T, SE.type = 'Oakes')
+    fit0 <- mirt(dat0, 1, SE = T)
+    fit1 <- mirt(dat1, 1, SE = T)
 
     # DIF Procedures
-    irt.mle <- get_irt_mle(list(fit0, fit1))
-    bsq.theta.out <- irls(irt.mle)
-    true.theta.out <- bsq_weight(impact[1], y_fun(irt.mle), var_y(impact[1], irt.mle))
-    bsq.sigma.out <- irls(irt.mle, par = "slope")
-    chi2.test <- chi2_test(bsq.theta.out$est, bsq.sigma.out$est, irt.mle)
-    lr.out <- lr_intercept(dat0, dat1)
+    irt.mle <- get_irt_pars(list(fit0, fit1))
+    rdif.theta <- rdif(irt.mle)
+    true.theta <- bsq_weight(impact[1], y_fun(irt.mle), var_y(impact[1], irt.mle))
+    rdif.sigma <- rdif(irt.mle, par = "slope")
+    chi2.test <- chi2_test(rdif.theta$est, rdif.sigma$est, irt.mle)
+
+    lr.out <- lr_z(dat0, dat1)
     mh.out <- mh(dat0, dat1)
     lasso.out <- lasso(dat0, dat1)
 
@@ -186,22 +187,18 @@ sim_study1 <- function(n.reps = 100, n.persons = 500, n.items = 15, n.biased = 0
     dif <- data.frame(a0 = a0,
                       d0 = d0,
                       dgp = d1-d0 != 0,
-                      rdif.true = true.theta.out,
-                      rdif.flag = bsq.theta.out$weights,
+                      rdif.true = true.theta,
+                      rdif.flag = rdif.theta$weights,
                       rdif.chi2 = chi2.test$p.val,
                       lr = lr.out$p,
                       mh = mh.out$p,
                       lasso = lasso.out$dif
                       )
 
-    scale <- data.frame(theta = bsq.theta.out$est,
-                        sigma = bsq.sigma.out$est
-    #                    lr = lr.out$scale.parms[1],
-    #                    mh = mh.out$mu,
-    #                    lasso = lasso.out$mu
-                        )
+    scale <- data.frame(theta = rdif.theta$est,
+                        sigma = rdif.sigma$est)
 
-    list(dif = dif, scale = scale) #, irt.mle = irt.mle)
+    list(dif = dif, scale = scale, irt.mle = irt.mle)
   }
   parallel::mclapply(1:n.reps, loop)
 }
@@ -244,9 +241,9 @@ sim_study2 <- function(n.reps = 100, n.persons = 500, n.items = 15, bias = c(.5,
     a0 <- a1 <- runif(n.items, a.lower, a.upper)
     a1[biased.item] <-  a1[biased.item] +  bias[2] * a1[biased.item]
 
-    # Bias on intercept is additive; make y_intercept = bias[1] even if bias[2] != 0 ?
+    # Bias on intercept is additive;
     b0 <- b1 <- sort(runif(n.items, -b.lim, b.lim))
-    b1[biased.item] <-  b1[biased.item] + bias[1]+ bias[1] * bias[2]
+    b1[biased.item] <-  b1[biased.item] + bias[1]
     d0 <- a0*b0
     d1 <- a0*b1
     # (d1 - d0) / a1
@@ -259,64 +256,52 @@ sim_study2 <- function(n.reps = 100, n.persons = 500, n.items = 15, bias = c(.5,
     dat1 <- simdata(a1, d1, n.persons, '2PL', Theta = matrix(x1))
 
     # Fit IRT models
-    fit0 <- mirt(dat0, 1, SE = T, SE.type = 'Oakes')
-    fit1 <- mirt(dat1, 1, SE = T, SE.type = 'Oakes')
+    fit0 <- mirt(dat0, 1, SE = T)
+    fit1 <- mirt(dat1, 1, SE = T)
 
     # DIF Procedures
-    irt.mle <- get_irt_mle(list(fit0, fit1))
+    irt.mle <- get_irt_pars(list(fit0, fit1))
+    rdif.theta <- rdif(irt.mle)
+    z.test.theta <- z_test(rdif.theta$est, irt.mle)
+    true.theta <- bsq_weight(theta,
+                             y_fun(irt.mle),
+                             var_y(theta, irt.mle))
 
-    # par(mfrow = c(1,2))
-    # rho.theta <- rho_fun(irt.mle)
-    # plot(rho.theta$theta, rho.theta$rho)
-    #
-    # rho.sigma <- rho_fun(irt.mle, par = "slope")
-    # plot(rho.sigma$theta, rho.sigma$rho)
+    rdif.sigma <- rdif(irt.mle, par = "slope")
+    z.test.sigma <- z_test(rdif.sigma$est, irt.mle , par = "slope")
+    true.sigma <- bsq_weight(sigma,
+                             y_fun(irt.mle, par = "slope"),
+                             var_y(sigma, irt.mle, par = "slope"))
 
-    true.theta.out <- bsq_weight(theta, y_fun(irt.mle),
-                                 var_y(theta, irt.mle))
-    rdif.theta.out <- irls(irt.mle)
-    z.test.theta <- z_test(rdif.theta.out$est, irt.mle)
-
-    true.sigma.out <- bsq_weight(sigma, y_fun(irt.mle, par = "slope"),
-                                 var_y(sigma, irt.mle, par = "slope"))
-    rdif.sigma.out <- irls(irt.mle, par = "slope")
-    z.test.sigma <- z_test(rdif.sigma.out$est, irt.mle , par = "slope")
-
-    chi2 <- chi2_test(rdif.theta.out$est, rdif.sigma.out$est, irt.mle)
+    chi2 <- chi2_test(rdif.theta$est, rdif.sigma$est, irt.mle)
     chi2.true <- chi2_test(theta, sigma, irt.mle)
-
 
     lr.int <- lr_z(dat0, dat1, which.par = "d")
     lr.slope <- lr_z(dat0, dat1, which.par = "a1")
-    lr.chi <- lr(dat0, dat1)
+    lr.chi <- lr_chi(dat0, dat1)
 
     # Format output
     dif <- data.frame(a0 = a0,
                       d0 = d0,
                       dgp = d1-d0 != 0 | a1-a0 != 0 ,
-                      theta.true = true.theta.out,
-                      theta.flag = rdif.theta.out$weights,
+                      theta.true = true.theta,
+                      theta.flag = rdif.theta$weights,
                       theta.test = z.test.theta$p.val,
-                      sigma.true = true.theta.out,
-                      sigma.flag = rdif.sigma.out$weights,
+                      sigma.true = true.sigma,
+                      sigma.flag = rdif.sigma$weights,
                       sigma.test = z.test.sigma$p.val,
                       rdif.chi2.true = chi2.true$p.val,
                       rdif.chi2 = chi2$p.val,
                       lr.intercept = lr.int$p,
                       lr.slope = lr.slope$p,
-                      lr.chi = lr.chi$p
-                      )
+                      lr.chi = lr.chi$p)
 
     scale <- data.frame(theta = theta,
                         sigma = sigma,
-                        rdif.theta = rdif.theta.out$est,
-                        rdif.sigma = rdif.sigma.out$est
-    #                    lr = lr.out$scale.parms[1],
-    #                    mh = mh.out$mu,
-    #                    lasso = lasso.out$mu
-                        )
+                        rdif.theta = rdif.theta$est,
+                        rdif.sigma = rdif.sigma$est)
 
-    list(dif = dif, scale = scale) #, irt.mle = irt.mle)
+    list(dif = dif, scale = scale, irt.mle = irt.mle)
   }
   parallel::mclapply(1:n.reps, loop)
 }

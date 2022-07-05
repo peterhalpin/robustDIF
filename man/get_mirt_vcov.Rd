@@ -2,16 +2,16 @@
 % Please edit documentation in R/robustDIF_functions.R
 \name{get_mirt_vcov}
 \alias{get_mirt_vcov}
-\title{Extract and format 2PL VCOV from mirt}
+\title{Extract 2PL covariance matrix of item parameter estimates from \link[mirt]{mirt}.}
 \usage{
 get_mirt_vcov(mirt.fit.2pl)
 }
 \arguments{
-\item{mirt.fit.2pl}{a mirt object (SingleGroupClass) for the 2PL model}
+\item{mirt.fit.2pl}{A \link[mirt]{mirt} object (\code{SingleGroupClass}) estimated for the 2PL model.}
 }
 \value{
-a n.items X n.items covariance matrix for item parms
+The covariance matrix of 2PL item parameter estimates.
 }
 \description{
-Extract and format 2PL VCOV from mirt
+Extract 2PL covariance matrix of item parameter estimates from \link[mirt]{mirt}.
 }

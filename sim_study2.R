@@ -1,63 +1,51 @@
-# Sim study 2 June 30, 2022
+# Sim study 2 July 6, 2022
+library(ggplot2)
+library(dplyr)
 
-ds1  <- sim_study2(n.reps, 500, n.items = 10, bias = c(.5, 0))
-ds2  <- sim_study2(n.reps, 500, n.items = 10, bias = c(0, 1))
-ds3  <- sim_study2(n.reps, 500, n.items = 10, bias = c(.35, .5))
-ds.prev <- ds
-ds <- list(ds1 = ds1, ds2 = ds2, ds3 = ds3)
+### Data gen
 
-# sim.study2.path <- "~/Dropbox/Academic/Manuscripts/DIF_via_scaling/data_analyses/sim1.june28.2022.RData"
-# save(sim.study2, file = sim.study2.path)
+n.reps = 500
+n.items =  10
+
+# sample size = 200
+n.persons = 200
+ds.a200  <- sim_study2(n.reps, n.persons, n.items, bias = c(.5, 0))
+ds.b200  <- sim_study2(n.reps, n.persons, n.items, bias = c(0, 1))
+ds.c200  <- sim_study2(n.reps, n.persons, n.items, bias = c(.35, .5))
+
+# sample size = 250
+n.persons = 350
+ds.a350  <- sim_study2(n.reps, n.persons, n.items, bias = c(.5, 0))
+ds.b350  <- sim_study2(n.reps, n.persons, n.items, bias = c(0, 1))
+ds.c350  <- sim_study2(n.reps, n.persons, n.items, bias = c(.35, .5))
+
+# sample size = 500
+n.persons = 500
+ds.a500  <- sim_study2(n.reps, n.persons, n.items, bias = c(.5, 0))
+ds.b500  <- sim_study2(n.reps, n.persons, n.items, bias = c(0, 1))
+ds.c500  <- sim_study2(n.reps, n.persons, n.items, bias = c(.35, .5))
+
+sim.study2 <- list(ds.a200=ds.a200, ds.b200=ds.b200, ds.c200=ds.c200,
+                   ds.a350=ds.a350, ds.b350=ds.b350, ds.c350=ds.c350,
+                   ds.a500=ds.a500, ds.b500=ds.b500, ds.c500=ds.c500)
+
+
+sim.study2.path <- "~/Dropbox/Academic/Manuscripts/DIF_via_scaling/data_analyses/sim2.july5.2022.RData"
+ save(sim.study2, file = sim.study2.path)
 # load(file = sim.study2.path)
-# Pullng everything out...sheesh
 
-test.names <- names(ds[[1]][[1]]$dif)[-c(1:3)] #,lr")
-cut.offs <- c(1e-6, 1e-6, .05, 1e-6, 1e-6, .05, .05, .05, .05, .05, .05)
+
+ ### Plots
+
+# Error rates
+test.names <- names(sim.study2[[1]][[1]]$dif)[-c(1:3)] #,lr")
+cut.offs <- c(1e-6, 1e-6, .05, 1e-6, 1e-6, .05, .05, .05, .05,.05, .05)
 
 de <- function(x){
   decision_errors(x, test.names, cut.offs)
 }
 
-# not trying to correct effect sizes
-temp.dif <- lapply(ds, function(x) {lapply(x, function(y) y$dif)})
-Reduce(rbind, lapply(temp.dif, function(x) de(Reduce(rbind, x))))
-
-# large / large
-ds.ll200  <- sim_study2(n.reps, 200, n.items, bias = c(.5, 1))
-ds.ll350  <- sim_study2(n.reps, 350, n.items, bias = c(.5, 1))
-ds.ll500  <- sim_study2(n.reps, 500, n.items, bias = c(.5, 1))
-
-# large / small
-ds.ls200  <- sim_study2(n.reps, 200, n.items, bias = c(.5, .5))
-ds.ls350  <- sim_study2(n.reps, 350, n.items, bias = c(.5, .5))
-ds.ls500  <- sim_study2(n.reps, 500, n.items, bias = c(.5, .5))
-
-# small / large
-ds.sl200  <- sim_study2(n.reps, 200, n.items, bias = c(.25, 1))
-ds.sl350  <- sim_study2(n.reps, 350, n.items, bias = c(.25, 1))
-ds.sl500  <- sim_study2(n.reps, 500, n.items, bias = c(.25, 1))
-
-# small / small
-ds.ss200  <- sim_study2(n.reps, 200, n.items, bias = c(.25, .5))
-ds.ss350  <- sim_study2(n.reps, 350, n.items, bias = c(.25, .5))
-ds.ss500  <- sim_study2(n.reps, 500, n.items, bias = c(.25, .5))
-
-ds <- list(ds.ll500 = ds.ll500)
-ds1 <- ds
-# sim.study2.path <- "~/Dropbox/Academic/Manuscripts/DIF_via_scaling/data_analyses/sim1.june28.2022.RData"
-# save(sim.study2, file = sim.study2.path)
-# load(file = sim.study2.path)
-# Pullng everything out...sheesh
-
-test.names <- names(ds[[1]][[1]]$dif)[-c(1:3)] #,lr")
-cut.offs <- c(1e-6, 1e-6, .05, 1e-6, 1e-6, .05, .05, .05)
-
-de <- function(x){
-  decision_errors(x, test.names, cut.offs)
-}
-
-
-temp.dif <- lapply(ds, function(x) {lapply(x, function(y) y$dif)})
+temp.dif <- lapply(sim.study2, function(x) {lapply(x, function(y) y$dif)})
 ds.dif <- Reduce(rbind, lapply(temp.dif, function(x) de(Reduce(rbind, x))))
 ds.dif$n.biased <- as.factor(rep(0:8, each = 6))
 ds.dif.long <- ds.dif %>% tidyr::gather("fp", "tp", key = decision, value = Value)
@@ -66,9 +54,7 @@ temp.scale <- lapply(sim.study2, function(x) {lapply(x, function(y) y$scale)})
 ds.scale <-  Reduce(rbind, lapply(temp.scale, function(x) Reduce(rbind, x)))
 ds.scale$n.biased <- as.factor(rep(0:8, each = n.reps))
 
-### Plots
 
-# Error rates
 library(ggplot2)
 ds.dif.long <- ds.dif.long[ds.dif.long$method != "rdif.chi2", ]
 ds.dif.long$method <- ordered(ds.dif.long$method, unique(ds.dif.long$method))
