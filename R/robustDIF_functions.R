@@ -406,7 +406,6 @@ rho_fun <- function(irt.mle, par = "intercept", log = F, alpha = .05, grid.width
 
   y <- y_fun(irt.mle, par, log = log)
   theta <- seq(from = max(min(y), -1.5), to = min(max(y), 2.5), by = grid.width)
-
   var_fun <- function(theta) {var_y(theta, irt.mle, par, log = log)}
   n.items <- length(y)
   n.theta <- length(theta)

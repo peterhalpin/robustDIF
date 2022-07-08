@@ -1,6 +1,8 @@
 # Sim study 2 July 6, 2022
 library(ggplot2)
 library(dplyr)
+#devtools::install_github("coolbutuseless/ggpattern")
+library(ggpattern)
 
 ### Data gen
 
@@ -11,7 +13,7 @@ n.items =  10
 n.persons = 200
 ds.a200  <- sim_study2(n.reps, n.persons, n.items, bias = c(.5, 0))
 ds.b200  <- sim_study2(n.reps, n.persons, n.items, bias = c(0, 1))
-ds.c200  <- sim_study2(n.reps, n.persons, n.items, bias = c(.35, .5))
+ds.c200.r  <- sim_study2(250, n.persons, n.items, bias = c(.35, .5))
 
 # sample size = 250
 n.persons = 350
@@ -31,13 +33,13 @@ sim.study2 <- list(ds.a200=ds.a200, ds.b200=ds.b200, ds.c200=ds.c200,
 
 
 sim.study2.path <- "~/Dropbox/Academic/Manuscripts/DIF_via_scaling/data_analyses/sim2.july5.2022.RData"
- save(sim.study2, file = sim.study2.path)
-# load(file = sim.study2.path)
+ #save(sim.study2, file = sim.study2.path)
+load(file = sim.study2.path)
 
 
- ### Plots
+### Data processing
 
-# Error rates
+# Compute decision errors
 test.names <- names(sim.study2[[1]][[1]]$dif)[-c(1:3)] #,lr")
 cut.offs <- c(1e-6, 1e-6, .05, 1e-6, 1e-6, .05, .05, .05, .05,.05, .05)
 
@@ -46,56 +48,70 @@ de <- function(x){
 }
 
 temp.dif <- lapply(sim.study2, function(x) {lapply(x, function(y) y$dif)})
+names(temp.dif)
 ds.dif <- Reduce(rbind, lapply(temp.dif, function(x) de(Reduce(rbind, x))))
-ds.dif$n.biased <- as.factor(rep(0:8, each = 6))
-ds.dif.long <- ds.dif %>% tidyr::gather("fp", "tp", key = decision, value = Value)
+ds.dif$n <- rep(c(200, 350, 500), each = length(test.names)*3)
+ds.dif$type <- rep(c("Intercept Only", "Slope Only", "Intercept + Slope"), each = length(test.names))
 
-temp.scale <- lapply(sim.study2, function(x) {lapply(x, function(y) y$scale)})
-ds.scale <-  Reduce(rbind, lapply(temp.scale, function(x) Reduce(rbind, x)))
-ds.scale$n.biased <- as.factor(rep(0:8, each = n.reps))
+# Averaging error rates for non-tested parameters
+slope.methods <- unique(ds.dif$method)[c(4:6, 10)]
+temp.fp <- ds.dif[ds.dif$type =="Intercept Only" & ds.dif$method%in%slope.methods, ]
+temp.fp$fp <- temp.fp$fp * .9 + temp.fp$tp * .1
+temp.fp$tp <- 0
+temp.fp -> ds.dif[ds.dif$type =="Intercept Only" & ds.dif$method%in%slope.methods, ]
 
+int.methods <- unique(ds.dif$method)[c(1:3, 9)]
+temp.fp <- ds.dif[ds.dif$type =="Slope Only" & ds.dif$method%in%int.methods, ]
+temp.fp$fp <- temp.fp$fp * .9 + temp.fp$tp * .1
+temp.fp$tp <- 0
+temp.fp -> ds.dif[ds.dif$type =="Slope Only" & ds.dif$method%in%int.methods, ]
 
-library(ggplot2)
-ds.dif.long <- ds.dif.long[ds.dif.long$method != "rdif.chi2", ]
-ds.dif.long$method <- ordered(ds.dif.long$method, unique(ds.dif.long$method))
-ds.dif.long$decision[ds.dif.long$decision == "fp"] <- "False positive rate"
-ds.dif.long$decision[ds.dif.long$decision == "tp"] <- "True positive rate"
-names(ds.dif.long)[1] <- "Method"
-p1 <- ggplot(ds.dif.long, aes(y = Value, x = n.biased, group = Method)) +
-            geom_point(aes(color = Method), size = 2.5) +
-            geom_line(aes(color = Method), size = 1, linetype = 1) +
-            geom_hline(yintercept = .85, col = 'grey25', linetype = 2) +
-            geom_hline(yintercept = .05, col = 'grey65', linetype = 2) +
+# Reformat for plots
+ds.dif.plot <- ds.dif %>% tidyr::gather("fp", "tp", key = decision, value = Value)
+
+omit.methods <- unique(ds.dif$method)[c(1, 3, 4, 6, 7)]
+ds.dif.plot <- ds.dif.plot[!ds.dif.plot$method%in%omit.methods, ]
+ds.dif.plot$method[ds.dif.plot$method == "theta.flag"] <- "rdif.intercept"
+ds.dif.plot$method[ds.dif.plot$method == "sigma.flag"] <- "rdif.slope"
+ds.dif.plot$method[ds.dif.plot$method == "lr.chi"] <- "lr.chi2"
+ds.dif.plot$Test <- "intercept"
+ds.dif.plot$Test[ds.dif.plot$method%in%c("lr.chi2", "rdif.chi2")] <- "chi.square"
+ds.dif.plot$Test[ds.dif.plot$method%in%c("lr.slope", "rdif.slope")] <- "slope"
+ds.dif.plot$Method <- "R.DIF"
+ds.dif.plot$Method[ds.dif.plot$method%in% c("lr.chi2", "lr.slope", "lr.intercept")]  <- "LRT"
+
+ds.dif.plot$decision[ds.dif.plot$decision == "fp"] <- "False Positive Rate"
+ds.dif.plot$decision[ds.dif.plot$decision == "tp"] <- "True Rositive Rate"
+ds.dif.plot$n <- factor(ds.dif.plot$n)
+method.order <- unique(ds.dif.plot$Method)[c(1, 2, 3, 4, 5, 6)]
+ds.dif.plot$Method <- ordered(ds.dif.plot$Method, method.order)
+type.order <- unique(ds.dif.plot$type)
+ds.dif.plot$type <- ordered(ds.dif.plot$type, type.order)
+head(ds.dif.plot)
+
+p1 <- ggplot(ds.dif.plot, aes(y = Value, x = n, fill = Test, pattern = Method)) +
+            geom_bar_pattern(
+               position = position_dodge(preserve = "single"),
+               stat = "Identity",
+               color = "black",
+               pattern_fill = "White",
+               pattern_angle = 45,
+               pattern_density = 0.1,
+               pattern_spacing = 0.025,
+               pattern_key_scale_factor = 0.6) +
             ylab("Value") +
-            xlab("Number of biased items (out of 15)") +
-            theme(text = element_text(size=20)) +
-            scale_colour_brewer(palette = "Paired")
-p1 + facet_wrap(~ decision, nrow = 2)
+            xlab("Sample size") +
+            #theme(text = element_text(size=18)) +
+            theme_bw(base_size = 18) +
+            scale_fill_manual(
+             values = c("grey40", "grey65", "grey85")) +
+            #values = c("#A6CEE3","#B2DF8A","#FB9A99")) +
+            scale_pattern_manual(
+              values = c(R.DIF = "stripe", LRT = "none")) +
+            scale_y_continuous(
+              breaks = c(.05, .1, .5, .7, .9),
+              minor_breaks = c(.025, .075, .6, .8))
 
-# Scale distribution
-facet.labels <- paste0("N.DIF: ", 0:8,  " out of 15")
-facet_labeller <- function(variable, value){
-  return(facet.labels[value])
-}
-
-p2 <- ggplot(ds.scale, aes(x = theta)) +
-            geom_histogram(col = "white", fill = 'grey65') +
-            ylab("Count") +
-            xlab("R-DIF estimate of the IRT scale parameter") +
-            theme(text = element_text(size=20))
-p2 + facet_wrap(~ n.biased, nrow = 3, labeller = facet_labeller)
-
-
-# per sample fp rate plotted as a function of the scale parm
-bsq.scale <- ds.scale.long[ds.scale.long$Method == "bsq", ]
-temp.dif2 <- lapply(temp.dif, function(x) {lapply(x, function(y) mean(y$bsq[y$dgp == F] < .00001))})
-bsq.dif <- unlist(temp.dif2)
-length(bsq.dif)
-dim(bsq.scale)
-bsq.scale$dif <- bsq.dif
-bsq.dif <- Reduce(c, lapply(temp.dif2, function (x) Reduce(c, x)))
-tapply(bsq.scale$Value, bsq.scale$n.biased, mean)
-
-plot(bsq.scale$Value, bsq.scale$dif)
-
-
+p1 +  guides(pattern = guide_legend(override.aes = list(fill = "grey80")),
+             fill = guide_legend(override.aes = list(pattern = "none"))) +
+      facet_grid(vars(decision), vars(type), scales = "fixed")
