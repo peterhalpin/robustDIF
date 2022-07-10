@@ -2,18 +2,21 @@
 % Please edit documentation in R/robustDIF_functions.R
 \name{grad_intercept}
 \alias{grad_intercept}
-\title{Compute the gradient of \link[robustDIF::y_intercept]{y_intercept}.}
+\title{The gradient of \code{\link[robustDIF]{y_intercept}}.}
 \usage{
 grad_intercept(theta, irt.mle)
 }
 \arguments{
-\item{theta}{IRT scale parameter (mu / sigma).}
+\item{theta}{the IRT scale parameter.}
 
-\item{irt.mle}{the output of \code{robustDIF::get_irt_mle}.}
+\item{irt.mle}{the output of \code{\link[robustDIF]{get_irt_pars}}.}
 }
 \value{
-A matrix in which the columns are the 4*n.item-dimensional gradient vectors of \code{y_intercept} for each item.
+A matrix in which the columns are the gradient vectors of \code{\link[robustDIF]{y_intercept}}, for each item.
 }
 \description{
-For each item, the non-null elements of the gradient are organized as \code{c(a0, d0, a1, d1)}. The parameters a0 and d0 are the item slope and intercept in the reference group. The parameters a1 and d1 are the item slope and intercept in the comparison group.
+The gradient is take with respect to the item parameters. The parameter vector is organized as \code{c(a0, d0, a1, d1)}, repeated over items. The parameters \code{a0} and \code{d0} are the item slope and intercept in the reference group. The parameters \code{a1} and \code{d1} are the item slope and intercept in the comparison group.
+}
+\seealso{
+\code{\link[y_intercept]{y_intercept}}
 }

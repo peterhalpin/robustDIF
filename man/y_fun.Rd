@@ -2,16 +2,16 @@
 % Please edit documentation in R/robustDIF_functions.R
 \name{y_fun}
 \alias{y_fun}
-\title{Computes R-DIF scaling functions.}
+\title{R-DIF scaling functions.}
 \usage{
 y_fun(irt.mle, par = "intercept", log = F)
 }
 \arguments{
-\item{irt.mle}{The output of \link[robustDIF::get_irt_pars]{get_irt_pars}.}
+\item{irt.mle}{the output of \code{\link[robustDIF]{get_irt_pars}}.}
 
-\item{par}{Character: Use scaling function for item intercepts or item slopes? One of \code{c("intercept", "slope")}.}
+\item{par}{character: use the scaling function for item intercepts or item slopes? One of \code{c("intercept", "slope")}.}
 
-\item{log}{Logical: return log Y instead of Y? Only applies if \code{par = "slope"}.}
+\item{log}{logical: use of scaling function? Only applies if \code{par = "slope"}.}
 }
 \value{
 A vector of Y values.
@@ -20,5 +20,5 @@ A vector of Y values.
 Computes the R-DIF scaling function for item intercepts or for item slopes.
 }
 \seealso{
-\link[robustDIF::y_intercept]{y_intercept}, \link[robustDIF::y_slope]{y_slope}.
+\code{\link[y_intercept]{y_intercept}}, \code{\link[robustDIF]{y_slope}}.
 }

@@ -2,20 +2,22 @@
 % Please edit documentation in R/robustDIF_functions.R
 \name{get_starts}
 \alias{get_starts}
-\title{Computes the staring values for IRLS (or NR).}
+\title{Compute staring values for \code{\link[robustDIF]{rdif}}.}
 \usage{
 get_starts(irt.mle, par = "intercept", log = F, alpha = 0.05)
 }
 \arguments{
-\item{irt.mle}{The output of \code{robustDIF::get_irt_mle}.}
+\item{irt.mle}{the output of \code{\link[robustDIF]{get_irt_pars}}.}
 
-\item{par}{Use scaling function for item intercepts or item slopes? One of \code{c("intercept", "slope")}.}
+\item{par}{character: use the scaling function for item intercepts or item slopes? One of \code{c("intercept", "slope")}.}
 
-\item{log}{Logical: Use log of scaling function? Only applies if \code{par = "slope"}.}
+\item{log}{logical: use of scaling function? Only applies if \code{par = "slope"}.}
+
+\item{alpha}{the desired false positive rate for flagging items with DIF.}
 }
 \value{
-A vector with elements med(Y), LTS(Y), and min Rho.
+A vector containing the median of \code{\link[robustDIF]{y_fun}}, the least trimmed squares estimate of location for \code{\link[robustDIF]{y_fun}} with 50-percent trim rate, and the minimum of \code{\link[robustDIF]{rho_fun}}.
 }
 \description{
-Computes the staring values for IRLS (or NR).
+Compute staring values for \code{\link[robustDIF]{rdif}}.
 }

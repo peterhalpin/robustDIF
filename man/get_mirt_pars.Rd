@@ -2,16 +2,16 @@
 % Please edit documentation in R/robustDIF_functions.R
 \name{get_mirt_pars}
 \alias{get_mirt_pars}
-\title{Extract 2PL item parameter estimates from \link[mirt]{mirt}.}
+\title{Extract 2PL item parameter estimates from \code{\link[mirt]{mirt}}.}
 \usage{
 get_mirt_pars(mirt.fit.2pl)
 }
 \arguments{
-\item{mirt.fit.2pl}{A \link[mirt]{mirt} object (\code{SingleGroupClass}) estimated for the 2PL model.}
+\item{mirt.fit.2pl}{a \code{\link[mirt]{mirt}} object (\code{SingleGroupClass}) estimated for the 2PL model.}
 }
 \value{
 A data frame of 2PL item parameter estimates, in slope-intercept form.
 }
 \description{
-Extract 2PL item parameter estimates from \link[mirt]{mirt}.
+Extract 2PL item parameter estimates from \code{\link[mirt]{mirt}}.
 }

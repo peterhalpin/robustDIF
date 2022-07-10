@@ -7,11 +7,11 @@
 grad_mat(grad.vec)
 }
 \arguments{
-\item{grad.vec}{A gradient vector.}
+\item{grad.vec}{A vector containing the nonzero elements of \code{\link[robustDIF]{grad_intercept}} or \code{\link[robustDIF]{grad_slope}}.}
 }
 \value{
-A matrix in which the columns are the 4*n.item-dimensional gradient vectors for each item.
+A matrix in which the columns are the gradient vectors for each item.
 }
 \description{
-Called internally by the \code{robustDIF} gradient functions.
+Called internally by gradient functions.
 }

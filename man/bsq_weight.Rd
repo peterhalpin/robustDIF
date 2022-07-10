@@ -2,22 +2,22 @@
 % Please edit documentation in R/robustDIF_functions.R
 \name{bsq_weight}
 \alias{bsq_weight}
-\title{Computes the weights of the bi-square function for use with IRLS.}
+\title{Compute the weights of the bi-square function.}
 \usage{
 bsq_weight(theta, y, var.y, alpha = 0.05)
 }
 \arguments{
-\item{theta}{The IRT scale parameter.}
+\item{theta}{the IRT scale parameter.}
 
-\item{y}{The output of \code{robustDIF::y_fun}.}
+\item{y}{the output of \code{\link[robustDIF]{y_fun}}.}
 
-\item{var.y}{The variance of y.}
+\item{var.y}{the output of \code{\link[robustDIF]{var_y}}.}
 
-\item{alpha}{The desired false positive rate for flagging items with DIF.}
+\item{alpha}{the desired false positive rate for flagging items with DIF.}
 }
 \value{
-The bi-square weights for (y - theta) / var.y, for each item.
+The bi-square weights, for each item.
 }
 \description{
-Computes the weights of the bi-square function for use with IRLS.
+The weights are used for estimation via iteratively re-weighted least squares, so the function is set up to take a pre-computed values of \code{theta} and \code{var.y}
 }

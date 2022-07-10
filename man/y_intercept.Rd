@@ -7,7 +7,7 @@
 y_intercept(irt.mle)
 }
 \arguments{
-\item{irt.mle}{The output of \link[robustDIF::get_irt_pars]{get_irt_pars}.}
+\item{irt.mle}{the output of \code{\link[robustDIF]{get_irt_pars}}.}
 }
 \value{
 A vector of Y values.

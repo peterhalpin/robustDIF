@@ -2,14 +2,14 @@
 % Please edit documentation in R/robustDIF_functions.R
 \name{rho_grid}
 \alias{rho_grid}
-\title{Performs grid search for minimum value of the bi-square Rho function.}
+\title{Grid search for minimum value of the bi-square Rho function.}
 \usage{
 rho_grid(y, var_fun, alpha = 0.05, grid.width = 0.05)
 }
 \arguments{
-\item{y}{Output of \code{y_fun}}
+\item{y}{output of \code{\link[robustDIF]{get_starts}}}
 
-\item{var_fun}{Computes variance of \code{y} as a function of only the scale parameter.}
+\item{var_fun}{function that variance of \code{y} as a function of only the scale parameter.}
 
 \item{alpha}{The desired false positive rate for flagging items with DIF.}
 
@@ -19,5 +19,8 @@ rho_grid(y, var_fun, alpha = 0.05, grid.width = 0.05)
 The location parameter that minimizes the bi-square Rho function.
 }
 \description{
-Internal function used by \code{get_starts} to get staring values based on minimizing the rho-function of the bi-square. For plotting use \code{rho_fun} instead.
+This function is used by \code{\link[robustDIF]{get_starts}}, so its inputs are formatted for to take internal arguments of that function. For plotting, use \code{\link[robustDIF]{rho_fun}} instead.
+}
+\seealso{
+\code{\link[robustDIF]{get_starts}}
 }

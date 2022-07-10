@@ -7,13 +7,13 @@
 y_slope(irt.mle, log = F)
 }
 \arguments{
-\item{irt.mle}{The output of \link[robustDIF::get_irt_pars]{get_irt_pars}.}
+\item{irt.mle}{the output of \code{\link[robustDIF]{get_irt_pars}}.}
 
-\item{log}{Logical: return log Y instead of Y?}
+\item{log}{logical: use of scaling function?}
 }
 \value{
 A vector of Y values.
 }
 \description{
-Computes \code{Y = a1/d0}, or its log. Used to test DIF on item slopes.
+Computes \code{Y = a1/a0}, or its log. Used to test DIF on item slopes.
 }

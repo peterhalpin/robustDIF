@@ -1,6 +1,12 @@
-# Sim study 1
+# Numerical examples for Halpin (2022) Differential Item Functioning via Robust Scaling.
+
+# Sim Study 1
 # First run: June 28-29, 2022
 # Second run: July 5-6, 2022 (new bsq_weights)
+
+# Required packages
+library(robustDIF)
+library(mirt)
 library(ggplot2)
 library(dplyr)
 

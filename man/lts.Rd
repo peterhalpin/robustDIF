@@ -2,18 +2,21 @@
 % Please edit documentation in R/robustDIF_functions.R
 \name{lts}
 \alias{lts}
-\title{Compute the least trimmed squares (LTS) estimate of location}
+\title{The least trimmed squares (LTS) estimate of location}
 \usage{
 lts(y, p = 0.5)
 }
 \arguments{
-\item{y}{A vector of data points.}
+\item{y}{a vector of data points.}
 
-\item{p}{The proportion of data points to trim.}
+\item{p}{the proportion of data points to trim.}
 }
 \value{
-The LTS estimate of location.
+The LTS estimate of location of \code{y}.
 }
 \description{
-Compute the least trimmed squares (LTS) estimate of location
+The least trimmed squares (LTS) estimate of location
+}
+\seealso{
+\code{\link[robustDIF]{get_starts}}
 }

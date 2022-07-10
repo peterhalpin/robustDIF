@@ -2,22 +2,25 @@
 % Please edit documentation in R/robustDIF_functions.R
 \name{cov_yz}
 \alias{cov_yz}
-\title{Computes the asymptotic covariance of IRT scaling functions for the item intercepts and the item slopes, under the null hypothesis.}
+\title{Compute the covariance of the asymptotic null distribution of IRT scaling functions.}
 \usage{
 cov_yz(theta.y, theta.z, irt.mle, log = F)
 }
 \arguments{
-\item{theta.y}{The IRT scale parameter for the item intercepts (mu / sigma)}
+\item{theta.y}{the IRT scale parameter for the item intercepts}
 
-\item{theta.z}{The IRT scale parameter for the item slopes (sigma or log sigma).}
+\item{theta.z}{the IRT scale parameter for the item slopes}
 
-\item{irt.mle}{The output of \code{robustDIF::get_irt_mle}.}
+\item{irt.mle}{the output of \code{\link[robustDIF]{get_irt_pars}}.}
 
-\item{log}{Logical: Use log of scaling function for the slope?}
+\item{log}{logical: use of scaling function for the slopes?}
 }
 \value{
-An n.item-dimensional vector that contains the covariance of the IRT scaling functions, for each item.
+A vector that contains the covariance of the IRT scaling functions, for each item.
 }
 \description{
-Used to compute the the quadratic form test of item intercepts and slopes.
+Compute the covariance of the asymptotic null distribution of IRT scaling functions.
+}
+\seealso{
+\code{\link[robustDIF]{y_fun}}, \code{\link[robustDIF]{var_y}}
 }

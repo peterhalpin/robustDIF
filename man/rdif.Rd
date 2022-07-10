@@ -2,7 +2,7 @@
 % Please edit documentation in R/robustDIF_functions.R
 \name{rdif}
 \alias{rdif}
-\title{Estimates IRT scale parameters using the RDIF procedure}
+\title{Estimate IRT scale parameters using the RDIF procedure.}
 \usage{
 rdif(
   irt.mle,
@@ -11,27 +11,30 @@ rdif(
   alpha = 0.05,
   starting.value = "all",
   tol = 1e-07,
-  maxit = 100
+  maxit = 100,
+  method = "irls"
 )
 }
 \arguments{
-\item{irt.mle}{the output of \code{robustDIF::irt_mle}}
+\item{irt.mle}{the output of \code{\link[robustDIF]{get_irt_pars}}.}
 
-\item{par}{Use scaling function for item intercepts or item slopes? One of \code{c("intercept", "slope")}.}
+\item{par}{character: use the scaling function for item intercepts or item slopes? One of \code{c("intercept", "slope")}.}
 
-\item{log}{Logical: Use log of scaling function? Only applies if \code{par = "slope"}.}
+\item{log}{logical: use of scaling function? Only applies if \code{par = "slope"}.}
 
-\item{alpha}{the desired false positive rate for flagging items with DIF}
+\item{alpha}{the desired false positive rate for flagging items with DIF.}
 
 \item{starting.value}{one of \code{c("med", "lts", "min_rho", "all")} or a numerical value to be used as the starting value. The default is \code{"all"} which returns the median of the other three.}
 
 \item{tol}{convergence criterion for comparing subsequent values of estimate}
 
-\item{maxit}{maximum number of iterations to perform}
+\item{maxit}{maximum number of iterations}
+
+\item{method}{one of \code{c("irls", "nr")}. \code{irls} is strongly recommended.}
 }
 \value{
-A named list containing the estimate, weights, and number of iterations
+A named list containing the estimate of the IRT scale parameters, the bi-square weights, the number of iterations performed, and the value of the convergence criterion (difference of  estimate between subsequent iterations). Weights with a value of zero indicate that the corresponding item was flagged as having DIF during estimation.
 }
 \description{
-Estimation is via iteratively reweighted least squares using the bi-square loss function.
+Implements M-estimation of an IRT scale parameter using the bi-square loss function. Estimation can be performed using iteratively re-weighted least squares (IRLS) or Newton-Raphson (NR). The former is highly recommended as the latter can diverge with the bisquare. Currently only IRLS is implemented.
 }

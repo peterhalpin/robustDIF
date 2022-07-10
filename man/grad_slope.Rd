@@ -2,20 +2,23 @@
 % Please edit documentation in R/robustDIF_functions.R
 \name{grad_slope}
 \alias{grad_slope}
-\title{Compute the gradient of \code{y_slope}.}
+\title{The gradient of \code{\link[robustDIF]{y_slope}}.}
 \usage{
 grad_slope(theta, irt.mle, log = F)
 }
 \arguments{
-\item{theta}{The IRT scale parameter (sigma or log sigma).}
+\item{theta}{the IRT scale parameter.}
 
-\item{irt.mle}{The output of \code{robustDIF::get_irt_mle}.}
+\item{irt.mle}{the output of \code{\link[robustDIF]{get_irt_pars}}.}
 
-\item{log}{Logical: Use log of scaling function?.}
+\item{log}{logical: use log of scaling function?}
 }
 \value{
-A matrix in which the columns are the 4*n.item-dimensional gradient vectors of \code{y_slope} for each item.
+A matrix in which the columns are the gradient vectors of \code{\link[robustDIF]{y_slope}}, for each item.
 }
 \description{
-For each item, the non-null elements of the gradient are organized as \code{c(a0, d0, a1, d1)}. The parameters a0 and d0 are the item slope and intercept in the reference group. The parameters a1 and d1 are the item slope and intercept in the comparison group.
+The gradient is take with respect to the item parameters. The parameter vector is organized as \code{c(a0, d0, a1, d1)}, repeated over items. The parameters \code{a0} and \code{d0} are the item slope and intercept in the reference group. The parameters \code{a1} and \code{d1} are the item slope and intercept in the comparison group.
+}
+\seealso{
+\code{\link[y_intercept]{y_slope}}
 }

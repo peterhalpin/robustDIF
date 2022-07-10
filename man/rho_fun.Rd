@@ -2,26 +2,24 @@
 % Please edit documentation in R/robustDIF_functions.R
 \name{rho_fun}
 \alias{rho_fun}
-\title{Computes the bi-square Rho function}
+\title{The bi-square Rho function}
 \usage{
 rho_fun(irt.mle, par = "intercept", log = F, alpha = 0.05, grid.width = 0.05)
 }
 \arguments{
-\item{irt.mle}{The output of \code{robustDIF::get_irt_mle}.}
+\item{irt.mle}{the output of \code{\link[robustDIF]{get_irt_pars}}.}
 
-\item{par}{Use scaling function for item intercepts or item slopes? One of \code{c("intercept", "slope")}.}
+\item{par}{character: use the scaling function for item intercepts or item slopes? One of \code{c("intercept", "slope")}.}
 
-\item{log}{Logical: Use log of scaling function? Only applies if \code{par = "slope"}.}
+\item{log}{logical: use of scaling function? Only applies if \code{par = "slope"}.}
 
-\item{alpha}{The desired false positive rate for flagging items with DIF.}
+\item{alpha}{the desired false positive rate for flagging items with DIF.}
 
-\item{grid.width}{The width of grid points for \code{theta}.}
-
-\item{theta}{The IRT scale parameter (mu / sigma for intercepts, sigma or log sigma for slopes).}
+\item{grid.width}{the width of grid points.}
 }
 \value{
-A named list with theta and Rho values, can be passed directly to plot.
+A named list with theta values and the corresponding rho values.
 }
 \description{
-Plotting the objective function of the minimization problem in theta. Useful for diagnosing local solutions.
+Computes the objective function of the bi-square minimization problem in a location parameter, theta. The theta values are obtained internally by a grid search over the range of \code{\link[robustDIF]{y_fun}}. Useful for graphically diagnosing local solutions.
 }

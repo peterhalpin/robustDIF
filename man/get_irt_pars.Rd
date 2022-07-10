@@ -7,9 +7,9 @@
 get_irt_pars(fit.list, type = "mirt")
 }
 \arguments{
-\item{fit.list}{A list of 2PL model fits.}
+\item{fit.list}{a list of 2PL model fits.}
 
-\item{type}{A string indicating the package that produced the fits.}
+\item{type}{character: the name of the package that produced the fits.}
 }
 \value{
 A named list of item parameter estimates and covariance matrices.
@@ -18,5 +18,5 @@ A named list of item parameter estimates and covariance matrices.
 Takes a list of 2PL model fits and formats the item parameter estimates  and their covariance matrix. The R-DIF procedure assumes that the estimates were obtained by maximum likelihood and the covariance is asymptotically correct.
 }
 \details{
-Note that current implementation only supports lists of length 2 (i.e., two groups) and the first fit is treated as the reference group. The only type of fit currently supported is the \code{SingleGroupClass} of the \link[mirt]{mirt} package. To use fits from other software, use the format \code{list(par0 = est[[1]], par1 = est[[2]], vcov0 = vcov[[1]], vcov1 = vcov[[2]])}
+Note that current implementation only supports lists of length 2 (i.e., two groups) and the first fit is treated as the reference group. The only type of fit currently supported is the \code{SingleGroupClass} of the\code{\link[mirt]{mirt}} package. To use fits from other software, use the format \code{list(par0 = est[[1]], par1 = est[[2]], vcov0 = vcov[[1]], vcov1 = vcov[[2]])}
 }

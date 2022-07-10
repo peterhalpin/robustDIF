@@ -7,11 +7,11 @@
 joint_vcov(irt.mle)
 }
 \arguments{
-\item{irt.mle}{The output of \code{robustDIF::get_irt_mle}.}
+\item{irt.mle}{the output of \code{\link[robustDIF]{get_irt_pars}}.}
 }
 \value{
 A block diagonal VCOV matrix in which each block is the VCOV of an item.
 }
 \description{
-Puts two 2PL models into a single block diagonal VCOV matrix that is conformable with the output of the \code{robustDIF} gradient functions.
+Puts VCOV matrix of two 2PL models into a single block diagonal VCOV matrix that is conformable with the output of the \code{\link[robustDIF]{grad_intercept}} and \code{\link[robustDIF]{grad_slope}}.
 }
