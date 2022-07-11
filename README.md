@@ -17,18 +17,47 @@ remotes::install_github("peterhalpin/robustDIF")
 library(robustDIF)
 ```
 
-## Example
+## Example Dataset
 
 The main user-facing functions are illustrated below using the built-in
-example data set `rdif.eg`. In the example data set, their are a total
-of five items and the first item has DIF on the intercept and slope. The
-groups differ on the mean of the latent trait (.5 SD) but not the
-variances. Check out the documentation for `rdif.eg` and `get_irt_pars`
-for more info about how to format data for use with `robustDIF`.
+example dataset `rdif.eg`. In the example dataset, there are a total of
+five items and the first item has DIF on the intercept and slope. DIF on
+the intercept was additive and equal to
+![1/2](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;1%2F2 "1/2").
+DIF on the slope was multiplicative and equal to
+![2](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;2 "2").
+The latent trait was generated from
+![N(0,1)](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;N%280%2C1%29 "N(0,1)")
+in the reference group and
+![N(.5, 1)](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;N%28.5%2C%201%29 "N(.5, 1)")
+in the comparison group.
 
-The `rdif` function estimates IRT scaling parameters and, as a by
-product, flags items with DIF at the desired asymptotic Type I Error
-rate (`alpha`). Items with DIF are indicated by a weight of 0.
+Check out the documentation for `rdif.eg` and `get_irt_pars` for more
+info about how to format data for use with `robustDIF`.
+
+## The RDIF procedure
+
+The RDIF procedure involves IRT scaling parameters that are functions of
+the parameters of the distributions of the latent trait. Letting
+![\\mu = .5](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Cmu%20%3D%20.5 "\mu = .5")
+and
+![\\sigma^2 = 1](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Csigma%5E2%20%3D%201 "\sigma^2 = 1")
+denote the mean and variance of the latent trait in the comparison
+group, the scaling parameter used to test for DIF on the item intercepts
+is
+![\\theta = \\mu/\\sigma](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Ctheta%20%3D%20%5Cmu%2F%5Csigma "\theta = \mu/\sigma").
+The scaling parameter used to test for DIF on the item slopes is
+![\\theta = \\sigma](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Ctheta%20%3D%20%5Csigma "\theta = \sigma").
+
+The `rdif` function estimates the IRT scaling parameters, and, as a
+by-product, flags items with DIF at the desired asymptotic Type I Error
+rate (`alpha`). In the context of DIF, we are mainly interested in the
+flagging procedure.
+
+In the output below, the estimated values of the scaling parameters are
+indicated by `est`. Items with DIF are indicated by `weights = 0`. The
+other output describes the estimation routine (number of iterations and
+the convergence criterion).
 
 ``` r
 # Item intercepts
@@ -65,12 +94,35 @@ rate (`alpha`). Items with DIF are indicated by a weight of 0.
     ## [1] 4.618e-08
 
 We can see that the first item exhibits DIF on both the slope and
-intercept (i.e., it has a weight of zero in both outputs).
+intercept (i.e., it has a weight of zero in both outputs). The estimated
+scaling parameters are good approximations of the data-generating
+values.
 
-The same conclusion can be made by following up `rdif` with a
-“stand-alone” Wald test of the parameters. The stand alone test can be
-useful if one wishes to test for DIF using a different Type I Error rate
-than was used with `rdif`.
+To get an estimated “effect size” for DIF, we can compare the scaling
+functions(`y_fun`) to the estimated scaling parameters:
+
+``` r
+y_fun(irt.mle = rdif.eg, par = "intercept")[1] - rdif.intercepts$est
+```
+
+    ## [1] 0.4074
+
+``` r
+y_fun(irt.mle = rdif.eg, par = "slope")[1] / rdif.slopes$est
+```
+
+    ## [1] 1.857
+
+These also correspond closely to the data generating values.
+
+## “Stand-alone” Wald tests of DIF
+
+Inferences about DIF can also be made by following up `rdif` with
+“stand-alone” Wald tests of the item parameters. The stand-alone tests
+can be useful if one wishes to test for DIF using a different Type I
+Error rate than was used with `rdif`.
+
+To test each item parameter separately, use the function `z_test`:
 
 ``` r
 # Wald test of item intercepts 
@@ -94,8 +146,10 @@ z_test(theta = rdif.slopes$est, irt.mle = rdif.eg, par = "slope")
     ## $p.val
     ## [1] 0.0008621 0.8507924 0.9704938 0.5659824 0.5444002
 
-Or test both item parameters together using a Wald test on two degrees
-of freedom
+Alternatively, the user can test both item parameters together using a
+Wald test on two degrees of freedom, which tends to have slightly better
+statistical power (true positive rate) than the flagging procedure or
+one-parameter tests:
 
 ``` r
 # Wald test of item intercepts 
@@ -110,10 +164,11 @@ chi2_test(theta.y= rdif.intercepts$est,
     ## $p.val
     ## [1] 2.220e-15 7.631e-01 9.498e-01 7.614e-01 7.287e-01
 
+## The Rho function
+
 For data analyses, it is useful to check whether the M-estimator has a
-global minimum before proceeding with tests. Note the minimizing value
-of theta in the plots corresponds closely to the values reported by
-`rdif` above.
+clear global minimum before proceeding with tests. In `robustDIF`, the
+minimization problem is described by `rho_fun`.
 
 ``` r
 rho.intercept <- rho_fun(irt.mle = rdif.eg, par = "intercept", grid.width = .01)
@@ -124,4 +179,7 @@ rho.slope <- rho_fun(irt.mle = rdif.eg, par = "slope", grid.width = .01)
 plot(rho.slope$theta, rho.slope$rho, type = "l")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+
+Note the minimizing value of theta in the plots corresponds closely to
+the values reported by `rdif` above.
