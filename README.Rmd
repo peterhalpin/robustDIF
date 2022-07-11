@@ -5,6 +5,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
+options(digits = 4)
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
@@ -16,15 +17,18 @@ Currently `robustDIF` only supports the two-parameter logistc (2PL) IRT model in
 ## Installation
 
 ```{r, eval = FALSE}
-# Development version
-# install.packages("devtools")
-devtools::install_github("peterhalpin/robustDIF")
+install.packages("remotes")
+remotes::install_github("peterhalpin/robustDIF")
+library(robustDIF)
+```
+
+```{r, echo = F}
 library(robustDIF)
 ```
 
 ## Example
 
-The main user-facing functions are illustrated below using the built-in example data set `rdif.eg`. In the example data set, their are a total of five items and the first item has (large) DIF on the intercept and slope. The groups differ on the mean of the latent trait (.5 SD) but not the variances. Check out the documentation for `rdif.eg` and `get_irt_pars` for more info about how to format data for use with `robustDIF`.
+The main user-facing functions are illustrated below using the built-in example data set `rdif.eg`. In the example data set, their are a total of five items and the first item has DIF on the intercept and slope. The groups differ on the mean of the latent trait (.5 SD) but not the variances. Check out the documentation for `rdif.eg` and `get_irt_pars` for more info about how to format data for use with `robustDIF`.
 
 The `rdif` function estimates IRT scaling parameters and, as a by product, flags items with DIF at the desired asymptotic Type I Error rate (`alpha`). Items with DIF are indicated by a weight of 0.  
 
@@ -37,17 +41,35 @@ The `rdif` function estimates IRT scaling parameters and, as a by product, flags
 (rdif.slopes <- rdif(irt.mle = rdif.eg, par = "slope", alpha = .05))
 ```
 
+We can see that the first item exhibits DIF on both the slope and intercept (i.e., it has a weight of zero in both outputs). 
 
+The same conclusion can be made by following up `rdif` with a "stand-alone" Wald test of the parameters. The stand alone test can be useful if one wishes to test for DIF using a different Type I Error rate than was used with `rdif`. 
 
+```{r}
+# Wald test of item intercepts 
+z_test(theta = rdif.intercepts$est, irt.mle = rdif.eg, par = "intercept")
+
+# Wald test of item intercepts 
+z_test(theta = rdif.slopes$est, irt.mle = rdif.eg, par = "slope")
+```
+
+Or test both item parameters together using a Wald test on two degrees of freedom
+```{r}
+# Wald test of item intercepts 
+chi2_test(theta.y= rdif.intercepts$est, 
+          theta.z = rdif.slopes$est,
+          irt.mle = rdif.eg)
 
 ```
 
-## Including Plots
+For data analyses, it is useful to check whether the M-estimator has a global minimum before proceeding with tests. Note the minimizing value of theta in the plots corresponds closely to the values reported by `rdif` above. 
 
-You can also embed plots, for example:
+```{r}
+rho.intercept <- rho_fun(irt.mle = rdif.eg, par = "intercept", grid.width = .01)
+par(mfrow = c(1,2))
+plot(rho.intercept$theta, rho.intercept$rho, type = "l")
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+rho.slope <- rho_fun(irt.mle = rdif.eg, par = "slope", grid.width = .01)
+plot(rho.slope$theta, rho.slope$rho, type = "l")
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
