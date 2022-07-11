@@ -8,4 +8,8 @@ Description: Functions for assessing differential item functioning (DIF) in item
 License: GNU GENERAL PUBLIC LICENSE Version 3
 Encoding: UTF-8
 LazyData: true
+Depends:
+  R(> 3.5.0)
+Imports: 
+  mirt
 RoxygenNote: 7.2.0

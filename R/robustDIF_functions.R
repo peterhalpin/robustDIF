@@ -484,10 +484,10 @@ rho_fun <- function(irt.mle, par = "intercept", log = F, alpha = .05, grid.width
 #'
 #' @examples
 #' # Item intercepts, using the built-in example dataset "rdif.eg"
-#' \donttest{rdif(irt.mle = rdif.eg)}
+#' \dontrun{rdif(irt.mle = rdif.eg)}
 #'
-#'  # Item slopes
-#'  \donttest{rdif(irt.mle = rdif.eg, par = "slope")}
+#' # Item slopes
+#' \dontrun{rdif(irt.mle = rdif.eg, par = "slope")}
 #'
 #' @export
 # -------------------------------------------------------------------
@@ -530,13 +530,13 @@ rdif <- function(irt.mle, par = "intercept", log = F, alpha = .05, starting.valu
 #'
 #' @examples
 #' # Test intercepts, using the built-in example dataset "rdif.eg"
-#' \donttest{
+#' \dontrun{
 #' rdif.intercepts <- rdif(irt.mle = rdif.eg)
 #' z_test(theta = rdif.intercepts$est, irt.mle = rdif.eg)
 #' }
 #'
 #' # Test slopes
-#' \donttest{
+#' \dontrun{
 #' rdif.slopes <- rdif(irt.mle = rdif.eg, par = "slope")
 #' z_test(theta = rdif.slopes$est, irt.mle = rdif.eg, par = "slope")
 #' }
@@ -568,7 +568,7 @@ z_test <- function(theta, irt.mle, par = "intercept", log = F) {
 #'
 #' @examples
 #' # Using the built-in example dataset "rdif.eg"
-#' \donttest{
+#' \dontrun{
 #' rdif.intercepts <- rdif(irt.mle = rdif.eg)
 #' rdif.slopes <- rdif(irt.mle = rdif.eg, par = "slope")
 #' chi2_test(theta.y = rdif.intercepts$est,

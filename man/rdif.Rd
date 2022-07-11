@@ -42,8 +42,9 @@ Estimation can be performed using iteratively re-weighted least squares (IRLS) o
 }
 \examples{
 # Item intercepts, using the built-in example dataset "rdif.eg"
-\donttest{rdif(irt.mle = rdif.eg)}
+\dontrun{rdif(irt.mle = rdif.eg)}
 
- # Item slopes
- \donttest{rdif(irt.mle = rdif.eg, par = "slope")}
+# Item slopes
+\dontrun{rdif(irt.mle = rdif.eg, par = "slope")}
+
 }
