@@ -22,7 +22,7 @@ library(robustDIF)
 The main user-facing functions are illustrated below using the built-in
 example dataset `rdif.eg`. In the example dataset, there are a total of
 five items and the first item has DIF on the intercept and slope. DIF on
-the intercept was additive and equal to
+the item difficulty (intercept slope) was additive and equal to
 ![1/2](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;1%2F2 "1/2").
 DIF on the slope was multiplicative and equal to
 ![2](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;2 "2").
@@ -56,8 +56,8 @@ flagging procedure.
 
 In the output below, the estimated values of the scaling parameters are
 indicated by `est`. Items with DIF are indicated by `weights = 0`. The
-other output describes the estimation routine (number of iterations and
-the convergence criterion).
+other output describes the iteratively re-weighted least squares
+estimation routine (number of iterations and the convergence criterion).
 
 ``` r
 # Item intercepts
@@ -98,29 +98,12 @@ intercept (i.e., it has a weight of zero in both outputs). The estimated
 scaling parameters are good approximations of the data-generating
 values.
 
-To get an estimated “effect size” for DIF, we can compare the scaling
-functions(`y_fun`) to the estimated scaling parameters:
-
-``` r
-y_fun(irt.mle = rdif.eg, par = "intercept")[1] - rdif.intercepts$est
-```
-
-    ## [1] 0.4074
-
-``` r
-y_fun(irt.mle = rdif.eg, par = "slope")[1] / rdif.slopes$est
-```
-
-    ## [1] 1.857
-
-These also correspond closely to the data generating values.
-
-## “Stand-alone” Wald tests of DIF
+## “Stand-alone” Wald tests
 
 Inferences about DIF can also be made by following up `rdif` with
-“stand-alone” Wald tests of the item parameters. The stand-alone tests
-can be useful if one wishes to test for DIF using a different Type I
-Error rate than was used with `rdif`.
+stand-alone Wald tests of the item parameters. The stand-alone tests can
+be useful if one wishes to test for DIF using a different Type I Error
+rate than was used with `rdif`.
 
 To test each item parameter separately, use the function `z_test`:
 
@@ -136,7 +119,7 @@ z_test(theta = rdif.intercepts$est, irt.mle = rdif.eg, par = "intercept")
     ## [1] 1.997e-08 5.135e-01 7.560e-01 7.928e-01 6.652e-01
 
 ``` r
-# Wald test of item intercepts 
+# Wald test of item slopes
 z_test(theta = rdif.slopes$est, irt.mle = rdif.eg, par = "slope")
 ```
 
@@ -152,7 +135,7 @@ statistical power (true positive rate) than the flagging procedure or
 one-parameter tests:
 
 ``` r
-# Wald test of item intercepts 
+# Wald test of both parameters
 chi2_test(theta.y= rdif.intercepts$est, 
           theta.z = rdif.slopes$est,
           irt.mle = rdif.eg)
@@ -166,20 +149,23 @@ chi2_test(theta.y= rdif.intercepts$est,
 
 ## The Rho function
 
-For data analyses, it is useful to check whether the M-estimator has a
-clear global minimum before proceeding with tests. In `robustDIF`, the
-minimization problem is described by `rho_fun`.
+For data analyses, it is useful to check whether the M-estimator of the
+IRT scaling parameters has a clear global minimum before proceeding to
+make inferences about DIF. In `robustDIF`, the minimization problem is
+described by `rho_fun`.
 
 ``` r
+# Rho function for item intercepts
 rho.intercept <- rho_fun(irt.mle = rdif.eg, par = "intercept", grid.width = .01)
 par(mfrow = c(1,2))
 plot(rho.intercept$theta, rho.intercept$rho, type = "l")
 
+# Rho function for item slopes
 rho.slope <- rho_fun(irt.mle = rdif.eg, par = "slope", grid.width = .01)
 plot(rho.slope$theta, rho.slope$rho, type = "l")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
 
-Note the minimizing value of theta in the plots corresponds closely to
+Note the minimizing values of theta in the plots corresponds closely to
 the values reported by `rdif` above.

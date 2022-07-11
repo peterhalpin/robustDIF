@@ -23,7 +23,7 @@ Simultaneously tests for DIF in both the item intercepts and slopes using a asym
 }
 \examples{
 # Using the built-in example dataset "rdif.eg"
-\donttest{
+\dontrun{
 rdif.intercepts <- rdif(irt.mle = rdif.eg)
 rdif.slopes <- rdif(irt.mle = rdif.eg, par = "slope")
 chi2_test(theta.y = rdif.intercepts$est,

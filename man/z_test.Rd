@@ -23,13 +23,13 @@ Tests for DIF in either the item intercept or slopes using a asymptotic z-test.
 }
 \examples{
 # Test intercepts, using the built-in example dataset "rdif.eg"
-\donttest{
+\dontrun{
 rdif.intercepts <- rdif(irt.mle = rdif.eg)
 z_test(theta = rdif.intercepts$est, irt.mle = rdif.eg)
 }
 
 # Test slopes
-\donttest{
+\dontrun{
 rdif.slopes <- rdif(irt.mle = rdif.eg, par = "slope")
 z_test(theta = rdif.slopes$est, irt.mle = rdif.eg, par = "slope")
 }

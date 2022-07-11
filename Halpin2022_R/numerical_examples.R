@@ -1,7 +1,7 @@
-###################################################
-# Numerical examples for: Halpin (2022)
-# Differential Item Functioning via Robust Scaling.
-##################################################
+################################################################################
+# Numerical examples for: Halpin (2022) Differential Item Functioning
+# Via Robust Scaling.
+################################################################################
 
 ### Required packages
 library(robustDIF)
@@ -10,9 +10,11 @@ library(GPCMlasso)
 library(difR)
 library(dplyr)
 library(ggplot2)
-library(dplyr)
 #devtools::install_github("coolbutuseless/ggpattern")
 library(ggpattern)
+
+# Helper functions for running simulations
+source("Halpin2022_R/data_sim_functions.R")
 
 ###################################################
 # Sim Study 1
@@ -38,7 +40,7 @@ ds7 <- sim_study1(n.reps, n.persons, n.items, n.biased = 7, bias, impact)
 ds8 <- sim_study1(n.reps, n.persons, n.items, n.biased = 8, bias, impact)
 
 sim.study1 <- list(ds0=ds0, ds1=ds1, ds2=ds2, ds3=ds3, ds4=ds4, ds5=ds5, ds6=ds6, ds7=ds7, ds8=ds8)
-sim.study1.path <- "~/Dropbox/Academic/Manuscripts/DIF_via_scaling/data_analyses/sim1.july6.2022.RData"
+sim.study1.path <- "Halpin2022_R/sim1.july6.2022.RData"
 #save(sim.study1, file = sim.study1.path)
 
 # Data processing
@@ -131,9 +133,8 @@ sim.study2 <- list(ds.a200=ds.a200, ds.b200=ds.b200, ds.c200=ds.c200,
                    ds.a500=ds.a500, ds.b500=ds.b500, ds.c500=ds.c500)
 
 
-sim.study2.path <- "~/Dropbox/Academic/Manuscripts/DIF_via_scaling/data_analyses/sim2.july5.2022.RData"
- #save(sim.study2, file = sim.study2.path)
-
+sim.study2.path <- "Halpin2022_R/sim2.july5.2022.RData"
+#save(sim.study2, file = sim.study2.path)
 
 # Data processing
 load(file = sim.study2.path)
@@ -217,20 +218,18 @@ p1 +  guides(pattern = guide_legend(override.aes = list(fill = "grey80")),
 
 ###################################################
 # ECDI Example
+# Data not available for dissemination, but code presented below
 ###################################################
 
 # Load and format data
-mex.file <- "~/Dropbox/FILES PSYCHOMETRICS PAPER/Psychometric article/Data/mexico_data.csv"
+mex.file <- "mexico_data.csv"
 
-pal.file <- "~/Dropbox/FILES PSYCHOMETRICS PAPER/Psychometric article/Data/palestine_data.csv"
+pal.file <- "palestine_data.csv"
 
 mexico.data <- read.csv(mex.file)
 palestine.data <- read.csv(pal.file)
 mexico.data$Country <- "Mexico"
 palestine.data$Country <- "Palestine"
-
-# Palestine weights do not sum to sample size
-palestine.data$chweight <- palestine.data$chweight / sum(palestine.data$chweight) * nrow(palestine.data)
 
 ECDI.names <- c("new_ECD1", "new_ECD2",  "new_ECD4", "new_ECD7","new_ECD11", "new_ECD12", "new_ECD13", "new_ECD14", "new_ECD18", "new_ECD20", "new_ECD21", "new_ECD28", "R_ECD35", "new_ECD41", "new_ECD43", "new_ECD44", "R_ECD50", "new_ECD53", "new_ECD54", "new_ECD57")
 
@@ -305,36 +304,5 @@ ECDI.names[learning.items][rdif.sigma.test$p.val > .05]
 Q <- chi2_test(rdif.theta$est, rdif.sigma$est, irt.mle)
 ECDI.names[learning.items][Q$p.val > .05]
 #Result: [1] "new_ECD1"  "new_ECD18" "new_ECD20"
-
-
-
-### LR tests: All tests omit all items
-mg.mod.int <- multipleGroup(
-                data = learning.data,
-                model = 1,
-                group = data$Country,
-                invariance = c("intercepts", "free_means"),
-                survey.weights = data$chweight)
-
-lr.int <- DIF(mg.mod.int, which.par = "d", scheme = "drop", Wald = F)
-
-mg.mod.slope <- multipleGroup(
-                data = learning.data,
-                model = 1,
-                group = data$Country,
-                invariance = c("slopes", "free_vars"),
-                survey.weights = data$chweight)
-
-lr.slope <- DIF(mg.mod.slope, which.par = "a1", scheme = "drop", Wald = F)
-
-mg.mod <- multipleGroup(
-                data = learning.data,
-                model = 1,
-                group = data$Country,
-                invariance = c("intercepts", "free_means", "slopes", "free_vars"),
-                survey.weights = data$chweight)
-
-lr.chi <- DIF(mg.mod, which.par = c("a1", "d"), scheme = "drop", Wald = F)
-
 
 

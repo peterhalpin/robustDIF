@@ -1,3 +1,8 @@
+################################################################################
+# Helper functions used in the numerical analyses reported in
+# Halpin, P. F. (2022) Differential Item Functioning Via Robust Scaling.
+################################################################################
+
 require(mirt)
 require(GPCMlasso)
 require(difR)
@@ -140,7 +145,6 @@ lasso <- function(dat0, dat1) {
 #' @param n.biased number of items with DIF on item intercepts
 #' @param bias magnitude of bias (the same for all items with bias)
 #' @param impact the mean and variance of the latent trait in the reference groups
-#' @export
 #' @return A n.reps length list, where each element is a list containing (a) a data.frame with the output of the DIF procedures, and (b) a vector with estimates of impact from the procedures.
 #'
 # -------------------------------------------------------------------
@@ -213,7 +217,6 @@ sim_study1 <- function(n.reps = 100, n.persons = 500, n.items = 15, n.biased = 0
 #' @param n.biased number of items with DIF on item intercepts
 #' @param bias magnitude of bias (the same for all items with bias)
 #' @param impact the mean and variance of the latent trait in the reference groups
-#' @export
 #' @return A n.reps length list, where each element is a list containing (a) a data.frame with the output of the DIF procedures, and (b) a vector with estimates of impact from the procedures.
 #'
 # -------------------------------------------------------------------
