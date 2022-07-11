@@ -11,9 +11,9 @@ cov_yz(theta.y, theta.z, irt.mle, log = F)
 
 \item{theta.z}{the IRT scale parameter for the item slopes}
 
-\item{irt.mle}{the output of \code{\link[robustDIF]{get_irt_pars}}.}
+\item{irt.mle}{the output of \code{\link[robustDIF]{get_irt_pars}}}
 
-\item{log}{logical: use of scaling function for the slopes?}
+\item{log}{logical: use log of scaling function for the slopes?}
 }
 \value{
 A vector that contains the covariance of the IRT scaling functions, for each item.

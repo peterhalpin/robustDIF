@@ -2,22 +2,35 @@
 % Please edit documentation in R/robustDIF_functions.R
 \name{z_test}
 \alias{z_test}
-\title{R-DIF z-test.}
+\title{The R-DIF test of a single item parameter.}
 \usage{
 z_test(theta, irt.mle, par = "intercept", log = F)
 }
 \arguments{
 \item{theta}{The IRT scale parameter.}
 
-\item{irt.mle}{The output of \code{robustDIF::irt_mle}.}
+\item{irt.mle}{the output of \code{\link[robustDIF]{get_irt_pars}}}
 
-\item{par}{Use scaling function for item intercepts or item slopes? One of \code{c("intercept", "slope")}.}
+\item{par}{character: use the scaling function for item intercepts or item slopes? One of \code{c("intercept", "slope")}.}
 
-\item{log}{Logical: Use log of scaling function? Only applies if \code{par = "slope"}.}
+\item{log}{logical: use of scaling function? Only applies if \code{par = "slope"}.}
 }
 \value{
-A named list with containing the value of the z.test and p(|z| > z.test), for each item.
+A named list containing the value of the z.test and p(|z| > |z.test|), for each item.
 }
 \description{
 Tests for DIF in either the item intercept or slopes using a asymptotic z-test.
+}
+\examples{
+# Test intercepts, using the built-in example dataset "rdif.eg"
+\donttest{
+rdif.intercepts <- rdif(irt.mle = rdif.eg)
+z_test(theta = rdif.intercepts$est, irt.mle = rdif.eg)
+}
+
+# Test slopes
+\donttest{
+rdif.slopes <- rdif(irt.mle = rdif.eg, par = "slope")
+z_test(theta = rdif.slopes$est, irt.mle = rdif.eg, par = "slope")
+}
 }

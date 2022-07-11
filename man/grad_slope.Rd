@@ -9,7 +9,7 @@ grad_slope(theta, irt.mle, log = F)
 \arguments{
 \item{theta}{the IRT scale parameter.}
 
-\item{irt.mle}{the output of \code{\link[robustDIF]{get_irt_pars}}.}
+\item{irt.mle}{the output of \code{\link[robustDIF]{get_irt_pars}}}
 
 \item{log}{logical: use log of scaling function?}
 }

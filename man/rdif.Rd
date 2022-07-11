@@ -16,7 +16,7 @@ rdif(
 )
 }
 \arguments{
-\item{irt.mle}{the output of \code{\link[robustDIF]{get_irt_pars}}.}
+\item{irt.mle}{the output of \code{\link[robustDIF]{get_irt_pars}}}
 
 \item{par}{character: use the scaling function for item intercepts or item slopes? One of \code{c("intercept", "slope")}.}
 
@@ -30,11 +30,20 @@ rdif(
 
 \item{maxit}{maximum number of iterations}
 
-\item{method}{one of \code{c("irls", "nr")}. \code{irls} is strongly recommended.}
+\item{method}{one of \code{c("irls", "nr")}. Currently, only IRLS is implemented.}
 }
 \value{
-A named list containing the estimate of the IRT scale parameters, the bi-square weights, the number of iterations performed, and the value of the convergence criterion (difference of  estimate between subsequent iterations). Weights with a value of zero indicate that the corresponding item was flagged as having DIF during estimation.
+A named list containing the estimate of the IRT scale parameter, the bi-square weights, the number of iterations performed, and the value of the convergence criterion (difference of  estimate between subsequent iterations).
 }
 \description{
-Implements M-estimation of an IRT scale parameter using the bi-square loss function. Estimation can be performed using iteratively re-weighted least squares (IRLS) or Newton-Raphson (NR). The former is highly recommended as the latter can diverge with the bisquare. Currently only IRLS is implemented.
+Implements M-estimation of an IRT scale parameter using the bi-square loss function. Also returns the bi-square weights for each item. Weights with a value of zero indicate that the corresponding item was flagged as having DIF during estimation.
+
+Estimation can be performed using iteratively re-weighted least squares (IRLS) or Newton-Raphson (NR). Currently, only IRLS is implemented. NR can can diverge with bi-square.
+}
+\examples{
+# Item intercepts, using the built-in example dataset "rdif.eg"
+\donttest{rdif(irt.mle = rdif.eg)}
+
+ # Item slopes
+ \donttest{rdif(irt.mle = rdif.eg, par = "slope")}
 }

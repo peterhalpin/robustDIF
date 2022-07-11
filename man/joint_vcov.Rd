@@ -7,7 +7,7 @@
 joint_vcov(irt.mle)
 }
 \arguments{
-\item{irt.mle}{the output of \code{\link[robustDIF]{get_irt_pars}}.}
+\item{irt.mle}{the output of \code{\link[robustDIF]{get_irt_pars}}}
 }
 \value{
 A block diagonal VCOV matrix in which each block is the VCOV of an item.

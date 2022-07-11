@@ -1,0 +1,53 @@
+---
+output:
+  github_document:
+    toc: FALSE
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# robustDIF
+Functions for assessing differential item functioning (DIF) in item response theory (IRT) models using methods from robust statistics. Based on the paper: Halpin, P.F. (2022) Differential Item Functioning Via Robust Scaling. 
+
+Currently `robustDIF` only supports the two-parameter logistc (2PL) IRT model in two independent groups. 
+
+## Installation
+
+```{r, eval = FALSE}
+# Development version
+# install.packages("devtools")
+devtools::install_github("peterhalpin/robustDIF")
+library(robustDIF)
+```
+
+## Example
+
+The main user-facing functions are illustrated below using the built-in example data set `rdif.eg`. In the example data set, their are a total of five items and the first item has (large) DIF on the intercept and slope. The groups differ on the mean of the latent trait (.5 SD) but not the variances. Check out the documentation for `rdif.eg` and `get_irt_pars` for more info about how to format data for use with `robustDIF`.
+
+The `rdif` function estimates IRT scaling parameters and, as a by product, flags items with DIF at the desired asymptotic Type I Error rate (`alpha`). Items with DIF are indicated by a weight of 0.  
+
+
+```{r}
+# Item intercepts
+(rdif.intercepts <- rdif(irt.mle = rdif.eg, par = "intercept", alpha = .05))
+
+# Item slopes
+(rdif.slopes <- rdif(irt.mle = rdif.eg, par = "slope", alpha = .05))
+```
+
+
+
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

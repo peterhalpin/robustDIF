@@ -7,7 +7,7 @@
 y_fun(irt.mle, par = "intercept", log = F)
 }
 \arguments{
-\item{irt.mle}{the output of \code{\link[robustDIF]{get_irt_pars}}.}
+\item{irt.mle}{the output of \code{\link[robustDIF]{get_irt_pars}}}
 
 \item{par}{character: use the scaling function for item intercepts or item slopes? One of \code{c("intercept", "slope")}.}
 

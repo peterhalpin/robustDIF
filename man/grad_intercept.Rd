@@ -9,7 +9,7 @@ grad_intercept(theta, irt.mle)
 \arguments{
 \item{theta}{the IRT scale parameter.}
 
-\item{irt.mle}{the output of \code{\link[robustDIF]{get_irt_pars}}.}
+\item{irt.mle}{the output of \code{\link[robustDIF]{get_irt_pars}}}
 }
 \value{
 A matrix in which the columns are the gradient vectors of \code{\link[robustDIF]{y_intercept}}, for each item.

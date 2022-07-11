@@ -7,7 +7,7 @@
 y_slope(irt.mle, log = F)
 }
 \arguments{
-\item{irt.mle}{the output of \code{\link[robustDIF]{get_irt_pars}}.}
+\item{irt.mle}{the output of \code{\link[robustDIF]{get_irt_pars}}}
 
 \item{log}{logical: use of scaling function?}
 }

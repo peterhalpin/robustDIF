@@ -1,3 +1,15 @@
+#' An example data set with five items in two groups.
+#'
+#' A named list containing the maximum likelihood estimates and their estimated covariance matrix, for the 2PL IRT model fitted to 5 items in two independent groups. The first item has additive bias of .5 applied to the intercept and multiplicative bias of 1 applied item slope. The groups have a mean difference of .5 standard deviations on the latent trait. The variances of the latent trait are equal in each group.
+#'
+#' @format A named list with 4 components:
+#' \describe{
+#'   \item{par0}{A \code{data.frame} or named \code{list} with \code{par0$a} containing the item slopes and \code{par0$d} containing the item intercepts, for the reference group.}
+#'   \item{par1}{The item parameter estimates of the comparison groups. See \code{par0} for formatting.}
+#'   \item{vcov0}{The covariance matrix of \code{par0}, formatted as either a \code{data.frame} or \code{matrix}. The parameters should be organized by item, with the slope parameter coming first and the intercept parameter coming second (e.g., \code{a.item1, d.item1, a.item2, d.item2, ...}).}
+#'    \item{vcov1}{The covariance matrix of \code{par1}. See \code{vcov0} for formatting.}
+#'}
+"rdif.eg"
 
 #-------------------------------------------------------------------
 #' Extract 2PL item parameter estimates from \code{\link[mirt]{mirt}}.
@@ -36,17 +48,23 @@ get_mirt_vcov <- function(mirt.fit.2pl) {
 }
 
 # -------------------------------------------------------------------
-#' Extract 2PL item parameter estimates their covariance matrix.
+#' Extract and format 2PL item parameter estimates and their covariance matrix.
 #'
-#' Takes a list of 2PL model fits and formats the item parameter estimates  and their covariance matrix. The R-DIF procedure assumes that the estimates were obtained by maximum likelihood and the covariance is asymptotically correct.
+#' @description
+#' Takes a list of 2PL model fits and formats the item parameter estimates and their covariance matrix. All \code{robustDIF} functions assume that the estimates were obtained by maximum likelihood and the covariance is asymptotically correct.
 #'
-#' Note that current implementation only supports lists of length 2 (i.e., two groups) and the first fit is treated as the reference group. The only type of fit currently supported is the \code{SingleGroupClass} of the\code{\link[mirt]{mirt}} package. To use fits from other software, use the format \code{list(par0 = est[[1]], par1 = est[[2]], vcov0 = vcov[[1]], vcov1 = vcov[[2]])}
+#' Note that the only type of fit currently supported is the \code{SingleGroupClass} of the \code{\link[mirt]{mirt}} package. Also, the current implementation only supports lists of length 2 (i.e., two groups) and the first fit is treated as the reference group.
+#'
+#' It is possible to use fits from other software with \code{robustDIF} functions, but the parameter estimates and their covariance matrices must be formatted in a particular way. For more details, see the documentation for the example dataset \code{\link[robustDIF]{rdif.eg}}.
+#'
 #'
 #' @param fit.list a list of 2PL model fits.
-#' @param type character: the name of the package that produced the fits.
+#' @param type character: the name of the package that produced the fits (the current implementation only supports \code{\link[mirt]{mirt}}'s \code{SingleGroupClass}).
 #' @return A named list of item parameter estimates and covariance matrices.
 #'
+#' @seealso \code{\link[robustDIF]{rdif.eg}}
 #' @export
+#'
 # -------------------------------------------------------------------
 
 get_irt_pars <- function(fit.list, type = "mirt") {
@@ -64,7 +82,7 @@ get_irt_pars <- function(fit.list, type = "mirt") {
 #'
 #' Computes \code{Y = (d1 - d0)/a1}. Used to test DIF on item intercepts.
 #'
-#' @param irt.mle the output of \code{\link[robustDIF]{get_irt_pars}}.
+#' @param irt.mle the output of \code{\link[robustDIF]{get_irt_pars}}
 #' @return A vector of Y values.
 #' @export
 # -------------------------------------------------------------------
@@ -198,8 +216,10 @@ grad_mat <- function(grad.vec) {
 joint_vcov <- function(irt.mle) {
   n.items <- nrow(irt.mle$par0)
   m <- diag(1:n.items) %x% matrix(1, 2, 2)
-  v0 <- lapply(split(irt.mle$vcov0, m)[-1], matrix, 2)
-  v1 <- lapply(split(irt.mle$vcov1, m)[-1], matrix, 2)
+  v0 <- lapply(split(as.matrix(irt.mle$vcov0), m)[-1],
+               matrix, 2)
+  v1 <- lapply(split(as.matrix(irt.mle$vcov1), m)[-1],
+               matrix, 2)
   vfull <- vector("list", n.items * 2)
   vfull[1:(n.items) * 2 - 1] <- v0
   vfull[1:(n.items) * 2 ] <- v1
@@ -238,7 +258,7 @@ var_y <- function(theta, irt.mle, par = "intercept", log = F) {
 #' @param theta.y the IRT scale parameter for the item intercepts
 #' @param theta.z the IRT scale parameter for the item slopes
 #' @inheritParams y_fun
-#' @param log logical: use of scaling function for the slopes?
+#' @param log logical: use log of scaling function for the slopes?
 
 #' @return A vector that contains the covariance of the IRT scaling functions, for each item.
 #' @seealso \code{\link[robustDIF]{y_fun}}, \code{\link[robustDIF]{var_y}}
@@ -448,7 +468,10 @@ rho_fun <- function(irt.mle, par = "intercept", log = F, alpha = .05, grid.width
 # -------------------------------------------------------------------
 #' Estimate IRT scale parameters using the RDIF procedure.
 #'
-#' Implements M-estimation of an IRT scale parameter using the bi-square loss function. Estimation can be performed using iteratively re-weighted least squares (IRLS) or Newton-Raphson (NR). The former is highly recommended as the latter can diverge with the bisquare. Currently, only IRLS is implemented.
+#' @description
+#' Implements M-estimation of an IRT scale parameter using the bi-square loss function. Also returns the bi-square weights for each item. Weights with a value of zero indicate that the corresponding item was flagged as having DIF during estimation.
+#'
+#' Estimation can be performed using iteratively re-weighted least squares (IRLS) or Newton-Raphson (NR). Currently, only IRLS is implemented. NR can can diverge with bi-square.
 #'
 #' @inheritParams y_fun
 #' @param alpha the desired false positive rate for flagging items with DIF.
@@ -457,9 +480,15 @@ rho_fun <- function(irt.mle, par = "intercept", log = F, alpha = .05, grid.width
 #' @param maxit maximum number of iterations
 #' @param method one of \code{c("irls", "nr")}. Currently, only IRLS is implemented.
 #'
-#' @return A named list containing the estimate of the IRT scale parameter, the bi-square weights, the number of iterations performed, and the value of the convergence criterion (difference of  estimate between subsequent iterations). Weights with a value of zero indicate that the corresponding item was flagged as having DIF during estimation.
+#' @return A named list containing the estimate of the IRT scale parameter, the bi-square weights, the number of iterations performed, and the value of the convergence criterion (difference of  estimate between subsequent iterations).
 #'
-#' @encoding
+#' @examples
+#' # Item intercepts, using the built-in example dataset "rdif.eg"
+#' \donttest{rdif(irt.mle = rdif.eg)}
+#'
+#'  # Item slopes
+#'  \donttest{rdif(irt.mle = rdif.eg, par = "slope")}
+#'
 #' @export
 # -------------------------------------------------------------------
 
@@ -497,7 +526,20 @@ rdif <- function(irt.mle, par = "intercept", log = F, alpha = .05, starting.valu
 #' @param theta The IRT scale parameter.
 #' @inheritParams y_fun
 #'
-#' @return A named list containing the value of the z.test and p(z > |z.test|), for each item.
+#' @return A named list containing the value of the z.test and p(|z| > |z.test|), for each item.
+#'
+#' @examples
+#' # Test intercepts, using the built-in example dataset "rdif.eg"
+#' \donttest{
+#' rdif.intercepts <- rdif(irt.mle = rdif.eg)
+#' z_test(theta = rdif.intercepts$est, irt.mle = rdif.eg)
+#' }
+#'
+#' # Test slopes
+#' \donttest{
+#' rdif.slopes <- rdif(irt.mle = rdif.eg, par = "slope")
+#' z_test(theta = rdif.slopes$est, irt.mle = rdif.eg, par = "slope")
+#' }
 #' @export
 # -------------------------------------------------------------------
 
@@ -523,6 +565,16 @@ z_test <- function(theta, irt.mle, par = "intercept", log = F) {
 #' @importFrom Matrix diag
 #' @importFrom Matrix bdiag
 #' @importFrom Matrix t
+#'
+#' @examples
+#' # Using the built-in example dataset "rdif.eg"
+#' \donttest{
+#' rdif.intercepts <- rdif(irt.mle = rdif.eg)
+#' rdif.slopes <- rdif(irt.mle = rdif.eg, par = "slope")
+#' chi2_test(theta.y = rdif.intercepts$est,
+#'           theta.z = rdif.slopes$est,
+#'           irt.mle = rdif.eg)
+#'}
 #'
 #' @export
 # -------------------------------------------------------------------

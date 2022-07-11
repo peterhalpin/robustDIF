@@ -2,22 +2,33 @@
 % Please edit documentation in R/robustDIF_functions.R
 \name{chi2_test}
 \alias{chi2_test}
-\title{R-DIF chi-square test.}
+\title{The R-DIF test of both item parameters.}
 \usage{
 chi2_test(theta.y, theta.z, irt.mle, log = F)
 }
 \arguments{
-\item{theta.y}{The IRT scale parameter for the item intercepts (mu / sigma)}
+\item{theta.y}{the IRT scale parameter for the item intercepts}
 
-\item{theta.z}{The IRT scale parameter for the item slopes (sigma or log sigma).}
+\item{theta.z}{the IRT scale parameter for the item slopes}
 
-\item{irt.mle}{The output of \code{robustDIF::irt_mle}}
+\item{irt.mle}{the output of \code{\link[robustDIF]{get_irt_pars}}}
 
-\item{log}{Logical: Use log of scaling function for item slopes?}
+\item{log}{logical: use log of scaling function for the slopes?}
 }
 \value{
-A named list with containing the value of the chi2.test and p(chi.square > chi2.test), for each item.
+A named list containing the value of the chi2.test and p(chi.square > chi2.test), for each item.
 }
 \description{
-Simultaneously tests  for DIF in both the item intercept or slopes using a asymptotic chi-square test.
+Simultaneously tests for DIF in both the item intercepts and slopes using a asymptotic chi-square test.
+}
+\examples{
+# Using the built-in example dataset "rdif.eg"
+\donttest{
+rdif.intercepts <- rdif(irt.mle = rdif.eg)
+rdif.slopes <- rdif(irt.mle = rdif.eg, par = "slope")
+chi2_test(theta.y = rdif.intercepts$est,
+          theta.z = rdif.slopes$est,
+          irt.mle = rdif.eg)
+}
+
 }
