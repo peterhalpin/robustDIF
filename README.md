@@ -4,7 +4,7 @@
 An R package that provides functions for assessing differential item
 functioning (DIF) in item response theory (IRT) models using methods
 from robust statistics. Based on the paper: Halpin, P.F. (2022)
-Differential Item Functioning Via Robust Scaling (https://github.com/peterhalpin/robustDIF).
+Differential Item Functioning Via Robust Scaling. (https://arxiv.org/abs/2207.04598).
 
 Currently `robustDIF` only supports the two-parameter logistc (2PL) IRT
 model in two independent groups.
