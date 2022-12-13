@@ -12,4 +12,5 @@ Depends:
   R(> 3.5.0)
 Imports: 
   mirt
-RoxygenNote: 7.2.0
+  lavaan
+RoxygenNote: 7.2.3
