@@ -1,3 +1,46 @@
+# -------------------------------------------------------------------
+#' Extract and format item parameter estimates and their covariance matrix
+#'
+#' @description
+#' Takes a list of 1-factor model fits from \code{\link[mirt]{mirt}} (with \code{SE = TRUE}), \code{\link[lavaan]{cfa}} (with \code{std.lv = TRUE}), or \code{\link[MplusAutomation]{readModels}} (with TECH3) and formats the item parameter estimates and their covariance matrix. All \code{robustDIF} functions assume that the estimates were obtained by maximum likelihood and the covariance is asymptotically correct.
+#'
+#' Note that the only type of fit currently supported is the \code{SingleGroupClass} of the \code{\link[mirt]{mirt}} package.
+#'
+#' It is possible to use fits from other software with \code{robustDIF} functions, but the parameter estimates and their covariance matrices must be formatted in a particular way. For more details, see the documentation for the example dataset \code{\link[robustDIF]{rdif.eg}}.
+#'
+#'
+#' @param object a list of model fits (current implementation only supports objects from \code{\link[mirt]{mirt}} with \code{itemtype} of any combination of \code{"2PL", "graded", or "gpcm"} and \code{SE = TRUE})
+#' @return A list of item parameter estimates and covariance matrices for each group.
+#'
+#' @seealso \code{\link[robustDIF]{rdif.eg}}
+#' @export
+#'
+# -------------------------------------------------------------------
+
+get_params <- function(object) {
+
+  if(inherits(object, "list")){
+    if(inherits(object[[1]], "SingleGroupClass")){
+      temp <- lapply(object, get_mirt_params)
+
+      out <- list(param.names = temp[[1]]$param.names,
+                  param.est = lapply(temp, "[[", 2),
+                  var.cov = lapply(temp, "[[", 3))
+
+    } else if(inherits(object[[1]], "mplus.model")){
+      out <- lapply(object, get_mplus_params)
+
+    } else if(inherits(object[[1]], "lavaan")){
+      out <- lapply(object, get_lavaan_params)
+    }
+
+  } else if(inherits(object, "MultipleGroupClass")){
+    out <- get_mirt_params(object)
+
+  }
+  return(out)
+}
+
 #-------------------------------------------------------------------
 #' Extract item parameter estimates and their covariance matrix from \code{\link[mirt]{mirt}}.
 #'
@@ -16,14 +59,75 @@
 
 get_mirt_params <- function(mirt.object){
 
-  ## item information
+  # check for 1-factor model
+  if(mirt.object@Model$nfact != 1){
+    stop("mirt.object must be a 1-factor model.")
+  }
+  # need to check itemtype? mirt.object@Model$itemtype
+
+  ## number of items
   n.items <- mirt.object@Data$nitems
-  # item.names <- paste0("item", 1:n.items) # if we want to impose column names
-  item.names <- attr(mirt.object@Data$data, "dimnames")[[2]] # if we need the user-defined column names
+
+  if(inherits(mirt.object, "MultipleGroupClass")) mo <- mirt.object@ParObjects$pars[[1]] else mo <- mirt.object
+
+  ## extract slope and intercept parameter names for each item
+  item.params <- lapply(1:n.items, function(x){
+    parnames <- mo@ParObjects$pars[[x]]@parnames
+    parnames[grepl("^[ad][1-9]|[ad]$", parnames)]
+  })
+  original.names <- colnames(mirt.object@Data$data) # original item names
+  internal.names <- paste0("item", 1:n.items) # item names to be used for robustDIF functions
+
+  ## combining item and parameter names into single vector - one for each type of item name
+  param.names <- list(internal = unlist(lapply(1:n.items, function(x) paste(internal.names[[x]], item.params[[x]], sep = "."))),
+                      original = unlist(lapply(1:n.items, function(x) paste(original.names[[x]], item.params[[x]], sep = "."))))
+
+  ## extracting parameter estimates
+  param.est <- mirt.object@Internals$shortpars # call made by mirt::extract.mirt(object, "parvec")
+
+  if(inherits(mirt.object, "MultipleGroupClass")){
+    param.est <- split(param.est, cut(seq_along(param.est), mirt.object@Data$ngroups, labels = FALSE))
+  }
 
 
-  ## extract parameter estimate matrix
-  par.mat <- mirt::coef(mirt.object, printSE = T, simplify = T)$items # don't need SEs, but don't need CIs either
+  ## extracting vcov matrix and removing dimnames
+  v <- mirt::vcov(mirt.object)
+  if(inherits(mirt.object, "MultipleGroupClass")){
+
+    gs <- paste0("g", 1:mirt.object@Data$ngroups)
+    ipg <- paste(rep(param.names[[1]], times = length(gs)), # create all item.prameter.group names
+                 rep(gs, each = length(param.names[[1]])),
+                 sep = ".")
+
+    row.names(v) <- colnames(v) <- ipg
+
+    ## subset vcov by group
+    v <- lapply(gs, function(x) v[grepl(x, row.names(v)), grepl(x, colnames(v))])
+    v <- lapply(v, function(x){
+      row.names(x) <- colnames(x) <- NULL
+      return(x)
+    })
+
+  } else{
+    row.names(v) <- colnames(v) <- NULL
+  }
+
+
+  return(list(param.names = param.names,
+              param.est = param.est,
+              var.cov = v))
+}
+
+#-------------------------------------------------------------------
+#' Helper function used within \code{get_mirt_params} to format parameters
+#'
+#' @param par.mat matrix of item parameter estimates extracted from a 1-factor \code{\link[mirt]{mirt}} object
+#' @param item.names character vector of item names
+#' @return a two-element \code{list} containing a vector of parameter names and vector of parameter estimates
+#' @export # temporarily for testing
+# -------------------------------------------------------------------
+
+format_mirt_params <- function(par.mat, item.names){
 
   ## initial item-parameter combinations
   par.names <- colnames(par.mat)[grepl("^[ad][1-9]|[ad]$", colnames(par.mat))] # all possible intercept or slope parameters
@@ -39,13 +143,8 @@ get_mirt_params <- function(mirt.object){
   item.pars <- names(par.vec) # grab correct item.pars
   # names(par.vec) <- NULL # remove to be consistent with other classes?
 
-  ## extract variance-covariance matrix
-  v <- mirt::vcov(mirt.object)
-  # row.names(v) <- colnames(v) <- item.pars # do we need to bother renaming?
-
   return(list(param.names = item.pars,
-              parameters = par.vec,
-              var.cov = v))
+              parameters = par.vec))
 }
 
 #-------------------------------------------------------------------
@@ -154,42 +253,4 @@ get_mplus_params <- function(mplus.object){
   return(list(param.names = paste(par.df$item, par.df$param, sep = "."),
               parameters = par.df$est,
               var.cov = v2))
-}
-
-# -------------------------------------------------------------------
-#' Extract and format item parameter estimates and their covariance matrix
-#'
-#' @description
-#' Takes a list of 1-factor model fits from \code{\link[mirt]{mirt}} (with \code{SE = TRUE}), \code{\link[lavaan]{cfa}} (with \code{std.lv = TRUE}), or \code{\link[MplusAutomation]{readModels}} (with TECH3) and formats the item parameter estimates and their covariance matrix. All \code{robustDIF} functions assume that the estimates were obtained by maximum likelihood and the covariance is asymptotically correct.
-#'
-#' Note that the only type of fit currently supported is the \code{SingleGroupClass} of the \code{\link[mirt]{mirt}} package.
-#'
-#' It is possible to use fits from other software with \code{robustDIF} functions, but the parameter estimates and their covariance matrices must be formatted in a particular way. For more details, see the documentation for the example dataset \code{\link[robustDIF]{rdif.eg}}.
-#'
-#'
-#' @param object a list of model fits (current implementation only supports objects from \code{\link[mirt]{mirt}} with \code{itemtype} of any combination of \code{"2PL", "graded", or "gpcm"} and \code{SE = TRUE})
-#' @return A list of item parameter estimates and covariance matrices for each group.
-#'
-#' @seealso \code{\link[robustDIF]{rdif.eg}}
-#' @export
-#'
-# -------------------------------------------------------------------
-
-get_params <- function(object) {
-
-  if(inherits(object, "list")){
-    if(inherits(object[[1]], "SingleGroupClass")){
-      out <- lapply(object, get_mirt_params)
-
-    } else if(inherits(object[[1]], "mplus.model")){
-      out <- lapply(object, get_mplus_params)
-
-    } else if(inherits(object[[1]], "lavaan")){
-      out <- lapply(object, get_lavaan_params)
-    }
-
-  } else if(inherits(object, "MultipleGroupClass")){
-
-  }
-  return(out)
 }
