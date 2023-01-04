@@ -7,14 +7,14 @@
 get_mirt_params(mirt.object)
 }
 \arguments{
-\item{mirt.object}{a \code{\link[mirt]{mirt}} object (\code{SingleGroupClass}). Expected to be a 1-factor model with \code{itemtype} of any combination of \code{"2PL", "graded", or "gpcm"}.}
+\item{mirt.object}{a \code{\link[mirt]{mirt}} object of class \code{SingleGroupClass} or \code{MultipleGroupClass}. Expected to be a 1-factor model with \code{SE = TRUE} and \code{itemtype} of any combination of \code{"2PL", "graded", or "gpcm"}.}
 }
 \value{
 A three-element \code{list}:
 \itemize{
-\item vector of parameter names taking the form "item.param"
-\item vector of item parameter estimates
-\item covariance matrix of item parameter estimates
+\item vector of parameter names taking the form "item.parameter"
+\item list (one element per group) of vectors of item parameter estimates
+\item list (one element per group) of covariance matrices of item parameter estimates
 }
 }
 \description{

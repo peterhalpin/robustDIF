@@ -7,17 +7,30 @@
 get_params(object)
 }
 \arguments{
-\item{object}{a list of model fits (current implementation only supports objects from \code{\link[mirt]{mirt}} with \code{itemtype} of any combination of \code{"2PL", "graded", or "gpcm"} and \code{SE = TRUE})}
+\item{object}{model fit from a multigroup analysis or list of model fits for each group for a 1-factor model. See **Details**.}
 }
 \value{
-A list of item parameter estimates and covariance matrices for each group.
+A three-element \code{list}:
+\itemize{
+\item vector of parameter names taking the form "item.parameter"
+\item list (one element per group) of vectors of item parameter estimates
+\item list (one element per group) of covariance matrices of item parameter estimates
+}
 }
 \description{
-Takes a list of 1-factor model fits from \code{\link[mirt]{mirt}} (with \code{SE = TRUE}), \code{\link[lavaan]{cfa}} (with \code{std.lv = TRUE}), or \code{\link[MplusAutomation]{readModels}} (with TECH3) and formats the item parameter estimates and their covariance matrix. All \code{robustDIF} functions assume that the estimates were obtained by maximum likelihood and the covariance is asymptotically correct.
+Takes a 1-factor model fit or list of 1-factor model fits from \code{\link[mirt]{mirt}}, \code{\link[lavaan]{cfa}}, or \code{\link[MplusAutomation]{readModels}}
+and formats the item parameter estimates and their covariance matrix for use in other \code{robustDIF} functions.
+}
+\details{
+The function takes a fitted 1-factor multigroup model or list of fitted 1-factor single group models. The factor must be standardized (i.e., variance = 1) and the covariance matrix be asymptotically correct.
+Currently, the function accepts:
+\itemize{
+\item a \code{\link[mirt]{mirt}} object of class \code{SingleGroupClass} or \code{MultipleGroupClass} with \code{SE = TRUE} (to return covariance matrix) and \code{itemtype} of any combination of \code{"2PL", "graded", or "gpcm"}.
+\item a \code{lavaan} object estimated from \code{\link[lavaan]{cfa}} with \code{std.lv = TRUE}.
+\item a \code{mplus.model} object from \code{\link[MplusAutomation]{readModels}}. The Mplus .out file must include TECH1 (parameter names) and TECH3 (covariance matrix).
+}
 
-Note that the only type of fit currently supported is the \code{SingleGroupClass} of the \code{\link[mirt]{mirt}} package.
-
-It is possible to use fits from other software with \code{robustDIF} functions, but the parameter estimates and their covariance matrices must be formatted in a particular way. For more details, see the documentation for the example dataset \code{\link[robustDIF]{rdif.eg}}.
+It is possible to use fits from other software with \code{robustDIF} functions, but the parameter estimates and their covariance matrices must be formatted identically to what is returned by \code{get_params}. For details, see the documentation for the example dataset \code{\link[robustDIF]{rdif.eg}}.
 }
 \seealso{
 \code{\link[robustDIF]{rdif.eg}}

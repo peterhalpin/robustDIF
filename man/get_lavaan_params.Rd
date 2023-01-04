@@ -12,9 +12,9 @@ get_lavaan_params(lavaan.object)
 \value{
 A three-element \code{list}:
 \itemize{
-\item vector of parameter names taking the form "item.param"
-\item vector of item parameter estimates
-\item covariance matrix of item parameter estimates
+\item vector of parameter names taking the form "item.parameter"
+\item list (one element per group) of vectors of item parameter estimates
+\item list (one element per group) of covariance matrices of item parameter estimates
 }
 }
 \description{

@@ -2,15 +2,28 @@
 #' Extract and format item parameter estimates and their covariance matrix
 #'
 #' @description
-#' Takes a list of 1-factor model fits from \code{\link[mirt]{mirt}} (with \code{SE = TRUE}), \code{\link[lavaan]{cfa}} (with \code{std.lv = TRUE}), or \code{\link[MplusAutomation]{readModels}} (with TECH3) and formats the item parameter estimates and their covariance matrix. All \code{robustDIF} functions assume that the estimates were obtained by maximum likelihood and the covariance is asymptotically correct.
+#' Takes a 1-factor model fit or list of 1-factor model fits from \code{\link[mirt]{mirt}}, \code{\link[lavaan]{cfa}}, or \code{\link[MplusAutomation]{readModels}}
+#' and formats the item parameter estimates and their covariance matrix for use in other \code{robustDIF} functions.
 #'
-#' Note that the only type of fit currently supported is the \code{SingleGroupClass} of the \code{\link[mirt]{mirt}} package.
+#' @param object model fit from a multigroup analysis or list of model fits for each group for a 1-factor model. See **Details**.
 #'
-#' It is possible to use fits from other software with \code{robustDIF} functions, but the parameter estimates and their covariance matrices must be formatted in a particular way. For more details, see the documentation for the example dataset \code{\link[robustDIF]{rdif.eg}}.
+#' @details
+#' The function takes a fitted 1-factor multigroup model or list of fitted 1-factor single group models. The factor must be standardized (i.e., variance = 1) and the covariance matrix be asymptotically correct.
+#' Currently, the function accepts:
+#' \itemize{
+#' \item a \code{\link[mirt]{mirt}} object of class \code{SingleGroupClass} or \code{MultipleGroupClass} with \code{SE = TRUE} (to return covariance matrix) and \code{itemtype} of any combination of \code{"2PL", "graded", or "gpcm"}.
+#' \item a \code{lavaan} object estimated from \code{\link[lavaan]{cfa}} with \code{std.lv = TRUE}.
+#' \item a \code{mplus.model} object from \code{\link[MplusAutomation]{readModels}}. The Mplus .out file must include TECH1 (parameter names) and TECH3 (covariance matrix).
+#' }
 #'
+#' It is possible to use fits from other software with \code{robustDIF} functions, but the parameter estimates and their covariance matrices must be formatted identically to what is returned by \code{get_params}. For details, see the documentation for the example dataset \code{\link[robustDIF]{rdif.eg}}.
 #'
-#' @param object a list of model fits (current implementation only supports objects from \code{\link[mirt]{mirt}} with \code{itemtype} of any combination of \code{"2PL", "graded", or "gpcm"} and \code{SE = TRUE})
-#' @return A list of item parameter estimates and covariance matrices for each group.
+#' @return A three-element \code{list}:
+#' \itemize{
+#' \item vector of parameter names taking the form "item.parameter"
+#' \item list (one element per group) of vectors of item parameter estimates
+#' \item list (one element per group) of covariance matrices of item parameter estimates
+#' }
 #'
 #' @seealso \code{\link[robustDIF]{rdif.eg}}
 #' @export
@@ -22,34 +35,49 @@ get_params <- function(object) {
   if(inherits(object, "list")){
     if(inherits(object[[1]], "SingleGroupClass")){
       temp <- lapply(object, get_mirt_params)
+      out <- NULL
 
+    } else if(inherits(object[[1]], "lavaan")){
+      temp <- lapply(object, get_lavaan_params)
+      out <- NULL
+
+    }  else if(inherits(object[[1]], "mplus.model")){ # list of single group objects
+      temp <- lapply(object, get_mplus_params)
+      out <- NULL
+
+    } else if(inherits(object[[1]], "mplus.inp")){ # multigroup object
+      out <- get_mplus_params(object)
+      # groups in alphabetical order
+    }
+
+    if(is.null(out)){
+      ## groups in order provided in list
       out <- list(param.names = temp[[1]]$param.names,
                   param.est = lapply(temp, "[[", 2),
                   var.cov = lapply(temp, "[[", 3))
-
-    } else if(inherits(object[[1]], "mplus.model")){
-      out <- lapply(object, get_mplus_params)
-
-    } else if(inherits(object[[1]], "lavaan")){
-      out <- lapply(object, get_lavaan_params)
     }
 
   } else if(inherits(object, "MultipleGroupClass")){
     out <- get_mirt_params(object)
+    # groups in alphabetical order; see object@Data$groupNames
 
+  } else if(inherits(object, "lavaan")){
+    out <- get_lavaan_params(object)
+    # groups in order observed in data; see lavaan::lavInspect(object, what = "group.label")
   }
+
   return(out)
 }
 
 #-------------------------------------------------------------------
 #' Extract item parameter estimates and their covariance matrix from \code{\link[mirt]{mirt}}.
 #'
-#' @param mirt.object a \code{\link[mirt]{mirt}} object (\code{SingleGroupClass}). Expected to be a 1-factor model with \code{itemtype} of any combination of \code{"2PL", "graded", or "gpcm"}.
+#' @param mirt.object a \code{\link[mirt]{mirt}} object of class \code{SingleGroupClass} or \code{MultipleGroupClass}. Expected to be a 1-factor model with \code{SE = TRUE} and \code{itemtype} of any combination of \code{"2PL", "graded", or "gpcm"}.
 #' @return A three-element \code{list}:
 #' \itemize{
-#' \item vector of parameter names taking the form "item.param"
-#' \item vector of item parameter estimates
-#' \item covariance matrix of item parameter estimates
+#' \item vector of parameter names taking the form "item.parameter"
+#' \item list (one element per group) of vectors of item parameter estimates
+#' \item list (one element per group) of covariance matrices of item parameter estimates
 #' }
 #'
 #' @importFrom mirt coef
@@ -89,7 +117,6 @@ get_mirt_params <- function(mirt.object){
     param.est <- split(param.est, cut(seq_along(param.est), mirt.object@Data$ngroups, labels = FALSE))
   }
 
-
   ## extracting vcov matrix and removing dimnames
   v <- mirt::vcov(mirt.object)
   if(inherits(mirt.object, "MultipleGroupClass")){
@@ -118,34 +145,6 @@ get_mirt_params <- function(mirt.object){
               var.cov = v))
 }
 
-#-------------------------------------------------------------------
-#' Helper function used within \code{get_mirt_params} to format parameters
-#'
-#' @param par.mat matrix of item parameter estimates extracted from a 1-factor \code{\link[mirt]{mirt}} object
-#' @param item.names character vector of item names
-#' @return a two-element \code{list} containing a vector of parameter names and vector of parameter estimates
-#' @export # temporarily for testing
-# -------------------------------------------------------------------
-
-format_mirt_params <- function(par.mat, item.names){
-
-  ## initial item-parameter combinations
-  par.names <- colnames(par.mat)[grepl("^[ad][1-9]|[ad]$", colnames(par.mat))] # all possible intercept or slope parameters
-  item.pars <- paste(rep(item.names, each = length(par.names)), # all item by parameter combinations
-                     rep(par.names, times = length(item.names)),
-                     sep = ".")
-
-  ## creating vector of parameter estimates and final item-parameter combinations
-  par.mat <- par.mat[,colnames(par.mat) %in% par.names] # remove non-slope/intercept params
-  par.vec <- c(t(par.mat))       # convert from matrix to vector arranged by item then param (slope, intercepts); contains NAs
-  names(par.vec) <- item.pars
-  par.vec <- par.vec[!is.na(par.vec)] # remove NA parameters, and therefore, irrelevant item.pars labels
-  item.pars <- names(par.vec) # grab correct item.pars
-  # names(par.vec) <- NULL # remove to be consistent with other classes?
-
-  return(list(param.names = item.pars,
-              parameters = par.vec))
-}
 
 #-------------------------------------------------------------------
 #' Extract item parameter estimates and their covariance matrix from \code{lavaan}.
@@ -153,9 +152,9 @@ format_mirt_params <- function(par.mat, item.names){
 #' @param lavaan.object an object of class \code{lavaan}. Expected to be a 1-factor model estimated with \code{std.lv = TRUE}.
 #' @return A three-element \code{list}:
 #' \itemize{
-#' \item vector of parameter names taking the form "item.param"
-#' \item vector of item parameter estimates
-#' \item covariance matrix of item parameter estimates
+#' \item vector of parameter names taking the form "item.parameter"
+#' \item list (one element per group) of vectors of item parameter estimates
+#' \item list (one element per group) of covariance matrices of item parameter estimates
 #' }
 #'
 #' @importFrom lavaan lavInspect
@@ -168,45 +167,79 @@ get_lavaan_params <- function(lavaan.object){
     stop("Models must be run with std.lv = TRUE to obtain complete item parameter vcov matrix for DIF procedure.")
   }
 
-  ## extracting parameters
-  pars <- lavaan::lavInspect(lavaan.object, what = "est")
+  ngroups <- lavaan::lavInspect(lavaan.object, what = "ngroups")
 
-  slopes <- data.frame(item = row.names(pars$lambda),
-                       param = "a",
-                       est = pars$lambda[,1])
+  ## extracting parameters and item names
+  pars <- lavaan::lavInspect(lavaan.object, what = "est")    # groups in order of appearance in dataset
+  original.names <- lavaan::lavNames(lavaan.object, "ov")    # original item names
+  internal.names <- paste0("item", 1:length(original.names)) # item names to be used for robustDIF functions
 
-  ints <- data.frame(item = gsub("\\|.*$", "", row.names(pars$tau)),
-                     param = gsub("^.*\\|", "", row.names(pars$tau)),
-                     est = pars$tau[,1])
+  ## formatting parameter vector and defining full parameter names
+  if(ngroups == 1){
 
-  ## binding and sorting parameters
-  par.df <- rbind(slopes, ints)
-  ov.names <- lavaan::lavNames(lavaan.object, "ov")
-  par.df$item <- factor(par.df$item, levels = ov.names) # make sure items in correct order
-  par.df <- par.df[with(par.df, order(item, param)), ]  # sorting parameter estimates
+    par.df <- format_params(pars, names.vec = original.names, type = "lavaan")
+    lav.param.names <- row.names(par.df)     # used for subsetting vcov matrix
+    param.names = list(internal = "placeholder",
+                       original = paste(par.df$item, par.df$param, sep = "."))
+    param.est <- par.df$est
 
-  ## extracting and re-organizing vcov matrix
+  } else {
+
+    par.df <- lapply(pars, format_params, names.vec = original.names, type = "lavaan")
+    lav.param.names <- row.names(par.df[[1]])    # used for subsetting vcov matrix
+    param.names = list(internal = "placeholder",
+                       original = paste(par.df[[1]]$item, par.df[[1]]$param, sep = "."))
+    param.est <- lapply(par.df, "[[", "est")
+  }
+
+  ## defining parameter names for internal use
+  x <- param.names$original
+  for(i in 1:length(original.names)){
+    x <- sub(original.names[[i]], internal.names[[i]], x) # replacing original name with generic name
+  }
+  param.names$internal <- x
+
+  ## extracting matrix
   v <- lavaan::lavInspect(lavaan.object, what = "vcov")
   v2 <- v[grepl("=~|\\|", row.names(v)), grepl("=~|\\|", colnames(v))] # ensure matrix only has intercept/threshold and slope vcovs
-  colnames(v2) <- gsub("f1=~", "", colnames(v2))  # remove factor prefix from item names
-  row.names(v2) <- gsub("f1=~", "", row.names(v2))
-  v3 <- v2[row.names(par.df), row.names(par.df)] # re-arrange by item, then parameter rather than the reverse
-  # row.names(v3) <- colnames(v3) <- paste(par.df$item, par.df$param, sep = ".") # do we need to bother renaming?
+  colnames(v2) <- gsub(".*=~", "", colnames(v2))  # remove factor prefix from item names
+  row.names(v2) <- gsub(".*=~", "", row.names(v2))
 
-  return(list(param.names = paste(par.df$item, par.df$param, sep = "."),
-       parameters = par.df$est,
-       var.cov = v3))
+  if(ngroups == 1){
+    v3 <- v2[lav.param.names, lav.param.names] # re-arrange by item, then parameter rather than the reverse
+    row.names(v3) <- colnames(v3) <- NULL
+
+  } else {
+
+    # define parameter name for each group using lavaan's names, but item by parameter order imposed on parameter dataframe
+    ipg <- vector("list", ngroups)
+    ipg[[1]] <- lav.param.names # lavaan does not add suffix for g1
+    for(i in 2:ngroups){
+      ipg[[i]] <- paste0(lav.param.names, ".g", i)
+    }
+
+    ## subset vcov by group and reorder by item then parameter
+    v3 <- lapply(ipg, function(x) v2[x,x])
+    v3 <- lapply(v3, function(x){
+      row.names(x) <- colnames(x) <- NULL
+      return(x)
+    })
+  }
+
+  return(list(param.names = param.names,
+              param.est = param.est,
+              var.cov = v3))
 }
 
 #-------------------------------------------------------------------
 #' Extract item parameter estimates and their covariance matrix from MPlus.
 #'
-#' @param mplus.object an object of class \code{mplus.model} from \code{\link[MplusAutomation]{readModels}}. Expected to be a 1-factor model. Mplus .out file must include Tech3.
+#' @param mplus.object an object of class \code{mplus.model} from \code{\link[MplusAutomation]{readModels}}. Expected to be a 1-factor model. Mplus .out file must include TECH1 and TECH3.
 #' @return A three-element \code{list}:
 #' \itemize{
-#' \item vector of parameter names taking the form "item.param"
-#' \item vector of item parameter estimates
-#' \item covariance matrix of item parameter estimates
+#' \item vector of parameter names taking the form "item.parameter"
+#' \item list (one element per group) of vectors of item parameter estimates
+#' \item list (one element per group) of covariance matrices of item parameter estimates
 #' }
 #'
 #' @export
@@ -214,43 +247,137 @@ get_lavaan_params <- function(lavaan.object){
 
 get_mplus_params <- function(mplus.object){
 
-  if(length(mplus2pl.mods$twopl_groupa.out$tech3) == 0){
-    stop("mplus.object must include tech3, which contains the covariance matrix of item parameter estimates")
+  if(length(mplus.object$tech3) == 0 |
+     length(mplus.object$tech1) == 0){
+    stop("mplus.object must include TECH1 and TECH3.
+         TECH3 contains the covariance matrix of item parameter estimates.
+         TECH1 specifies the order of the estimates in TECH3.")
   }
 
+  ## extracting parameters and item names
+  pars <- mplus.object$parameters$unstandardized # groups in numeric order based on input
+  original.names <- unique(pars$param[grepl("BY$", pars$paramHeader)]) # user name (after Mplus capitalizes it)
+  internal.names <- paste0("item", 1:length(original.names)) # item names to be used for robustDIF functions
 
-  ## extracting parameters
-  pars <- mplus.object$parameters$unstandardized # same as standardized
+  ## check that factor was standardized
+  if(mean(pars[pars$paramHeader == "Variances",]$est) != 1){ # assumes there are no other variances besides the factor
+    stop("Factor variance must be standardized (e.g., f@1).")
+  }
 
-  # removing unnecessary information
-  slopes.all <- pars[grepl("BY$", pars$paramHeader), 2:3]
-  ints.all <- pars[pars$paramHeader %in% c("Thresholds","Steps"), 2:3]
+  ## extracting tech1 with parameter specifications for subsetting and sorting vcov matrix
+  t1 <- mplus.object$tech1$parameterSpecification
 
-  # formatting estimates
-  slopes <- data.frame(item = slopes.all$param,
-                       param = "a",
-                       est = slopes.all$est)
+  if("Group" %in% names(pars)){
 
-  ints <- data.frame(item = gsub("\\$.*$", "", ints.all$param),
-                     param = paste0("d",gsub("^.*\\$", "", ints.all$param)),
-                     est = ints.all$est)
+    # split dataframe into list with dataframe for each group
+    par.group <- lapply(unique(pars$Group), function(x) pars[pars$Group == x,])
+    par.df <- lapply(par.group, format_params, names.vec = original.names, type = "mplus")
+    param.est <- lapply(par.df, "[[", "est") # list with each element a vector of estimates
 
-  ## binding and sorting parameters
-  n.items <- nrow(slopes.all)
-  # item.names <- paste0("i", 1:n.items)
-  item.names <- slopes.all$param # user name (after Mplus capitalizes it)
+    # defining parameter names
+    param.names = list(internal = "placeholder",
+                       original = paste(par.df[[1]]$item, par.df[[1]]$param, sep = "."))
 
-  par.df <- rbind(slopes, ints)
-  par.df$item <- factor(par.df$item, levels = item.names) # make sure items in correct order
-  par.df <- par.df[with(par.df, order(item, param)), ]    # sorting parameter estimates
+    # named vector of parameter numbers in desired order
+    # used for subsetting and ordering vcov matrix
+    param.nums <- lapply(t1, function(x){
+      pn <- c(x$tau, t(x$lambda))
+      names(pn) <- c(colnames(x$tau), rownames(x$lambda))
+      pn <- pn[order(factor(names(pn), levels = par.df[[1]]$label))]
+      return(pn)
+    })
+
+  } else {
+
+    par.df <- format_params(pars, names.vec = original.names, type = "mplus")
+    param.est <- par.df$est # vector of estimates
+
+    # defining parameter names
+    param.names = list(internal = "placeholder",
+                       original = paste(par.df$item, par.df$param, sep = "."))
+
+    # named vector of parameter numbers in desired order
+    # used for subsetting and ordering vcov matrix
+    param.nums <- c(t1$tau, t(t1$lambda))
+    names(param.nums) <- c(colnames(t1$tau), rownames(t1$lambda))
+    param.nums <- param.nums[order(factor(names(param.nums), levels = par.df$label))]
+
+  }
+
+  ## defining parameter names for internal use
+  x <- param.names$original
+  for(i in 1:length(original.names)){
+    x <- sub(original.names[[i]], internal.names[[i]], x) # replacing original name with generic name
+  }
+  param.names$internal <- x
 
   ## extracting and re-organizing vcov matrix
-  v <- mplus.object$tech3$paramCov      # Mplus order is the same as lavaan (see Tech 1)
+  # Order of parameters differs for multigroup and single group; thresholds then slopes vs slopes then thresholds, respectively
+  # need to use tech1 to determine
+  v <- mplus.object$tech3$paramCov
   v[upper.tri(v)] <- t(v)[upper.tri(v)] # fill in upper triangle
-  v2 <- v[row.names(par.df), row.names(par.df)] # re-arrange by item, then parameter rather than the reverse
-  # row.names(v2) <- colnames(v2) <- paste(par.df$item, par.df$param, sep = ".") # do we need to bother renaming?
 
-  return(list(param.names = paste(par.df$item, par.df$param, sep = "."),
-              parameters = par.df$est,
+  if(inherits(param.nums, "list")){
+
+    ## subset vcov by group and reorder by item then parameter
+    v2 <- lapply(param.nums, function(x) v[x,x])
+    v2 <- lapply(v2, function(x){
+      row.names(x) <- colnames(x) <- NULL
+      return(x)
+    })
+
+  } else {
+    v2 <- v[param.nums, param.nums] # reorder by item, then parameter rather than the reverse
+    row.names(v2) <- colnames(v2) <- NULL
+  }
+
+  return(list(param.names = param.names,
+              param.est = param.est,
               var.cov = v2))
+}
+
+#-------------------------------------------------------------------
+#' Helper function used to format parameters estimates
+#'
+#' @param pars numeric vector of item parameter estimates
+#' @param names.vec character vector item names
+#' @param type character; are \code{pars} from \code{"lavaan"} or \code{"mplus"}?
+#' @return data.frame of item parameter estimates
+#' @seealso [robustDIF::get_lavaan_params()], [robustDIF::get_mplus_params()]
+# -------------------------------------------------------------------
+
+format_params <- function(pars, names.vec, type){
+
+  if(type == "lavaan"){
+
+    slopes <- data.frame(item = row.names(pars$lambda),
+                         param = "a",
+                         est = pars$lambda[,1])
+
+    ints <- data.frame(item = gsub("\\|.*$", "", row.names(pars$tau)),
+                       param = gsub("^.*\\|", "", row.names(pars$tau)),
+                       est = pars$tau[,1])
+
+  } else if(type == "mplus"){
+
+    # removing unnecessary information
+    lambda <- pars[grepl("BY$", pars$paramHeader), 2:3]
+    tau <- pars[pars$paramHeader %in% c("Thresholds","Steps"), 2:3]
+
+    slopes <- data.frame(label = lambda$param, # needed to subset and organize vcov
+                         item = lambda$param,
+                         param = "a",
+                         est = lambda$est)
+
+    ints <- data.frame(label = tau$param, # needed to subset and organize vcov
+                       item = gsub("\\$.*$", "", tau$param),
+                       param = paste0("d",gsub("^.*\\$", "", tau$param)),
+                       est = tau$est)
+  }
+
+  ## binding and sorting parameters
+  par.df <- rbind(slopes, ints)
+  par.df$item <- factor(par.df$item, levels = names.vec) # make sure items in correct order
+  par.df <- par.df[with(par.df, order(item, param)), ]  # sorting parameter estimates
+  return(par.df)
 }

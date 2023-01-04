@@ -7,14 +7,14 @@
 get_mplus_params(mplus.object)
 }
 \arguments{
-\item{mplus.object}{an object of class \code{mplus.model} from \code{\link[MplusAutomation]{readModels}}. Expected to be a 1-factor model. Mplus .out file must include Tech3.}
+\item{mplus.object}{an object of class \code{mplus.model} from \code{\link[MplusAutomation]{readModels}}. Expected to be a 1-factor model. Mplus .out file must include TECH1 and TECH3.}
 }
 \value{
 A three-element \code{list}:
 \itemize{
-\item vector of parameter names taking the form "item.param"
-\item vector of item parameter estimates
-\item covariance matrix of item parameter estimates
+\item vector of parameter names taking the form "item.parameter"
+\item list (one element per group) of vectors of item parameter estimates
+\item list (one element per group) of covariance matrices of item parameter estimates
 }
 }
 \description{
