@@ -1,3 +1,11 @@
+#null distribution of hausman test is not N(0, 1). -- variance is too small, suggesting that denom of z-test is wrong, suggesting that it is the weights in the bsq function that are wrong. The variance of theta_RD is an order of magnitude larger than the variance of MLE.
+
+#- checked computation of psi' against formula given Wolfram,
+#- checked computation of omega aginst bsq_weights
+#- compared to using s = 1/sd which resulted in variance very similar to MLE but too small a variance fro the hausman test
+# Tried with and without Hausman theorem
+# Tried using variance computed with and without substituting in point estimate of theta
+# - nul dist with initial rules as expected without impact
 ###############################################################
 # New functions to compute effects and tests for impact
 # 1. MLE of theta
@@ -62,49 +70,6 @@ grad_slope <- function(theta = NULL, irt.mle, log = F) {
   grad_mat(grad.vec)
 }
 
-# -------------------------------------------------------------------
-#' Helper function to put gradient vectors into a matrix.
-#'
-#' Called internally by gradient functions.
-#'
-#' @param grad.vec A vector containing the nonzero elements of \code{\link[robustDIF]{grad_intercept}} or \code{\link[robustDIF]{grad_slope}}.
-#' @return A matrix in which the columns are the gradient vectors for each item.
-#'
-# -------------------------------------------------------------------
-
-grad_mat <- function(grad.vec) {
-  n.items <- length(grad.vec) / 4
-  Delta <- matrix(grad.vec, nrow = 4 * n.items, ncol = n.items)
-  flag <- c(rep(1, times = 4), rep(0, times = 4 * n.items))
-  Flag <- matrix(rep(flag, times = n.items)[1:(4 * n.items^2)],
-                   nrow = 4 * n.items, ncol = n.items)
-  Delta * Flag
-}
-
-# -------------------------------------------------------------------
-#' Helper function to merge two VCOV matrices.
-#'
-#' Puts VCOV matrix of two 2PL models into a single block diagonal VCOV matrix that is conformable with the output of the \code{\link[robustDIF]{grad_intercept}} and \code{\link[robustDIF]{grad_slope}}.
-#'
-#' @inheritParams y_intercept
-#'
-#' @importFrom Matrix bdiag
-#' @return A block diagonal VCOV matrix in which each block is the VCOV of an item.
-
-# -------------------------------------------------------------------
-
-joint_vcov <- function(irt.mle) {
-  n.items <- nrow(irt.mle$par0)
-  m <- diag(1:n.items) %x% matrix(1, 2, 2)
-  v0 <- lapply(split(as.matrix(irt.mle$vcov0), m)[-1],
-               matrix, 2)
-  v1 <- lapply(split(as.matrix(irt.mle$vcov1), m)[-1],
-               matrix, 2)
-  vfull <- vector("list", n.items * 2)
-  vfull[1:(n.items) * 2 - 1] <- v0
-  vfull[1:(n.items) * 2 ] <- v1
-  Matrix::bdiag(vfull)
-}
 
 # -------------------------------------------------------------------
 #' Compute the asymptotic variance of the IRT scaling functions.
@@ -130,341 +95,6 @@ var_y <- function(theta = NULL, irt.mle, par = "intercept", log = F) {
   Matrix::diag(vcov.y)
 }
 
-
-# -------------------------------------------------------------------
-#' Compute the weights of the bi-square function.
-#'
-#' The weights are used for estimation via iteratively re-weighted least squares, so the function is set up to take a pre-computed values of \code{theta} and \code{var.y}
-#'
-#' @param theta the IRT scale parameter.
-#' @param y the output of \code{\link[robustDIF]{y_fun}}.
-#' @param var.y the output of \code{\link[robustDIF]{var_y}}.
-#' @param alpha the desired false positive rate for flagging items with DIF.
-#' @return The bi-square weights, for each item.
-#' @export
-# -------------------------------------------------------------------
-
-bsq_weight <- function(theta, y, var.y, alpha = .05){
-  r <- y - theta
-  var.theta <- 1/sum(1/var.y)
-  omega <- (var.y - var.theta)/var.y^2
-  k <- qnorm(1 - alpha/2, 0, sqrt(omega))
-  bsq.cuts <- var.y * k
-  w <- (1 - (r / bsq.cuts)^2)^2
-  w[abs(r) > bsq.cuts] <- 0
-  w
-}
-
-# -------------------------------------------------------------------
-#' Compute staring values for \code{\link[robustDIF]{rdif}}.
-#'
-#' @inheritParams y_fun
-#' @param alpha the desired false positive rate for flagging items with DIF.
-
-#' @return A vector containing the median of \code{\link[robustDIF]{y_fun}}, the least trimmed squares estimate of location for \code{\link[robustDIF]{y_fun}} with 50-percent trim rate, and the minimum of \code{\link[robustDIF]{rho_fun}}.
-#'
-#' @export
-# -------------------------------------------------------------------
-
-get_starts <- function(irt.mle, par = "intercept", log = F, alpha = .05){
-
-  y <- y_fun(irt.mle, par, log = log)
-  var_fun <- function(theta) {var_y(theta, irt.mle, par, log = log)}
-
-  #This is combines both choices of reference group for intercepts
-  if (par == "intercept") {
-    y1 <- y
-    irt.mle2 <- irt.mle
-    names(irt.mle2)[1:2] <- names(irt.mle)[2:1]
-    y2 <- -1 * y_fun(irt.mle2)
-
-    s <- median(y1/y2)
-    y2 <- s * y2
-
-    # Drop items if y1 - y2 / sd(y) > 1.5
-    var.y1 <- var_y(median(y1), irt.mle)
-    var.y2 <- s^2 * var_y(median(y2), irt.mle)
-    drops <- abs((y1 - y2) / sqrt(min(var.y1, var.y2))) < 1.5
-    y <- c(y1[drops], y2[drops])
-    var_fun <- function(theta) {
-      c(var_y(theta, irt.mle)[drops], s^2 * var_y(theta, irt.mle2)[drops])
-    }
-  }
-
-  # median residual
-  s1 <- median(y)
-
-  # lts with 50% of data
-  s2 <- lts(y)
-
-  # grid search for min of Rho function
-  s3 <- rho_grid(y, var_fun, alpha = .05)
-
-  c(s1, s2, s3)
-}
-
-# -------------------------------------------------------------------
-#' The least trimmed squares (LTS) estimate of location
-#'
-#' @param y a vector of data points.
-#' @param p the proportion of data points to trim.
-#' @return The LTS estimate of location of \code{y}.
-#'
-#' @seealso \code{\link[robustDIF]{get_starts}}
-#' @export
-# -------------------------------------------------------------------
-
-lts <- function(y, p = .5){
-  n <- length(y)
-  n.per.sample <- floor(n*p)
-  n.sample <- ceiling(n - n.per.sample + 1)
-  Y <- matrix(sort(y), nrow = n, ncol = n.sample)
-  flag <- c(rep(1, times = n.per.sample),
-            rep(0, times = n.sample))
-  Flag <- matrix(rep(flag, times = n.sample)[1:(n * n.sample)],
-                   nrow = n, ncol = n.sample)
-  dat <- Y * Flag
-  sum(dat[,which.min(apply(dat, 2, var))]) / n.per.sample
-}
-
-# -------------------------------------------------------------------
-#' The bi-square rho function.
-#'
-#' If \code{abs(u) > k} , \code{rho(u) = 1}. Else, \code{rho(u) = (1 - (1 - (u/k))^3)}.
-#'
-#' @param u Can be a single value, vector, or matrix.
-#' @param k The tuning parameter Can be a scalar or the same dimension as \code{u}.
-#' @return The bi-square rho function.
-#' @seealso \code{\link[robustDIF]{rho_fun}}
-#' @export
-# -------------------------------------------------------------------
-
-rho <- function(u, k = 1.96) {
-  if (length(k) != length(u)) {k <- k[1] + u - u}
-  w <- (u / k)^2
-  out <- 1 - (1 - w)^3
-  out[abs(u) > k] <- 1
-  out
-}
-
-# -------------------------------------------------------------------
-#' Grid search for minimum value of the bi-square Rho function.
-#'
-#' This function is used by \code{\link[robustDIF]{get_starts}}, so its inputs are formatted for to take internal arguments of that function. For plotting, use \code{\link[robustDIF]{rho_fun}} instead.
-#'
-#' @param y output of \code{\link[robustDIF]{get_starts}}
-#' @param var_fun function that variance of \code{y} as a function of only the scale parameter.
-#' @param alpha The desired false positive rate for flagging items with DIF.
-#' @param grid.width The width of grid points.
-#'
-#' @return The location parameter that minimizes the bi-square Rho function.
-#' @seealso \code{\link[robustDIF]{get_starts}}
-
-# -------------------------------------------------------------------
-
-rho_grid <- function(y, var_fun, alpha = .05, grid.width = .05){
-
-  theta <- seq(from = max(min(y), -1.5),
-               to = min(max(y), 1.5),
-               by = min(grid.width, (max(y) - min(y)) / 10))
-
-  n.items <- length(y)
-  n.theta <- length(theta)
-
-  Y <- matrix(y, nrow = n.items, ncol = n.theta)
-  Var.Y <- Reduce(cbind, lapply(theta, function(x) var_fun(x)))
-  Theta <- matrix(theta, nrow = n.items, ncol = n.theta, byrow = T)
-  Var.Theta <- matrix(1/apply(1/Var.Y, 2, sum),
-                      nrow = n.items, ncol = n.theta, byrow = T)
-  Omega <- (Var.Y - Var.Theta) / Var.Y^2
-  U <- (Y - Theta) / Var.Y
-  K <-  qnorm(1 - alpha/2, 0, sqrt(Omega))
-  R <- apply(rho(U, K), 2, sum)
-  # plot(theta, R)
-  theta[which.min(R)]
-}
-
-
-# -------------------------------------------------------------------
-#' The bi-square rho function
-#'
-#'  Computes the objective function of the bi-square minimization problem in a location parameter, theta. The theta values are obtained internally by a grid search over the range of \code{\link[robustDIF]{y_fun}}. Useful for graphically diagnosing local solutions.
-#'
-#' @inheritParams y_fun
-#' @param alpha the desired false positive rate for flagging items with DIF.
-#' @param grid.width the width of grid points.
-#'
-#' @return A named list with theta values and the corresponding rho values.
-#' @export
-
-# -------------------------------------------------------------------
-
-rho_fun <- function(irt.mle, par = "intercept", log = F, alpha = .05, grid.width = .05){
-  y <- y_fun(irt.mle, par, log = log)
-  theta <- seq(from = max(min(y), -1.5), to = min(max(y), 2.5), by = grid.width)
-  var_fun <- function(theta) {var_y(theta, irt.mle, par, log = log)}
-  n.items <- length(y)
-  n.theta <- length(theta)
-
-  Y <- matrix(y, nrow = n.items, ncol = n.theta)
-  Var.Y <- Reduce(cbind, lapply(theta, function(x) var_fun(x)))
-  Theta <- matrix(theta, nrow = n.items, ncol = n.theta, byrow = T)
-  Var.Theta <- matrix(1/apply(1/Var.Y, 2, sum),
-                      nrow = n.items, ncol = n.theta, byrow = T)
-  U <- (Y - Theta) / Var.Y
-  Omega <- (Var.Y - Var.Theta) / Var.Y^2
-  K <- qnorm(1 - alpha/2, 0, sqrt(Omega))
-  r <- apply(rho(U, K), 2, sum)
-
-  #r2 <- apply(rho((Y - Theta) / sqrt(Var.Y), 1.96), 2, sum)
-  list(theta = theta, rho = r)
-}
-
-# -------------------------------------------------------------------
-#' Estimate IRT scale parameters using the RDIF procedure.
-#'
-#' @description
-#' Implements M-estimation of an IRT scale parameter using the bi-square loss function. Also returns the bi-square weights for each item. Weights with a value of zero indicate that the corresponding item was flagged as having DIF during estimation.
-#'
-#' Estimation can be performed using iteratively re-weighted least squares (IRLS) or Newton-Raphson (NR). Currently, only IRLS is implemented. NR can can diverge with bi-square.
-#'
-#' @inheritParams y_fun
-#' @param alpha the desired false positive rate for flagging items with DIF.
-#' @param starting.value one of \code{c("med", "lts", "min_rho", "all")} or a numerical value to be used as the starting value. The default is \code{"all"} which returns the median of the other three.
-#' @param tol convergence criterion for comparing subsequent values of estimate
-#' @param maxit maximum number of iterations
-#' @param method one of \code{c("irls", "nr")}. Currently, only IRLS is implemented.
-#'
-#' @return A named list containing the estimate of the IRT scale parameter, the bi-square weights, the number of iterations performed, and the value of the convergence criterion (difference of  estimate between subsequent iterations).
-#'
-#' @examples
-#' # Item intercepts, using the built-in example dataset "rdif.eg"
-#' \dontrun{rdif(irt.mle = rdif.eg)}
-#'
-#' # Item slopes
-#' \dontrun{rdif(irt.mle = rdif.eg, par = "slope")}
-#'
-#' @export
-# -------------------------------------------------------------------
-
-rdif <- function(irt.mle, par = "intercept", log = F, alpha = .05, starting.value = "all", tol = 1e-7, maxit = 100, method = "irls"){
-  nit <- 0
-  conv <- 1
-
-  # Set up scaling function
-  y <- y_fun(irt.mle, par, log)
-  # Starting value
-  starts <- get_starts(irt.mle, par, log, alpha)
-  theta <- median(starts)
-  if (starting.value == "med") {theta <- starts[1]}
-  if (starting.value == "lts") {theta <- starts[2]}
-  if (starting.value == "min_rho") {theta <- starts[3]}
-  if (is.numeric(starting.value)) {theta <- starting.value}
-
-  # IRLS loop
-   while(nit < maxit & conv > tol) {
-    var.y <- var_y(theta, irt.mle, par, log)
-    w <- bsq_weight(theta, y, var.y, alpha)
-    new.theta <- sum(w * y / var.y ) / sum(w / var.y)
-    nit <- nit + 1
-    conv <- abs(theta - new.theta)
-    theta <- new.theta
-  }
-  list(est = new.theta, weights = w, n.iter = nit, epsilon = conv)
-}
-
-# -------------------------------------------------------------------
-#' The R-DIF test of a single item parameter.
-#'
-#' Tests for DIF in either the item intercept or slopes using a asymptotic z-test.
-#'
-#' @param theta The IRT scale parameter.
-#' @inheritParams y_fun
-#'
-#' @return A named list containing the value of the z.test and p(|z| > |z.test|), for each item.
-#'
-#' @examples
-#' # Test intercepts, using the built-in example dataset "rdif.eg"
-#' \dontrun{
-#' rdif.intercepts <- rdif(irt.mle = rdif.eg)
-#' z_test(theta = rdif.intercepts$est, irt.mle = rdif.eg)
-#' }
-#'
-#' # Test slopes
-#' \dontrun{
-#' rdif.slopes <- rdif(irt.mle = rdif.eg, par = "slope")
-#' z_test(theta = rdif.slopes$est, irt.mle = rdif.eg, par = "slope")
-#' }
-#' @export
-# -------------------------------------------------------------------
-
-z_test <- function(theta, irt.mle, par = "intercept", log = F) {
-  y <- y_fun(irt.mle, par, log)
-  var.y <- var_y(theta, irt.mle, par, log)
-  var.theta <- 1/(sum(1/var.y))
-  z.test <- (y - theta) / sqrt(var.y - var.theta)
-  p.val <- (1 - pnorm(abs(z.test))) * 2
-  list(z.test = z.test, p.val = p.val)
-}
-
-# -------------------------------------------------------------------
-#' The R-DIF test of both item parameters.
-#'
-#' Simultaneously tests for DIF in both the item intercepts and slopes using a asymptotic chi-square test.
-#'
-#'
-#' @inheritParams cov_yz
-
-#' @return A named list containing the value of the chi2.test and p(chi.square > chi2.test), for each item.
-#'
-#' @importFrom Matrix diag
-#' @importFrom Matrix bdiag
-#' @importFrom Matrix t
-#'
-#' @examples
-#' # Using the built-in example dataset "rdif.eg"
-#' \dontrun{
-#' rdif.intercepts <- rdif(irt.mle = rdif.eg)
-#' rdif.slopes <- rdif(irt.mle = rdif.eg, par = "slope")
-#' chi2_test(theta.y = rdif.intercepts$est,
-#'           theta.z = rdif.slopes$est,
-#'           irt.mle = rdif.eg)
-#'}
-#'
-#' @export
-# -------------------------------------------------------------------
-
-chi2_test<- function(theta.y, theta.z, irt.mle, log = F) {
-
-  # Set up vectors of Q form
-  u <- y_fun(irt.mle, par = "intercept") - theta.y
-  v <- y_fun(irt.mle, par = "slope", log = log) - theta.z
-  uv.cbind <- cbind(u, v)
-  uv.list <- lapply(1:nrow(uv.cbind), function(i) uv.cbind[i,])
-  uv.bdiag <- Matrix::bdiag(uv.list)
-
-  # Set up Sigma matrix of Q form
-  var.y <- var_y(theta.y, irt.mle, par = "intercept")
-  var.theta.y <- 1/sum(1/var.y)
-  var.z <- var_y(theta.z, irt.mle, par = "slope", log = log)
-  var.theta.z <- 1/sum(1/var.z)
-  cov.yz <- cov_yz(theta.y, theta.z, irt.mle, log = log)
-
-  Sigma11 <- var.y - var.theta.y
-  Sigma22 <- var.z - var.theta.z
-  Sigma12 <- cov.yz * (1 - var.theta.y/var.y - var.theta.z/var.z) +
-             sum(var.theta.y/var.y * var.theta.z/var.z * cov.yz)
-
-  Sigma.cbind <- cbind(Sigma11, Sigma12, Sigma12, Sigma22)
-  Sigma.list <- lapply(1:nrow(Sigma.cbind),
-                       function(i) matrix(Sigma.cbind[i,], nrow = 2, ncol = 2))
-  Sigma.bdiag <- Matrix::bdiag(Sigma.list)
-
-  # Compute test
-  chi.square <- Matrix::diag(Matrix::t(uv.bdiag) %*% solve(Sigma.bdiag) %*% uv.bdiag)
-  p.val <- 1 - pchisq(chi.square, 2)
-  list(chi.square = chi.square, p.val = p.val)
-}
 
 # -------------------------------------------------------------------
 #' The bi-square rho function.
@@ -528,19 +158,203 @@ psi_prime <- function(u, k = 1.96) {
   out
 }
 
-bsq_var_weights <- function(theta, irt.mle, par = "intercept", log = F, alpha = .05){
-  y <- y_fun(irt.mle, par = "intercept", log = F)
-  var.y <- var_y(theta, irt.mle, par = "intercept", log = F)
-  u <- (y - theta) / var.y
+bsq_var_weight <- function(theta, irt.mle, par = "intercept", log = F, alpha = .05){
+  y <- y_fun(irt.mle, par, log)
+  var.y <- var_y(theta, irt.mle, par, log)
+  u <- (y - theta)/var.y
   omega <- (var.y - 1/sum(1/var.y))/var.y^2
   k <- qnorm(1 - alpha/2, 0, sqrt(omega))
-  w <- psi_prime(u, k) / var.y
-  w/sum(w)
+  numer <- psi_prime(u, k) / var.y
+  denom <- sum(bsq_weight(theta, y, var.y, alpha) / var.y)
+  numer/denom
+
+  #w / sum(w)
+  #w / sum(abs(w)) # This makes a big difference...but its not right
 }
 
-var_theta <- function(theta, irt.mle, par = "intercept", log = F) {
-
-
-
-
+bsq_weight <- function(theta, y, var.y, alpha = .05){
+  r <- y - theta
+  var.theta <- 1/sum(1/var.y)
+  omega <- (var.y - var.theta)/var.y^2
+  k <- qnorm(1 - alpha/2, 0, sqrt(omega))
+  bsq.cuts <- var.y * k
+  w <- (1 - (r / bsq.cuts)^2)^2
+  w[abs(r) > bsq.cuts] <- 0
+  w
 }
+
+ml_est <- function(irt.mle, par = "intercept", log = F, alpha = .05) {
+  y <- y_fun(irt.mle, par = par, log = log)
+  var.y <- var_y(theta = NULL, irt.mle, par = par, log = log)
+  sum(y / var.y) / sum(1 / var.y)
+}
+
+var_delta <- function(theta, irt.mle, par = "intercept", log = F, alpha = .05) {
+  var.y.mle <- var_y(theta = NULL, irt.mle, par, log)
+  var.y.bsq <- var_y(theta = theta, irt.mle, par, log)
+
+  w.mle <- 1/var.y.mle / sum(1/var.y.mle)
+  w.bsq <- bsq_var_weight(theta, irt.mle, par, log, alpha)
+  w.bsq2 <- 1/sqrt(var.y.bsq) / sum(1/sqrt(var.y.bsq))
+  c(sum(w.bsq^2 * var.y.mle),
+    sum(w.bsq2^2 * var.y.mle),
+    sum(w.mle^2 * var.y.mle),
+    sum((w.bsq - w.mle)^2 * var.y.mle),
+    sum((w.bsq2 - w.mle)^2 * var.y.mle))
+}
+
+# variance of z.delta way too small, type I errors ~ .005!
+# bsq_var_weight(theta, irt.mle)
+
+# leads to negative values
+#  sum(w.bsq^2 * var.y.bsq) - sum(w.mle^2 * var.y.mle),
+
+# variance of z.delta way too large, type I errors ~ .5 (not .05)!
+#w.bsq3 <- 1/sqrt(var.y.mle)
+
+sim_study_delta <- function(n.reps = 100, n.persons = 500, n.items = 15, n.biased = 0, bias = 0, impact = c(0, 1)){
+
+  # Item hyper-parms
+  a.lower <- .9
+  a.upper <- 2.5
+  b.lim <- 1.5
+
+  # Sim loop for parallelization via mclapply
+  loop <- function(i){
+
+    # DGP
+    a0 <- runif(n.items, a.lower, a.upper)
+    b0 <- sort(runif(n.items, -b.lim, b.lim))
+    b1 <- apply_bias(b0, n.biased, bias)
+    d0 <- b0*a0
+    d1 <- b1*a0
+    x0 <- rnorm(n.persons)
+    x1 <- impact[2]*rnorm(n.persons) + impact[1]
+
+    # sample standarized.
+    # x0 <- rnorm(n.persons)
+    # x0 <- (x0 - mean(x0)) / sd(x0)
+    # x1 <- rnorm(n.persons)
+    # x1 <- (x1 - mean(x1)) / sd(x1)
+    # x1 <- impact[2]*x1 + impact[1]
+    true.theta <- impact[1] / impact[2]
+
+    # Data gen
+    dat0 <- simdata(a0, d0, n.persons, '2PL', Theta = matrix(x0))
+    dat1 <- simdata(a0, d1, n.persons, '2PL', Theta = matrix(x1))
+
+    # Fit IRT models
+    fit0 <- mirt(dat0, 1, SE = T)
+    fit1 <- mirt(dat1, 1, SE = T)
+
+    # DIF Procedures
+    irt.mle <- get_irt_pars(list(fit0, fit1))
+    theta <- rdif.theta <- rdif(irt.mle)$est
+    mle.theta <- ml_est(irt.mle)
+    delta <- rdif.theta - mle.theta
+    est <- c(rep(rdif.theta, 2) - true.theta, mle.theta - true.theta, delta, delta)
+    var.est <- var_delta(rdif.theta, irt.mle)
+    se.est <- sqrt(var.est)
+    z <- est / se.est
+    p  <- (1 - pnorm(abs(z))) * 2
+
+    list(est = est,
+        se = se.est,
+        z.test = z,
+        p.val = p)
+  }
+  parallel::mclapply(1:n.reps, loop)
+}
+# variance of sampling distribution of deltas is smaller than the non-null SE but larger than the null SE
+
+# generate data using within-sample norming -- less variance in sampling dist, should be closer to null SE
+
+# use dgp theta to compute non-null SE. This should make the SE approx better, but not clear if it will make it much smaller, and hence closer to the observed sampling distribiution
+
+
+### Sim study
+
+# Data gen
+n.reps = 500
+n.persons = 500
+bias = .5
+impact = c(.5,1)
+n.items = 30
+n.biased = 0
+
+ds0.1 <- sim_study_delta(n.reps, 250, n.items = 5, n.biased = 0, bias, impact)
+ds1.1 <- sim_study_delta(n.reps, 250, n.items = 10, n.biased = 0, bias, impact)
+ds2.1 <- sim_study_delta(n.reps, 250, n.items = 15, n.biased = 0, bias, impact)
+ds3.1 <- sim_study_delta(n.reps, 250, n.items = 30, n.biased = 0, bias, impact)
+
+ds0.2 <- sim_study_delta(n.reps, 500, n.items = 5, n.biased = 0, bias, impact)
+ds1.2 <- sim_study_delta(n.reps, 500, n.items = 10, n.biased = 0, bias, impact)
+ds2.2 <- sim_study_delta(n.reps, 500, n.items = 15, n.biased = 0, bias, impact)
+ds3.2 <- sim_study_delta(n.reps, 500, n.items = 30, n.biased = 0, bias, impact)
+
+ds0.3 <- sim_study_delta(n.reps, 1000, n.items = 5, n.biased = 0, bias, impact)
+ds1.3 <- sim_study_delta(n.reps, 1000, n.items = 10, n.biased = 0, bias, impact)
+ds2.3 <- sim_study_delta(n.reps, 1000, n.items = 15, n.biased = 0, bias, impact)
+ds3.3 <- sim_study_delta(n.reps, 1000, n.items = 30, n.biased = 0, bias, impact)
+
+ds0.4 <- sim_study_delta(n.reps, 5000, n.items = 5, n.biased = 0, bias, impact)
+ds1.4 <- sim_study_delta(n.reps, 5000, n.items = 10, n.biased = 0, bias, impact)
+ds2.4 <- sim_study_delta(n.reps, 5000, n.items = 15, n.biased = 0, bias, impact)
+ds3.4 <- sim_study_delta(n.reps, 10000, n.items = 30, n.biased = 0, bias, impact)
+
+ds <- ds3.4
+#ds0[seq(1, 500, by = 2)]
+head(ds)
+
+# check wald test
+z <- (Reduce(rbind, lapply(ds, function(x) x$z.test)))
+apply(z, 2, mean); apply(z, 2, sd)
+qqnorm(z[,4])
+abline(a = 0, b = 1)
+
+# check p-val
+p <- (Reduce(rbind, lapply(ds, function(x) x$p.val)))
+apply(p < .05, 2, mean)
+
+# check est (hausman in effect?)
+est <- (Reduce(rbind, lapply(ds, function(x) x$est)))
+apply(est, 2, mean)
+cov(est)
+
+# compare se to sampling distribution
+se <- (Reduce(rbind, lapply(ds, function(x) x$se)))
+sqrt(apply(est, 2, var))
+sqrt(apply(se^2, 2, mean))
+
+# see which delta were flagged
+hist(est[,4], breaks = 20)
+hist(p[,4])
+sig <- p[,4] < .05
+hist(est[sig, 4], breaks = 20)
+plot(p[,4], abs(est[,4]))
+abline(v = .05)
+mean((1 - pnorm(abs(est[,4]/se[,4]))) * 2 < .05)
+
+# forest plots
+library(ggplot2)
+gg.data <- data.frame(delta = est[,4], se = se[,4], p.val = p[,4])
+gg.data$lower <- gg.data$delta - 1.96 *gg.data$se
+gg.data$upper <- gg.data$delta + 1.96 *gg.data$se
+gg.data$sig <- factor(gg.data$p.val < .05)
+
+# take a manageable subsample of runs
+ind <- sample.int(500, 15)
+gg.short <- gg.data[ind, ]
+gg.short$study <- seq(1, 15)
+
+# plot
+ggplot(gg.short, aes(x = delta, y = study)) +
+  geom_point(aes(color = sig), shape = 15, size = 3) +
+  geom_linerange(aes(xmin = lower, xmax = upper, color = sig)) +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  theme_classic() +
+  theme(axis.line.y = element_blank(),
+        axis.ticks.y= element_blank(),
+        axis.text.y= element_blank(),
+        axis.title.y= element_blank())
+
