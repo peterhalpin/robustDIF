@@ -11,71 +11,6 @@
 #'}
 "rdif.eg"
 
-#-------------------------------------------------------------------
-#' Extract 2PL item parameter estimates from \code{\link[mirt]{mirt}}.
-#'
-#' @param mirt.fit.2pl a \code{\link[mirt]{mirt}} object (\code{SingleGroupClass}) estimated for the 2PL model.
-#' @return A data frame of 2PL item parameter estimates, in slope-intercept form.
-#'
-#' @importFrom mirt coef
-#' @export
-# -------------------------------------------------------------------
-
-get_mirt_pars <- function(mirt.fit.2pl ){
- n.items <- mirt.fit.2pl@Data$nitems
- parms <- Reduce(rbind, coef(mirt.fit.2pl, printSE = T)[1:(n.items)])[, 1:2]
- parms <- parms[row.names(parms) == "par", ]
- parms <- data.frame(parms)
- names(parms) <- c("a", "d")
- parms
-}
-
-# -------------------------------------------------------------------
-#' Extract 2PL covariance matrix of item parameter estimates from \code{\link[mirt]{mirt}}.
-
-#' @inheritParams get_mirt_pars
-#' @return The covariance matrix of 2PL item parameter estimates.
-
-#' @importFrom mirt vcov
-#' @export
-# -------------------------------------------------------------------
-
-get_mirt_vcov <- function(mirt.fit.2pl) {
-  v <- vcov(mirt.fit.2pl)
-  row.names(v) <- paste0(c("a", "d"), rep(1:(nrow(v)/2), each = 2))
-  colnames(v) <- row.names(v)
-  v
-}
-
-# -------------------------------------------------------------------
-#' Extract and format 2PL item parameter estimates and their covariance matrix.
-#'
-#' @description
-#' Takes a list of 2PL model fits and formats the item parameter estimates and their covariance matrix. All \code{robustDIF} functions assume that the estimates were obtained by maximum likelihood and the covariance is asymptotically correct.
-#'
-#' Note that the only type of fit currently supported is the \code{SingleGroupClass} of the \code{\link[mirt]{mirt}} package. Also, the current implementation only supports lists of length 2 (i.e., two groups) and the first fit is treated as the reference group.
-#'
-#' It is possible to use fits from other software with \code{robustDIF} functions, but the parameter estimates and their covariance matrices must be formatted in a particular way. For more details, see the documentation for the example dataset \code{\link[robustDIF]{rdif.eg}}.
-#'
-#'
-#' @param fit.list a list of 2PL model fits.
-#' @param type character: the name of the package that produced the fits (the current implementation only supports \code{\link[mirt]{mirt}}'s \code{SingleGroupClass}).
-#' @return A named list of item parameter estimates and covariance matrices.
-#'
-#' @seealso \code{\link[robustDIF]{rdif.eg}}
-#' @export
-#'
-# -------------------------------------------------------------------
-
-get_irt_pars <- function(fit.list, type = "mirt") {
- if (type == "mirt") {
-  est <- lapply(fit.list, get_mirt_pars)
-  v <- lapply(fit.list, get_mirt_vcov)
-  out <- list(par0 = est[[1]], par1 = est[[2]],
-              vcov0 = v[[1]], vcov1 = v[[2]])
-  return(out)
- }
-}
 
 # -------------------------------------------------------------------
 #' The R-DIF scaling function for item intercepts.
@@ -84,7 +19,6 @@ get_irt_pars <- function(fit.list, type = "mirt") {
 #'
 #' @param irt.mle the output of \code{\link[robustDIF]{get_irt_pars}}
 #' @return A vector of Y values.
-#' @export
 # -------------------------------------------------------------------
 
 y_intercept <- function(irt.mle) {
@@ -100,7 +34,6 @@ y_intercept <- function(irt.mle) {
 #' @param log logical: use of scaling function?
 #'
 #' @return A vector of Y values.
-#' @export
 # -------------------------------------------------------------------
 
 y_slope <- function(irt.mle, log = F) {
@@ -121,7 +54,6 @@ y_slope <- function(irt.mle, log = F) {
 #'
 #' @return A vector of Y values.
 #' @seealso \code{\link[y_intercept]{y_intercept}}, \code{\link[robustDIF]{y_slope}}.
-#' @export
 # -------------------------------------------------------------------
 
 y_fun <- function(irt.mle, par = "intercept", log = F) {
@@ -142,7 +74,6 @@ y_fun <- function(irt.mle, par = "intercept", log = F) {
 #' @return A matrix in which the columns are the gradient vectors of \code{\link[robustDIF]{y_intercept}}, for each item.
 #'
 #' @seealso \code{\link[y_intercept]{y_intercept}}
-#' @export
 # -------------------------------------------------------------------
 
 grad_intercept <- function(theta, irt.mle) {
@@ -165,7 +96,6 @@ grad_intercept <- function(theta, irt.mle) {
 #' @return A matrix in which the columns are the gradient vectors of \code{\link[robustDIF]{y_slope}}, for each item.
 #'
 #' @seealso \code{\link[y_intercept]{y_slope}}
-#' @export
 # -------------------------------------------------------------------
 
 grad_slope <- function(theta, irt.mle, log = F) {
@@ -237,7 +167,6 @@ joint_vcov <- function(irt.mle) {
 #' @seealso \code{\link[robustDIF]{y_fun}}
 #'
 #' @importFrom Matrix diag
-#' @export
 # -------------------------------------------------------------------
 
 var_y <- function(theta, irt.mle, par = "intercept", log = F) {
@@ -264,7 +193,6 @@ var_y <- function(theta, irt.mle, par = "intercept", log = F) {
 #' @seealso \code{\link[robustDIF]{y_fun}}, \code{\link[robustDIF]{var_y}}
 #'
 #' @importFrom Matrix diag
-#' @export
 # -------------------------------------------------------------------
 
 cov_yz <- function(theta.y, theta.z, irt.mle, log = F) {
@@ -285,7 +213,6 @@ cov_yz <- function(theta.y, theta.z, irt.mle, log = F) {
 #' @param var.y the output of \code{\link[robustDIF]{var_y}}.
 #' @param alpha the desired false positive rate for flagging items with DIF.
 #' @return The bi-square weights, for each item.
-#' @export
 # -------------------------------------------------------------------
 
 bsq_weight <- function(theta, y, var.y, alpha = .05){
@@ -306,8 +233,6 @@ bsq_weight <- function(theta, y, var.y, alpha = .05){
 #' @param alpha the desired false positive rate for flagging items with DIF.
 
 #' @return A vector containing the median of \code{\link[robustDIF]{y_fun}}, the least trimmed squares estimate of location for \code{\link[robustDIF]{y_fun}} with 50-percent trim rate, and the minimum of \code{\link[robustDIF]{rho_fun}}.
-#'
-#' @export
 # -------------------------------------------------------------------
 
 get_starts <- function(irt.mle, par = "intercept", log = F, alpha = .05){
@@ -355,7 +280,6 @@ get_starts <- function(irt.mle, par = "intercept", log = F, alpha = .05){
 #' @return The LTS estimate of location of \code{y}.
 #'
 #' @seealso \code{\link[robustDIF]{get_starts}}
-#' @export
 # -------------------------------------------------------------------
 
 lts <- function(y, p = .5){
@@ -380,7 +304,6 @@ lts <- function(y, p = .5){
 #' @param k The tuning parameter Can be a scalar or the same dimension as \code{u}.
 #' @return The bi-square rho function.
 #' @seealso \code{\link[robustDIF]{rho_fun}}
-#' @export
 # -------------------------------------------------------------------
 
 rho <- function(u, k = 1.96) {
@@ -432,7 +355,7 @@ rho_grid <- function(y, var_fun, alpha = .05, grid.width = .05){
 # -------------------------------------------------------------------
 #' The bi-square Rho function
 #'
-#'  Computes the objective function of the bi-square minimization problem in a location parameter, theta. The theta values are obtained internally by a grid search over the range of \code{\link[robustDIF]{y_fun}}. Useful for graphically diagnosing local solutions.
+#' Computes the objective function of the bi-square minimization problem in a location parameter, theta. The theta values are obtained internally by a grid search over the range of \code{\link[robustDIF]{y_fun}}. Useful for graphically diagnosing local solutions.
 #'
 #' @inheritParams y_fun
 #' @param alpha the desired false positive rate for flagging items with DIF.
@@ -460,6 +383,7 @@ rho_fun <- function(irt.mle, par = "intercept", log = F, alpha = .05, grid.width
   Omega <- (Var.Y - Var.Theta) / Var.Y^2
   K <- qnorm(1 - alpha/2, 0, sqrt(Omega))
   r <- apply(rho(U, K), 2, sum)
+  names(r) <- NULL
 
   #r2 <- apply(rho((Y - Theta) / sqrt(Var.Y), 1.96), 2, sum)
   list(theta = theta, rho = r)
@@ -471,7 +395,7 @@ rho_fun <- function(irt.mle, par = "intercept", log = F, alpha = .05, grid.width
 #' @description
 #' Implements M-estimation of an IRT scale parameter using the bi-square loss function. Also returns the bi-square weights for each item. Weights with a value of zero indicate that the corresponding item was flagged as having DIF during estimation.
 #'
-#' Estimation can be performed using iteratively re-weighted least squares (IRLS) or Newton-Raphson (NR). Currently, only IRLS is implemented. NR can can diverge with bi-square.
+#' Estimation can be performed using iteratively re-weighted least squares (IRLS) or Newton-Raphson (NR). Currently, only IRLS is implemented. NR can diverge with bi-square.
 #'
 #' @inheritParams y_fun
 #' @param alpha the desired false positive rate for flagging items with DIF.

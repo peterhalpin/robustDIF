@@ -38,7 +38,7 @@ A named list containing the estimate of the IRT scale parameter, the bi-square w
 \description{
 Implements M-estimation of an IRT scale parameter using the bi-square loss function. Also returns the bi-square weights for each item. Weights with a value of zero indicate that the corresponding item was flagged as having DIF during estimation.
 
-Estimation can be performed using iteratively re-weighted least squares (IRLS) or Newton-Raphson (NR). Currently, only IRLS is implemented. NR can can diverge with bi-square.
+Estimation can be performed using iteratively re-weighted least squares (IRLS) or Newton-Raphson (NR). Currently, only IRLS is implemented. NR can diverge with bi-square.
 }
 \examples{
 # Item intercepts, using the built-in example dataset "rdif.eg"
