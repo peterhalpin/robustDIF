@@ -1,22 +1,16 @@
-#null distribution of hausman test is not N(0, 1). -- variance is too small, suggesting that denom of z-test is wrong, suggesting that it is the weights in the bsq function that are wrong. The variance of theta_RD is an order of magnitude larger than the variance of MLE.
 
-#- checked computation of psi' against formula given Wolfram,
-#- checked computation of omega aginst bsq_weights
-#- compared to using s = 1/sd which resulted in variance very similar to MLE but too small a variance fro the hausman test
-# Tried with and without Hausman theorem
-# Tried using variance computed with and without substituting in point estimate of theta
-# - nul dist with initial rules as expected without impact
 ###############################################################
 # New functions to compute effects and tests for impact
-# 1. MLE of theta
-#
-# 2.  var(Y_i) without substituting in for \theta
-#     modification: let the argument theta to grad_intercept, grad_slope, and var_y default to null, and, if null, set theta to the value of the item's scaling function. All previous functions will continue to work as is, may want to change order of args later.
+
+# 1.  grad_intercept, grad_slope, and var_y modified so default theta = NULL, in which case gradients are computed with without substituting \theta for Y_i. This allows for gradient to be used for MLE. All previous functions will continue to work as is, may want to change order of args later.
+
+# 2. rho, psi, and psi_prime for bi-square (already had rho, duplicated here)
 
 # 3. var(\theta) without using null weights (use rho')
       # add optional logical argument null to var_y, if False, use weights
 # 4. Compute theta_RD - theta_ML, both of their variances
 
+###############################################################
 ###############################################################
 # -------------------------------------------------------------------
 #' The gradient of \code{\link[robustDIF]{y_intercept}}.
@@ -157,6 +151,8 @@ psi_prime <- function(u, k = 1.96) {
   out[abs(u) > k] <- 0
   out
 }
+
+
 
 bsq_var_weight <- function(theta, irt.mle, par = "intercept", log = F, alpha = .05){
   y <- y_fun(irt.mle, par, log)
