@@ -4,16 +4,16 @@
 \alias{var_y}
 \title{Compute the variance of the asymptotic null distribution of IRT scaling functions.}
 \usage{
-var_y(theta, irt.mle, par = "intercept", log = F)
+var_y(mle, theta = NULL, par = "intercept", log = F)
 }
 \arguments{
-\item{theta}{the IRT scale parameter.}
+\item{mle}{the output of \code{\link[robustDIF]{get_model_parms}}}
 
-\item{irt.mle}{the output of \code{\link[robustDIF]{get_irt_pars}}}
+\item{theta}{the IRT scale parameter.}
 
 \item{par}{character: use the scaling function for item intercepts or item slopes? One of \code{c("intercept", "slope")}.}
 
-\item{log}{logical: use of scaling function? Only applies if \code{par = "slope"}.}
+\item{log}{logical: use log of scaling function? Only applies if \code{par = "slope"}.}
 }
 \value{
 A vector that contains the variance of the IRT scaling function, for each item.

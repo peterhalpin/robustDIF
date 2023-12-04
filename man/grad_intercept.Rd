@@ -4,12 +4,12 @@
 \alias{grad_intercept}
 \title{The gradient of \code{\link[robustDIF]{y_intercept}}.}
 \usage{
-grad_intercept(theta, irt.mle)
+grad_intercept(mle, theta = NULL)
 }
 \arguments{
-\item{theta}{the IRT scale parameter.}
+\item{mle}{the output of \code{\link[robustDIF]{get_model_parms}}}
 
-\item{irt.mle}{the output of \code{\link[robustDIF]{get_irt_pars}}}
+\item{theta}{the IRT scale parameter. If omitted, uses item-specific scaling functions instead.}
 }
 \value{
 A matrix in which the columns are the gradient vectors of \code{\link[robustDIF]{y_intercept}}, for each item.

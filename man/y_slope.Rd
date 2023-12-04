@@ -4,10 +4,10 @@
 \alias{y_slope}
 \title{The R-DIF scaling function for item slopes.}
 \usage{
-y_slope(irt.mle, log = F)
+y_slope(mle, log = F)
 }
 \arguments{
-\item{irt.mle}{the output of \code{\link[robustDIF]{get_irt_pars}}}
+\item{mle}{the output of \code{\link[robustDIF]{get_model_parms}}}
 
 \item{log}{logical: use of scaling function?}
 }
@@ -15,5 +15,5 @@ y_slope(irt.mle, log = F)
 A vector of Y values.
 }
 \description{
-Computes \code{Y = a1/a0}, or its log. Used to test DIF on item slopes.
+Computes \code{Y = a1/a0}, or its log, for each item. Used to test DIF on item slopes.
 }

@@ -5,18 +5,18 @@
 \alias{rdif.eg}
 \title{An example data set with five items in two groups.}
 \format{
-A named list with 4 components:
+A named list with 3 components:
 \describe{
-  \item{par0}{A \code{data.frame} or named \code{list} with \code{par0$a} containing the item slopes and \code{par0$d} containing the item intercepts, for the reference group.}
-  \item{par1}{The item parameter estimates of the comparison groups. See \code{par0} for formatting.}
-  \item{vcov0}{The covariance matrix of \code{par0}, formatted as either a \code{data.frame} or \code{matrix}. The parameters should be organized by item, with the slope parameter coming first and the intercept parameter coming second (e.g., \code{a.item1, d.item1, a.item2, d.item2, ...}).}
-   \item{vcov1}{The covariance matrix of \code{par1}. See \code{vcov0} for formatting.}
+  \item{par.names}{A named \code{list} with the internal and original labels for parameters in the model.}
+  \item{est}{A named \code{list}, each element containing \code{data.frame} of model parameters estimates for each group}
+  \item{vcov0}{A named \code{list}, each element containing \code{data.frame} with the variance covariance matrix of the parameter estimates. The parameters appear in the order given by rdif.eg$par.names$internal.
+}
 }
 }
 \usage{
 rdif.eg
 }
 \description{
-A named list containing the maximum likelihood estimates and their estimated covariance matrix, for the 2PL IRT model fitted to 5 items in two independent groups. The first item has additive bias of .5 applied to the intercept and multiplicative bias of 1 applied item slope. The groups have a mean difference of .5 standard deviations on the latent trait. The variances of the latent trait are equal in each group.
+A named list containing the maximum likelihood estimates and their estimated covariance matrix, for the 2PL IRT model fitted to 5 items in two independent groups. The first item has additive bias of .5 applied to the intercept. The groups have a mean difference of .5 standard deviations on the latent trait. The variances of the latent trait are equal in each group.
 }
 \keyword{datasets}

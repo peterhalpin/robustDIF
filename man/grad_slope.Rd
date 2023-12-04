@@ -4,12 +4,12 @@
 \alias{grad_slope}
 \title{The gradient of \code{\link[robustDIF]{y_slope}}.}
 \usage{
-grad_slope(theta, irt.mle, log = F)
+grad_slope(mle, theta = NULL, log = F)
 }
 \arguments{
-\item{theta}{the IRT scale parameter.}
+\item{mle}{the output of \code{\link[robustDIF]{get_model_parms}}}
 
-\item{irt.mle}{the output of \code{\link[robustDIF]{get_irt_pars}}}
+\item{theta}{the IRT scale parameter. If omitted, uses item-specific scaling functions instead.}
 
 \item{log}{logical: use log of scaling function?}
 }

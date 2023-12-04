@@ -2,16 +2,16 @@
 % Please edit documentation in R/robustDIF_functions.R
 \name{joint_vcov}
 \alias{joint_vcov}
-\title{Helper function to merge two VCOV matrices.}
+\title{Helper function to merge VCOV matrices from different groups.}
 \usage{
-joint_vcov(irt.mle)
+joint_vcov(mle)
 }
 \arguments{
-\item{irt.mle}{the output of \code{\link[robustDIF]{get_irt_pars}}}
+\item{mle}{the output of \code{\link[robustDIF]{get_model_parms}}}
 }
 \value{
 A block diagonal VCOV matrix in which each block is the VCOV of an item.
 }
 \description{
-Puts VCOV matrix of two 2PL models into a single block diagonal VCOV matrix that is conformable with the output of the \code{\link[robustDIF]{grad_intercept}} and \code{\link[robustDIF]{grad_slope}}.
+Puts VCOV matrix of two models into a single block diagonal VCOV matrix that is conformable with the output of the \code{\link[robustDIF]{grad_intercept}} and \code{\link[robustDIF]{grad_slope}}.
 }

@@ -42,26 +42,48 @@ apply_bias <- function(b0, n.biased = 1, max.bias = .5, worst.case = T, multipli
 #' @param dat0 item response data for reference group
 #' @param dat1 item response data for comparison group
 #'
-#' @return A named list with p values from the LR test and the scale parameters estimated in the model that assumes invariance
+#' @return A list with of length 1 containing the results from the `mirt::DIF`
+#'  with two-stage purification/refinement using p < .05 as the criterion for determining DIF. If all or no items and in the anchor set after first stage, the second stage is not conducted and the p-values from the first stage are reported. Otherwise, p-values for anchor items are from the first stage and p-values for items tested a second time are from the second stage.  The function does not use `mirt`s drop sequential implementation because it can throw errors (if no items in anchor set of final model) or return and empty data frame (if all / no items have DIF in the first stage).
 # -------------------------------------------------------------------
 
-lr_z <- function(dat0, dat1, which.par = "d"){
+lr_z <- function(dat0, dat1, which.par = "d", alpha = .05){
   dat <- rbind(dat0, dat1)
+  items <- colnames(dat)
   group <- c(rep("0", nrow(dat0)), rep("1", nrow(dat1)))
-  if (which.par == "d") {invariance = c("intercepts", "free_means")}
-  if (which.par == "a1") {invariance = c("slopes", "free_vars")}
+  if (which.par == "d") {invariance = c("free_means", "intercepts")}
+  if (which.par == "a1") {invariance = c("free_vars", "slopes")}
 
-  mg.mod <- multipleGroup(dat,
-                          model = 1,
-                          group = group,
-                          invariance = invariance)
+  # First stage
+  purify.mod <- multipleGroup(dat,
+                              model = 1,
+                              group = group,
+                              invariance = invariance)
 
-  lr.test <- DIF(mg.mod,
-                 which.par = which.par,
-                 scheme = "drop",
-                 Wald = F)
+  purify.test <- DIF(purify.mod,
+                     which.par = which.par,
+                     scheme = "drop")
 
-  list(p = lr.test$p)
+  out <- purify.test$p
+  anchors <- which(out > alpha)
+
+  # Second stage (don't run if all or no items with DIF)
+  if(!length(anchors)%in%c(0, ncol(dat))){
+    diffy.items <- which(out <= alpha)
+    purified <- c(invariance[1], items[anchors])
+    refine.mod <- multipleGroup(dat,
+                                model = 1,
+                                group = group,
+                                invariance = purified)
+    refine.test <- DIF(refine.mod,
+                     which.par = which.par,
+                     scheme = "add",
+                     items2test = diffy.items,
+                     Wald = F
+                     )
+
+    out[diffy.items] <- refine.test$p
+  }
+  list(p = out)
 }
 
 # -------------------------------------------------------------------
@@ -70,24 +92,45 @@ lr_z <- function(dat0, dat1, which.par = "d"){
 #' @param dat0 item response data for reference group
 #' @param dat1 item response data for comparison group
 #'
-#' @return A named list with p values from the LR test and the scale parameters estimated in the model that assumes invariance
+#' @return A named list with p values from the LR test and the scale parameters estimated in the model that assumes invariance.
 # -------------------------------------------------------------------
 
 lr_chi <- function(dat0, dat1){
   dat <- rbind(dat0, dat1)
   group <- c(rep("0", nrow(dat0)), rep("1", nrow(dat1)))
-  invariance <- c("intercepts", "slopes", "free_means", "free_vars")
-  mg.mod <- multipleGroup(dat,
-                          model = 1,
-                          group = group,
-                           invariance = invariance)
+  invariance <- c("free_means", "free_vars",  "intercepts", "slopes")
 
-  lr.test <- DIF(mg.mod,
-                 which.par = c("a1", "d"),
-                 scheme = "drop",
-                 Wald = F)
+  # First stage
+  purify.mod <- multipleGroup(dat,
+                              model = 1,
+                              group = group,
+                              invariance = invariance)
 
-  list(p = lr.test$p)
+  purify.test <- DIF(purify.mod,
+                     which.par = which.par,
+                     scheme = "drop")
+
+  out <- purify.test$p
+  anchors <- which(out > alpha)
+
+  # Second stage (don't run if all or no items with DIF)
+  if(!length(anchors)%in%c(0, ncol(dat))){
+    diffy.items <- which(out <= alpha)
+    purified <- c(invariance[1:2], items[anchors])
+    refine.mod <- multipleGroup(dat,
+                                model = 1,
+                                group = group,
+                                invariance = purified)
+    refine.test <- DIF(refine.mod,
+                     which.par = which.par,
+                     scheme = "add",
+                     items2test = diffy.items,
+                     Wald = F
+                     )
+
+    out[diffy.items] <- refine.test$p
+  }
+  list(p = out)
 }
 
 
@@ -101,10 +144,24 @@ lr_chi <- function(dat0, dat1){
 #'
 # -------------------------------------------------------------------
 
-mh <- function(dat0, dat1){
+mh <- function(dat0, dat1, alpha = .05){
   dat <- rbind(dat0, dat1)
   group <- c(rep("0", nrow(dat0)), rep("1", nrow(dat1)))
-  list(p = difR::difMH(dat, group, focal.name = 0)$p.value)
+  purify <- difR::difMH(dat, group, focal.name = 0)
+  out <- purify$p.value
+  anchors <- colnames(dat)[out > alpha]
+
+  # Second stage (don't run if all or no items with DIF)
+  if(!length(anchors)%in%c(0, ncol(dat))){
+    diffy.items <- which(out <= alpha)
+    refine <- difR::difMH(dat,
+                          group,
+                          focal.name = 0,
+                          anchor = anchors)
+
+    out[diffy.items] <- refine$p.value[diffy.items]
+  }
+  list(p = out)
 }
 
 # -------------------------------------------------------------------
@@ -158,7 +215,6 @@ sim_study1 <- function(n.reps = 100, n.persons = 500, n.items = 15, n.biased = 0
 
   # Sim loop for parallelization via mclapply
   loop <- function(i){
-
     # DGP
     a0 <- runif(n.items, a.lower, a.upper)
     b0 <- sort(runif(n.items, -b.lim, b.lim))
@@ -182,7 +238,6 @@ sim_study1 <- function(n.reps = 100, n.persons = 500, n.items = 15, n.biased = 0
     true.theta <- bsq_weight(impact[1], y_fun(irt.mle), var_y(impact[1], irt.mle))
     rdif.sigma <- rdif(irt.mle, par = "slope")
     chi2.test <- chi2_test(rdif.theta$est, rdif.sigma$est, irt.mle)
-
     lr.out <- lr_z(dat0, dat1)
     mh.out <- mh(dat0, dat1)
     lasso.out <- lasso(dat0, dat1)
@@ -204,7 +259,7 @@ sim_study1 <- function(n.reps = 100, n.persons = 500, n.items = 15, n.biased = 0
 
     list(dif = dif, scale = scale, irt.mle = irt.mle)
   }
-  parallel::mclapply(1:n.reps, loop)
+  parallel::mclapply(1:n.reps, loop, mc.cores = 5)
 }
 
 
@@ -306,7 +361,7 @@ sim_study2 <- function(n.reps = 100, n.persons = 500, n.items = 15, bias = c(.5,
 
     list(dif = dif, scale = scale, irt.mle = irt.mle)
   }
-  parallel::mclapply(1:n.reps, loop)
+  parallel::mclapply(1:n.reps, loop, mc.cores = detectCores())
 }
 
 # -------------------------------------------------------------------
@@ -325,8 +380,8 @@ decision_errors <-function(ds, test.names, cut.offs){
   if(length(grep("lasso", test.names)) > 0) {
     decisions$lasso <- decisions$lasso == F
   }
-  tp <- apply(decisions[ds$dgp == T, ], 2, mean)
-  fp <- apply(decisions[ds$dgp == F, ], 2, mean)
+  tp <- apply(decisions[ds$dgp == T, ], 2, mean, na.rm = T)
+  fp <- apply(decisions[ds$dgp == F, ], 2, mean, na.rm = T)
   out <- data.frame(cbind(fp, tp))
   out$method <- rownames(out)
   rownames(out) <- NULL

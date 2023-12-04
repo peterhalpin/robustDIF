@@ -4,20 +4,20 @@
 \alias{y_fun}
 \title{R-DIF scaling functions.}
 \usage{
-y_fun(irt.mle, par = "intercept", log = F)
+y_fun(mle, par = "intercept", log = F)
 }
 \arguments{
-\item{irt.mle}{the output of \code{\link[robustDIF]{get_irt_pars}}}
+\item{mle}{the output of \code{\link[robustDIF]{get_model_parms}}}
 
 \item{par}{character: use the scaling function for item intercepts or item slopes? One of \code{c("intercept", "slope")}.}
 
-\item{log}{logical: use of scaling function? Only applies if \code{par = "slope"}.}
+\item{log}{logical: use log of scaling function? Only applies if \code{par = "slope"}.}
 }
 \value{
 A vector of Y values.
 }
 \description{
-Computes the R-DIF scaling function for item intercepts or for item slopes.
+Computes the R-DIF scaling function for item intercepts/thresholds or for item slopes.
 }
 \seealso{
 \code{\link[y_intercept]{y_intercept}}, \code{\link[robustDIF]{y_slope}}.

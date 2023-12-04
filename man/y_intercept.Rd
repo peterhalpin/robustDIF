@@ -2,16 +2,16 @@
 % Please edit documentation in R/robustDIF_functions.R
 \name{y_intercept}
 \alias{y_intercept}
-\title{The R-DIF scaling function for item intercepts.}
+\title{The R-DIF scaling function for item intercepts / thresholds}
 \usage{
-y_intercept(irt.mle)
+y_intercept(mle)
 }
 \arguments{
-\item{irt.mle}{the output of \code{\link[robustDIF]{get_irt_pars}}}
+\item{mle}{the output of \code{\link[robustDIF]{get_model_parms}}}
 }
 \value{
 A vector of Y values.
 }
 \description{
-Computes \code{Y = (d1 - d0)/a1}. Used to test DIF on item intercepts.
+Computes the scaling function \code{Y = (d1 - d0)/a1} for each intercept / threshold of each item. Used to test DIF on item intercepts.
 }

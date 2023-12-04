@@ -4,14 +4,14 @@
 \alias{rho_fun}
 \title{The bi-square Rho function}
 \usage{
-rho_fun(irt.mle, par = "intercept", log = F, alpha = 0.05, grid.width = 0.05)
+rho_fun(mle, par = "intercept", log = F, alpha = 0.05, grid.width = 0.05)
 }
 \arguments{
-\item{irt.mle}{the output of \code{\link[robustDIF]{get_irt_pars}}}
+\item{mle}{the output of \code{\link[robustDIF]{get_model_parms}}}
 
 \item{par}{character: use the scaling function for item intercepts or item slopes? One of \code{c("intercept", "slope")}.}
 
-\item{log}{logical: use of scaling function? Only applies if \code{par = "slope"}.}
+\item{log}{logical: use log of scaling function? Only applies if \code{par = "slope"}.}
 
 \item{alpha}{the desired false positive rate for flagging items with DIF.}
 

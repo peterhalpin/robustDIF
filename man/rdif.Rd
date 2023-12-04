@@ -5,7 +5,7 @@
 \title{Estimate IRT scale parameters using the RDIF procedure.}
 \usage{
 rdif(
-  irt.mle,
+  mle,
   par = "intercept",
   log = F,
   alpha = 0.05,
@@ -16,11 +16,11 @@ rdif(
 )
 }
 \arguments{
-\item{irt.mle}{the output of \code{\link[robustDIF]{get_irt_pars}}}
+\item{mle}{the output of \code{\link[robustDIF]{get_model_parms}}}
 
 \item{par}{character: use the scaling function for item intercepts or item slopes? One of \code{c("intercept", "slope")}.}
 
-\item{log}{logical: use of scaling function? Only applies if \code{par = "slope"}.}
+\item{log}{logical: use log of scaling function? Only applies if \code{par = "slope"}.}
 
 \item{alpha}{the desired false positive rate for flagging items with DIF.}
 
@@ -42,9 +42,9 @@ Estimation can be performed using iteratively re-weighted least squares (IRLS) o
 }
 \examples{
 # Item intercepts, using the built-in example dataset "rdif.eg"
-\dontrun{rdif(irt.mle = rdif.eg)}
+\dontrun{rdif(mle = rdif.eg)}
 
 # Item slopes
-\dontrun{rdif(irt.mle = rdif.eg, par = "slope")}
+\dontrun{rdif(mle = rdif.eg, par = "slope")}
 
 }

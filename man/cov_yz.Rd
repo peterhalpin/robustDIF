@@ -2,24 +2,24 @@
 % Please edit documentation in R/robustDIF_functions.R
 \name{cov_yz}
 \alias{cov_yz}
-\title{Compute the covariance of the asymptotic null distribution of IRT scaling functions.}
+\title{Compute the covariance matrix for \code{\link[robustDIF]{rdif_chisq_test}}.}
 \usage{
-cov_yz(theta.y, theta.z, irt.mle, log = F)
+cov_yz(theta.y, theta.z, mle, log = F)
 }
 \arguments{
 \item{theta.y}{the IRT scale parameter for the item intercepts}
 
 \item{theta.z}{the IRT scale parameter for the item slopes}
 
-\item{irt.mle}{the output of \code{\link[robustDIF]{get_irt_pars}}}
+\item{mle}{the output of \code{\link[robustDIF]{get_model_parms}}}
 
 \item{log}{logical: use log of scaling function for the slopes?}
 }
 \value{
-A vector that contains the covariance of the IRT scaling functions, for each item.
+A block diagonal matrix whose blocks contain the covariance matrix of the IRT scaling functions, for each item.
 }
 \description{
-Compute the covariance of the asymptotic null distribution of IRT scaling functions.
+Compute the covariance matrix for \code{\link[robustDIF]{rdif_chisq_test}}.
 }
 \seealso{
 \code{\link[robustDIF]{y_fun}}, \code{\link[robustDIF]{var_y}}

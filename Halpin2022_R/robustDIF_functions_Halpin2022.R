@@ -321,24 +321,24 @@ get_starts <- function(irt.mle, par = "intercept", log = F, alpha = .05){
   var_fun <- function(theta) {var_y(theta, irt.mle, par, log = log)}
 
   #This is combines both choices of reference group for intercepts
-  if (par == "intercept") {
-    y1 <- y
-    irt.mle2 <- irt.mle
-    names(irt.mle2)[1:2] <- names(irt.mle)[2:1]
-    y2 <- -1 * y_fun(irt.mle2)
-
-    s <- median(y1/y2)
-    y2 <- s * y2
-
-    # Drop items if y1 - y2 / sd(y) > 1.5
-    var.y1 <- var_y(median(y1), irt.mle)
-    var.y2 <- s^2 * var_y(median(y2), irt.mle)
-    drops <- abs((y1 - y2) / sqrt(min(var.y1, var.y2))) < 1.5
-    y <- c(y1[drops], y2[drops])
-    var_fun <- function(theta) {
-      c(var_y(theta, irt.mle)[drops], s^2 * var_y(theta, irt.mle2)[drops])
-    }
-  }
+  # if (par == "intercept") {
+  #   y1 <- y
+  #   irt.mle2 <- irt.mle
+  #   names(irt.mle2)[1:2] <- names(irt.mle)[2:1]
+  #   y2 <- -1 * y_fun(irt.mle2)
+  #
+  #   s <- median(y1/y2)
+  #   y2 <- s * y2
+  #
+  #   # Drop items if y1 - y2 / sd(y) > 1.5
+  #   var.y1 <- var_y(median(y1), irt.mle)
+  #   var.y2 <- s^2 * var_y(median(y2), irt.mle)
+  #   drops <- abs((y1 - y2) / sqrt(min(var.y1, var.y2))) < 1.5
+  #   y <- c(y1[drops], y2[drops])
+  #   var_fun <- function(theta) {
+  #     c(var_y(theta, irt.mle)[drops], s^2 * var_y(theta, irt.mle2)[drops])
+  #   }
+  # }
 
   # median residual
   s1 <- median(y)
