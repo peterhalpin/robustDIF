@@ -1,7 +1,7 @@
 Package: robustDIF
 Type: Package
 Title: Differential item functioning using robust statistics
-Version: 0.1.0
+Version: 0.2.0
 Author: Peter Halpin
 Maintainer: Peter Halpin <peter.halpin@unc.edu>
 Description: Functions for assessing differential item functioning (DIF) in item response theory (IRT) models using methods from robust statistics. Based on the paper: Halpin, P.F. (2022) Differential Item Functioning Via Robust Scaling. 
