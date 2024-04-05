@@ -132,7 +132,7 @@ psi <- function(u, k = 1.96) {
 #' The derivative of the bi-square psi function.
 #'
 #' If \code{abs(u) > k} , \code{psi_prime(u) = 0}. Else,
-#'  \code{psi_prime(u) = (1 - (u/k)^2)^2 - (2u/k)^2 (1 - (u/k)^2)}.
+  #'  \code{psi_prime(u) = (1 - (u/k)^2)^2 - (2u/k)^2 (1 - (u/k)^2)}.
 #'
 #' @param u Can be a single value, vector, or matrix.
 #' @param k The tuning parameter. Can be a scalar or the same dimension as \code{u}.
