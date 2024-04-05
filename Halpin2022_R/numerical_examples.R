@@ -1,7 +1,7 @@
-################################################################################
+##############################################################################
 # Numerical examples for: Halpin (2022) Differential Item Functioning
 # Via Robust Scaling.
-################################################################################
+##############################################################################
 
 ### Required packages
 library(mirt)
@@ -18,39 +18,43 @@ source("robustDIF_functions_Halpin2022.R")
 # Helper functions for running simulations
 source("data_sim_functions.R")
 
-###################################################
+##############################################################################
 # Sim Study 1: Breakdown
-###################################################
+##############################################################################
 
 # Data gen
-n.reps = 500
-n.persons = 500
-n.items = 16
-bias = .5
-impact = c(.5,1)
-
-ds0 <- sim_study1(n.reps, n.persons, n.items, n.biased = 0, bias, impact)
-ds1 <- sim_study1(n.reps, n.persons, n.items, n.biased = 1, bias, impact)
-ds2 <- sim_study1(n.reps, n.persons, n.items, n.biased = 2, bias, impact)
-ds3 <- sim_study1(n.reps, n.persons, n.items, n.biased = 3, bias, impact)
-ds4 <- sim_study1(n.reps, n.persons, n.items, n.biased = 4, bias, impact)
-ds5 <- sim_study1(n.reps, n.persons, n.items, n.biased = 5, bias, impact)
-ds6 <- sim_study1(n.reps, n.persons, n.items, n.biased = 6, bias, impact)
-ds7 <- sim_study1(n.reps, n.persons, n.items, n.biased = 7, bias, impact)
-ds8 <- sim_study1(n.reps, n.persons, n.items, n.biased = 8, bias, impact)
-
-sim.study1 <- list(ds0=ds0, ds1=ds1, ds2=ds2, ds3=ds3, ds4=ds4, ds5=ds5, ds6=ds6, ds7=ds7, ds8=ds8)
-sim.study1.path <- "sim1.Nov7.2023.RData"
-save(sim.study1, file = sim.study1.path)
+# n.reps = 500
+# n.persons = 500
+# n.items = 16
+# bias = .5
+# impact = c(.5,1)
+#
+# ds0 <- sim_study1(n.reps, n.persons, n.items, n.biased = 0, bias, impact)
+# ds1 <- sim_study1(n.reps, n.persons, n.items, n.biased = 1, bias, impact)
+# ds2 <- sim_study1(n.reps, n.persons, n.items, n.biased = 2, bias, impact)
+# ds3 <- sim_study1(n.reps, n.persons, n.items, n.biased = 3, bias, impact)
+# ds4 <- sim_study1(n.reps, n.persons, n.items, n.biased = 4, bias, impact)
+# ds5 <- sim_study1(n.reps, n.persons, n.items, n.biased = 5, bias, impact)
+# ds6 <- sim_study1(n.reps, n.persons, n.items, n.biased = 6, bias, impact)
+# ds7 <- sim_study1(n.reps, n.persons, n.items, n.biased = 7, bias, impact)
+# ds8 <- sim_study1(n.reps, n.persons, n.items, n.biased = 8, bias, impact)
+#
+# sim.study1 <- list(ds0=ds0, ds1=ds1, ds2=ds2,
+#                    ds3=ds3, ds4=ds4, ds5=ds5,
+#                    ds6=ds6, ds7=ds7, ds8=ds8)
+# sim.study1.path <- "sim1.Nov7.2023.RData"
+# save(sim.study1, file = sim.study1.path)
 
 # Data processing
-#load(file = sim.study1.path)
+sim.study1.path <- "sim1.Nov7.2023.RData"
+load(file = sim.study1.path)
 
 test.names <- c("rdif.true", "rdif.flag", "rdif.chi2", "lr", "mh", "lasso")
 cut.offs <- c(1e-6, 1e-6, .05, .05, .05, 1e-6)
 d_e <- function(x){
   decision_errors(x, test.names, cut.offs)
 }
+
 temp.dif <- lapply(sim.study1, function(x) {lapply(x, function(y) y$dif)})
 ds.dif <- Reduce(rbind, lapply(temp.dif, function(x) d_e(Reduce(rbind, x))))
 ds.dif$n.biased <- as.factor(rep(0:8, each = 6))
@@ -73,8 +77,8 @@ p1 <- ggplot(ds.dif.long, aes(y = Value, x = n.biased, group = Method)) +
             ylab("Value") +
             xlab("Number of biased items (out of 16)") +
             scale_shape_manual(values=c(21:25)) +
-             scale_colour_brewer(palette = "Paired") +
-             scale_fill_brewer(palette = "Paired") +
+            scale_colour_brewer(palette = "Paired") +
+            scale_fill_brewer(palette = "Paired") +
             #scale_color_grey() +
             #scale_fill_grey() +
             theme_bw(base_size =  16)
@@ -82,6 +86,7 @@ p1 <- ggplot(ds.dif.long, aes(y = Value, x = n.biased, group = Method)) +
 p1 + facet_wrap(~ decision, nrow = 2, scales = "free")
 
 # Figure 2 of paper
+n.reps <- 500
 temp.scale <- lapply(sim.study1, function(x) {lapply(x, function(y) y$scale)})
 ds.scale <-  Reduce(rbind, lapply(temp.scale, function(x) Reduce(rbind, x)))
 ds.scale$n.biased <- as.factor(rep(0:8, each = n.reps))
@@ -100,9 +105,9 @@ p2 <- ggplot(ds.scale, aes(x = theta)) +
 
 p2 + facet_wrap(~ n.biased, nrow = 3, labeller = facet_labeller)
 
-###################################################
+##############################################################################
 # Sim study 2: Power
-###################################################
+##############################################################################
 
 # Data gen
 n.reps = 500
@@ -112,9 +117,9 @@ n.items =  10
 n.persons = 200
 ds.a200  <- sim_study2(n.reps, n.persons, n.items, bias = c(.5, 0))
 ds.b200  <- sim_study2(n.reps, n.persons, n.items, bias = c(0, 1))
-ds.c200.r  <- sim_study2(250, n.persons, n.items, bias = c(.35, .5))
+ds.c200  <- sim_study2(250, n.persons, n.items, bias = c(.35, .5))
 
-# sample size = 250
+# sample size = 350
 n.persons = 350
 ds.a350  <- sim_study2(n.reps, n.persons, n.items, bias = c(.5, 0))
 ds.b350  <- sim_study2(n.reps, n.persons, n.items, bias = c(0, 1))
@@ -202,7 +207,7 @@ p1 <- ggplot(ds.dif.plot, aes(y = Value, x = n, fill = Test, pattern = Method)) 
             #  values = c("grey40", "grey65", "grey85")) +
             #theme(text = element_text(size=18)) +
             scale_fill_manual(
-            values = c("#A6CEE3","#B2DF8A","#FB9A99")) +
+              values = c("#A6CEE3","#B2DF8A","#FB9A99")) +
             scale_pattern_manual(
               values = c(RDIF = "stripe", LRT = "none")) # +
             #scale_y_continuous(
@@ -211,14 +216,15 @@ p1 <- ggplot(ds.dif.plot, aes(y = Value, x = n, fill = Test, pattern = Method)) 
 
 p1 +  guides(pattern = guide_legend(override.aes = list(fill = "grey80")),
              fill = guide_legend(override.aes = list(pattern = "none"))) +
-      facet_grid(vars(decision), vars(type), scales = "free")
+             facet_grid(vars(decision), vars(type), scales = "free")
 
 
-###################################################
+##############################################################################
 # ECDI Example
 # Data obtained from https://mics.unicef.org/surveys
 # Analytical data set: "ECDI_Example_Halpin2022.RData"
-###################################################
+##############################################################################
+
 load("ECDI_Example_Halpin2022.RData")
 
 # Rename items
