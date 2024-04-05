@@ -21,7 +21,7 @@
 # -------------------------------------------------------------------
 
 y_intercept <- function(mle) {
-   c(t((mle$est$group.2[, -1] - mle$est$group.1[, -1]) /  mle$est$group.2$a1))
+  c(t((mle$est$group.2[, -1] - mle$est$group.1[, -1]) /  mle$est$group.2$a1))
 }
 
 
@@ -38,7 +38,9 @@ y_intercept <- function(mle) {
 
 y_slope <- function(mle, log = F) {
   y <- mle$est$group.2$a1  / mle$est$group.1$a1
-  if (log) { y <- log(y) }
+  if (log) {
+    y <- log(y)
+  }
   y
 }
 
@@ -81,24 +83,30 @@ grad_intercept <- function(mle, theta = NULL) {
   n.items <- nrow(mle$est$group.1)
   n.item.pars <- ncol(mle$est$group.1)
 
-  if (is.null(theta)) {theta <- y_intercept(mle)}
-  if(length(theta) == 1){theta <- rep(theta, times = n.items)}
+  if (is.null(theta)) {
+    theta <- y_intercept(mle)
+  }
+  if (length(theta) == 1) {
+    theta <- rep(theta, times = n.items)
+  }
 
-  # Make template matrix for each items gradients
-  template <- matrix(0, nrow = n.item.pars, ncol = n.item.pars-1)
-  for(j in 1:(n.item.pars-1)){
-      template[1, j] <- template[(j+1), j] <- 1
+  # Make template matrix for each item (must be easier way!)
+  template <- matrix(0, nrow = n.item.pars, ncol = n.item.pars - 1)
+  for (j in 1:(n.item.pars - 1)) {
+    template[1, j] <- template[(j + 1), j] <- 1
   }
   template <- rbind(template, template) # generalize for > 2 groups
   template[1, ] <- 0
   template[1:n.item.pars, ] <- -1 * template[1:n.item.pars, ]
 
   # Divide all entries by a1
-  grad.list <- lapply(mle$est$group.2$a1, function (x) template/x )
+  grad.list <- lapply(mle$est$group.2$a1, function (x)
+    template / x)
 
   # Multiply n.item.pars+1 entry by -theta
-  for(i in 1:n.items){
-    grad.list[[i]][(n.item.pars+1), ] <- -1 * theta[i] * grad.list[[i]][(n.item.pars+1), ]
+  for (i in 1:n.items) {
+    grad.list[[i]][(n.item.pars + 1), ] <-
+      -1 * theta[i] * grad.list[[i]][(n.item.pars + 1), ]
   }
 
   Matrix::bdiag(grad.list)
@@ -116,14 +124,17 @@ grad_intercept <- function(mle, theta = NULL) {
 #' @seealso \code{\link[y_intercept]{y_slope}}
 # -------------------------------------------------------------------
 
-
 grad_slope <- function(mle, theta = NULL, log = F) {
   n.items <- nrow(mle$est$group.1)
   n.item.pars <- ncol(mle$est$group.1)
   n.groups <- length(mle$est)
 
-  if (is.null(theta)) {theta <- y_slope(mle, log)}
-  if(length(theta) == 1){theta <- rep(theta, times = n.items)}
+  if (is.null(theta)) {
+    theta <- y_slope(mle, log)
+  }
+  if (length(theta) == 1) {
+    theta <- rep(theta, times = n.items)
+  }
 
   a <- mle$est$group.1$a1
   if (log) {
@@ -132,16 +143,17 @@ grad_slope <- function(mle, theta = NULL, log = F) {
   }
 
   # Make template matrix for each item gradients
-  template <- rep(0, times = n.item.pars*n.groups)
+  template <- rep(0, times = n.item.pars * n.groups)
   template[1] <- -1 # -theta
-  template[n.item.pars+1] <- 1
+  template[n.item.pars + 1] <- 1
 
   # Divide all entries by a
-  grad.list <- lapply(a, function (x) template/x )
+  grad.list <- lapply(a, function (x)
+    template / x)
 
   # Multiply first entry by theta
-  for(i in 1:n.items){
-    grad.list[[i]][1] <-theta[i] * grad.list[[i]][1]
+  for (i in 1:n.items) {
+    grad.list[[i]][1] <- theta[i] * grad.list[[i]][1]
   }
   Matrix::bdiag(grad.list)
 }
@@ -164,19 +176,26 @@ joint_vcov <- function(mle) {
   n.groups <- length(mle$est)
 
   # Create blocks for each item
-  mat.template <- diag(1:n.items) %x% matrix(1, n.item.pars, n.item.pars)
+  mat.template <-
+    diag(1:n.items) %x% matrix(1, n.item.pars, n.item.pars)
 
   # Extract vcov for each item, ordered items within groups
   temp1 <- lapply(mle$var.cov,
-                      function(x) split(as.matrix(x), mat.template)[-1])
-  # Re-order to groups within items
+                  function(x)
+                    split(as.matrix(x), mat.template)[-1])
+
+   # Re-order to groups within items
   temp2 <- lapply(1:n.items,
-                  function(x) lapply(temp1, function(y) y[[x]]))
+                  function(x)
+                    lapply(temp1, function(y)
+                      y[[x]]))
 
   # Flatten list and reformat to matrices
-  vcov.list <- lapply(Reduce(c, temp2), function(x) matrix(x,  n.item.pars))
+  vcov.list <-
+    lapply(Reduce(c, temp2), function(x)
+      matrix(x,  n.item.pars))
 
-  # Convert to block diagaonal
+  # Convert to block diagonal
   Matrix::bdiag(vcov.list)
 }
 
@@ -184,7 +203,7 @@ joint_vcov <- function(mle) {
 #' Compute the variance of the asymptotic null distribution of IRT scaling functions.
 #'
 #' @param theta the IRT scale parameter.
-  #' @inheritParams y_fun
+#' @inheritParams y_fun
 #'
 #' @return A vector that contains the variance of the IRT scaling function, for each item.
 #'
@@ -193,7 +212,10 @@ joint_vcov <- function(mle) {
 #' @importFrom Matrix diag
 # -------------------------------------------------------------------
 
-var_y <- function(mle, theta = NULL, par = "intercept", log = F) {
+var_y <- function(mle,
+                  theta = NULL,
+                  par = "intercept",
+                  log = F) {
   grad.y <- grad_intercept(mle, theta)
   if (par == "slope") {
     grad.y <- grad_slope(mle, theta, log)
@@ -243,37 +265,40 @@ cov_yz <- function(theta.y, theta.z, mle, log = F) {
   n.item.pars <- ncol(mle$est$group.1)
 
   var.y <- var_y(mle, theta.y, par = "intercept")
-  w <- (1 /var.y) / sum(1/var.y)
+  w <- (1 / var.y) / sum(1 / var.y)
   grad.y <- grad_intercept(mle, theta.y)
   grad.theta <- grad.y %*% matrix(w)
-  grad.y.theta <- grad.y - outer(grad.theta, rep(1, times = ncol(grad.y)))
+  grad.y.theta <-
+    grad.y - outer(grad.theta, rep(1, times = ncol(grad.y)))
 
   var.z <- var_y(mle, theta.y, par = "slope", log = log)
-  v <- (1 /var.z) / sum(1/var.z)
+  v <- (1 / var.z) / sum(1 / var.z)
   grad.z <- grad_slope(mle, theta.y, log)
   grad.sigma <- grad.z %*% matrix(v)
-  grad.z.sigma <- grad.z - outer(grad.sigma, rep(1, times = ncol(grad.z)))
+  grad.z.sigma <-
+    grad.z - outer(grad.sigma, rep(1, times = ncol(grad.z)))
 
 
   # Re-order columns by items (intercepts, then slope)
-  grad <- cbind(grad.y, grad.z)*0
-  for(i in 1:nrow(mle$est$group.1)){
-    m <- (i-1)*n.item.pars + 1
+  grad <- cbind(grad.y, grad.z) * 0
+  for (i in 1:nrow(mle$est$group.1)) {
+    m <- (i - 1) * n.item.pars + 1
     n <- m + n.item.pars - 2
-    r <- (i-1)*(n.item.pars-1) + 1
+    r <- (i - 1) * (n.item.pars - 1) + 1
     s <- r + n.item.pars - 2
     grad[, m:n] <- grad.y.theta[, r:s]
-    grad[, (n+1)] <- grad.z.sigma[, i]
+    grad[, (n + 1)] <- grad.z.sigma[, i]
   }
 
- vcov <- joint_vcov(mle)
- vcov.yz <- Matrix::t(grad) %*% vcov %*% grad
+  vcov <- joint_vcov(mle)
+  vcov.yz <- Matrix::t(grad) %*% vcov %*% grad
 
- # Convert to block diag so can inverted and compute chsiq for all items at once
- # Otherwise, would be omnibus test of MI over all items
- ones <- matrix(1, nrow = n.item.pars, ncol = n.item.pars)
- ones.list <- lapply(vector("list", n.items), function(x) x = ones)
- vcov.yz * Matrix::bdiag(ones.list)
+  # Convert to block diag so can inverted and compute chsiq for all items at once
+  # (Otherwise, would be omnibus test of MI over all items)
+  ones <- matrix(1, nrow = n.item.pars, ncol = n.item.pars)
+  ones.list <- lapply(vector("list", n.items), function(x)
+    x = ones)
+  vcov.yz * Matrix::bdiag(ones.list)
 }
 
 # -------------------------------------------------------------------
@@ -288,13 +313,13 @@ cov_yz <- function(theta.y, theta.z, mle, log = F) {
 #' @return The bi-square weights, for each item.
 # -------------------------------------------------------------------
 
-bsq_weight <- function(theta, y, var.y, alpha = .05){
+bsq_weight <- function(theta, y, var.y, alpha = .05) {
   r <- y - theta
-  var.theta <- 1/sum(1/var.y)
-  omega <- (var.y - var.theta)/var.y^2
-  k <- qnorm(1 - alpha/2, 0, sqrt(omega))
+  var.theta <- 1 / sum(1 / var.y)
+  omega <- (var.y - var.theta) / var.y ^ 2
+  k <- qnorm(1 - alpha / 2, 0, sqrt(omega))
   bsq.cuts <- var.y * k
-  w <- (1 - (r / bsq.cuts)^2)^2
+  w <- (1 - (r / bsq.cuts) ^ 2) ^ 2
   w[abs(r) > bsq.cuts] <- 0
   w
 }
@@ -308,43 +333,48 @@ bsq_weight <- function(theta, y, var.y, alpha = .05){
 #' @return A vector containing the median of \code{\link[robustDIF]{y_fun}}, the least trimmed squares estimate of location for \code{\link[robustDIF]{y_fun}} with 50-percent trim rate, and the minimum of \code{\link[robustDIF]{rho_fun}}.
 # -------------------------------------------------------------------
 
-get_starts <- function(mle, par = "intercept", log = F, alpha = .05){
+get_starts <-
+  function(mle,
+           par = "intercept",
+           log = F,
+           alpha = .05) {
+    y <- y_fun(mle, par, log = log)
+    var_fun <- function(theta) {
+      var_y(mle, theta, par, log = log)
+    }
 
-  y <- y_fun(mle, par, log = log)
-  var_fun <- function(theta) {var_y(mle, theta, par, log = log)}
+    #This combines both choices of reference group for intercepts
+    # Was not re-written for new parms
+    # if (par == "intercept") {
+    #   y1 <- y
+    #   mle2 <- mle
+    #   names(mle2)[1:2] <- names(mle)[2:1]
+    #   y2 <- -1 * y_fun(mle2)
+    #
+    #   s <- median(y1/y2)
+    #   y2 <- s * y2
+    #
+    #   # Drop items if y1 - y2 / sd(y) > 1.5
+    #   var.y1 <- var_y(median(y1), mle)
+    #   var.y2 <- s^2 * var_y(median(y2), mle)
+    #   drops <- abs((y1 - y2) / sqrt(min(var.y1, var.y2))) < 1.5
+    #   y <- c(y1[drops], y2[drops])
+    #   var_fun <- function(theta) {
+    #     c(var_y(theta, mle)[drops], s^2 * var_y(theta, mle2)[drops])
+    #   }
+    # }
 
-  #This is combines both choices of reference group for intercepts
-  # Was not re-written for new parms
-  # if (par == "intercept") {
-  #   y1 <- y
-  #   mle2 <- mle
-  #   names(mle2)[1:2] <- names(mle)[2:1]
-  #   y2 <- -1 * y_fun(mle2)
-  #
-  #   s <- median(y1/y2)
-  #   y2 <- s * y2
-  #
-  #   # Drop items if y1 - y2 / sd(y) > 1.5
-  #   var.y1 <- var_y(median(y1), mle)
-  #   var.y2 <- s^2 * var_y(median(y2), mle)
-  #   drops <- abs((y1 - y2) / sqrt(min(var.y1, var.y2))) < 1.5
-  #   y <- c(y1[drops], y2[drops])
-  #   var_fun <- function(theta) {
-  #     c(var_y(theta, mle)[drops], s^2 * var_y(theta, mle2)[drops])
-  #   }
-  # }
+    # median residual
+    s1 <- median(y)
 
-  # median residual
-  s1 <- median(y)
+    # lts with 50% of data
+    s2 <- lts(y)
 
-  # lts with 50% of data
-  s2 <- lts(y)
+    # grid search for min of Rho function
+    s3 <- rho_grid(y, var_fun, alpha = .05)
 
-  # grid search for min of Rho function
-  s3 <- rho_grid(y, var_fun, alpha = .05)
-
-  c(s1, s2, s3)
-}
+    c(s1, s2, s3)
+  }
 
 # -------------------------------------------------------------------
 #' The least trimmed squares (LTS) estimate of location
@@ -356,17 +386,18 @@ get_starts <- function(mle, par = "intercept", log = F, alpha = .05){
 #' @seealso \code{\link[robustDIF]{get_starts}}
 # -------------------------------------------------------------------
 
-lts <- function(y, p = .5){
+lts <- function(y, p = .5) {
   n <- length(y)
-  n.per.sample <- floor(n*p)
+  n.per.sample <- floor(n * p)
   n.sample <- ceiling(n - n.per.sample + 1)
   Y <- matrix(sort(y), nrow = n, ncol = n.sample)
   flag <- c(rep(1, times = n.per.sample),
             rep(0, times = n.sample))
   Flag <- matrix(rep(flag, times = n.sample)[1:(n * n.sample)],
-                   nrow = n, ncol = n.sample)
+                 nrow = n,
+                 ncol = n.sample)
   dat <- Y * Flag
-  sum(dat[,which.min(apply(dat, 2, var))]) / n.per.sample
+  sum(dat[, which.min(apply(dat, 2, var))]) / n.per.sample
 }
 
 # -------------------------------------------------------------------
@@ -381,9 +412,11 @@ lts <- function(y, p = .5){
 # -------------------------------------------------------------------
 
 rho <- function(u, k = 1.96) {
-  if (length(k) != length(u)) {k <- k[1] + u - u}
-  w <- (u / k)^2
-  out <- 1 - (1 - w)^3
+  if (length(k) != length(u)) {
+    k <- k[1] + u - u
+  }
+  w <- (u / k) ^ 2
+  out <- 1 - (1 - w) ^ 3
   out[abs(u) > k] <- 1
   out
 }
@@ -403,23 +436,35 @@ rho <- function(u, k = 1.96) {
 
 # -------------------------------------------------------------------
 
-rho_grid <- function(y, var_fun, alpha = .05, grid.width = .05){
-
-  theta <- seq(from = max(min(y), -1.5),
-               to = min(max(y), 1.5),
-               by = min(grid.width, (max(y) - min(y)) / 10))
+rho_grid <- function(y,
+                     var_fun,
+                     alpha = .05,
+                     grid.width = .05) {
+  theta <- seq(
+    from = max(min(y), -1.5),
+    to = min(max(y), 1.5),
+    by = min(grid.width, (max(y) - min(y)) / 10)
+  )
 
   n.items <- length(y)
   n.theta <- length(theta)
 
   Y <- matrix(y, nrow = n.items, ncol = n.theta)
-  Var.Y <- Reduce(cbind, lapply(theta, function(x) var_fun(x)))
-  Theta <- matrix(theta, nrow = n.items, ncol = n.theta, byrow = T)
-  Var.Theta <- matrix(1/apply(1/Var.Y, 2, sum),
-                      nrow = n.items, ncol = n.theta, byrow = T)
-  Omega <- (Var.Y - Var.Theta) / Var.Y^2
+  Var.Y <- Reduce(cbind, lapply(theta, function(x)
+    var_fun(x)))
+  Theta <- matrix(theta,
+                  nrow = n.items,
+                  ncol = n.theta,
+                  byrow = T)
+  Var.Theta <- matrix(
+    1 / apply(1 / Var.Y, 2, sum),
+    nrow = n.items,
+    ncol = n.theta,
+    byrow = T
+  )
+  Omega <- (Var.Y - Var.Theta) / Var.Y ^ 2
   U <- (Y - Theta) / Var.Y
-  K <-  qnorm(1 - alpha/2, 0, sqrt(Omega))
+  K <-  qnorm(1 - alpha / 2, 0, sqrt(Omega))
   R <- apply(rho(U, K), 2, sum)
   # plot(theta, R)
   theta[which.min(R)]
@@ -440,28 +485,45 @@ rho_grid <- function(y, var_fun, alpha = .05, grid.width = .05){
 
 # -------------------------------------------------------------------
 
-rho_fun <- function(mle, par = "intercept", log = F, alpha = .05, grid.width = .05){
+rho_fun <-
+  function(mle,
+           par = "intercept",
+           log = F,
+           alpha = .05,
+           grid.width = .05) {
+    y <- y_fun(mle, par, log = log)
+    theta <-
+      seq(from = max(min(y), -2.5),
+          to = min(max(y), 2.5),
+          by = grid.width)
+    var_fun <- function(theta) {
+      var_y(mle, theta, par, log = log)
+    }
+    n.items <- length(y)
+    n.theta <- length(theta)
 
-  y <- y_fun(mle, par, log = log)
-  theta <- seq(from = max(min(y), -2.5), to = min(max(y), 2.5), by = grid.width)
-  var_fun <- function(theta) {var_y(mle, theta, par, log = log)}
-  n.items <- length(y)
-  n.theta <- length(theta)
+    Y <- matrix(y, nrow = n.items, ncol = n.theta)
+    Var.Y <- Reduce(cbind, lapply(theta, function(x)
+      var_fun(x)))
+    Theta <- matrix(theta,
+                    nrow = n.items,
+                    ncol = n.theta,
+                    byrow = T)
+    Var.Theta <- matrix(
+      1 / apply(1 / Var.Y, 2, sum),
+      nrow = n.items,
+      ncol = n.theta,
+      byrow = T
+    )
+    U <- (Y - Theta) / Var.Y
+    Omega <- (Var.Y - Var.Theta) / Var.Y ^ 2
+    K <- qnorm(1 - alpha / 2, 0, sqrt(Omega))
+    r <- apply(rho(U, K), 2, sum)
+    names(r) <- NULL
 
-  Y <- matrix(y, nrow = n.items, ncol = n.theta)
-  Var.Y <- Reduce(cbind, lapply(theta, function(x) var_fun(x)))
-  Theta <- matrix(theta, nrow = n.items, ncol = n.theta, byrow = T)
-  Var.Theta <- matrix(1/apply(1/Var.Y, 2, sum),
-                      nrow = n.items, ncol = n.theta, byrow = T)
-  U <- (Y - Theta) / Var.Y
-  Omega <- (Var.Y - Var.Theta) / Var.Y^2
-  K <- qnorm(1 - alpha/2, 0, sqrt(Omega))
-  r <- apply(rho(U, K), 2, sum)
-  names(r) <- NULL
-
-  #r2 <- apply(rho((Y - Theta) / sqrt(Var.Y), 1.96), 2, sum)
-  list(theta = theta, rho = r)
-}
+    #r2 <- apply(rho((Y - Theta) / sqrt(Var.Y), 1.96), 2, sum)
+    list(theta = theta, rho = r)
+  }
 
 # -------------------------------------------------------------------
 #' Estimate IRT scale parameters using the RDIF procedure.
@@ -490,31 +552,53 @@ rho_fun <- function(mle, par = "intercept", log = F, alpha = .05, grid.width = .
 #' @export
 # -------------------------------------------------------------------
 
-rdif <- function(mle, par = "intercept", log = F, alpha = .05, starting.value = "all", tol = 1e-7, maxit = 100, method = "irls"){
-  nit <- 0
-  conv <- 1
+rdif <-
+  function(mle,
+           par = "intercept",
+           log = F,
+           alpha = .05,
+           starting.value = "all",
+           tol = 1e-7,
+           maxit = 100,
+           method = "irls") {
+    nit <- 0
+    conv <- 1
 
-  # Set up scaling function
-  y <- y_fun(mle, par, log)
-  # Starting value
-  starts <- get_starts(mle, par, log, alpha)
-  theta <- median(starts)
-  if (starting.value == "med") {theta <- starts[1]}
-  if (starting.value == "lts") {theta <- starts[2]}
-  if (starting.value == "min_rho") {theta <- starts[3]}
-  if (is.numeric(starting.value)) {theta <- starting.value}
+    # Set up scaling function
+    y <- y_fun(mle, par, log)
 
-  # IRLS loop
-   while(nit < maxit & conv > tol) {
-    var.y <- var_y(mle, theta,par, log)
-    w <- bsq_weight(theta, y, var.y, alpha)
-    new.theta <- sum(w * y / var.y ) / sum(w / var.y)
-    nit <- nit + 1
-    conv <- abs(theta - new.theta)
-    theta <- new.theta
+    # Starting value
+    starts <- get_starts(mle, par, log, alpha)
+    theta <- median(starts)
+    if (starting.value == "med") {
+      theta <- starts[1]
+    }
+    if (starting.value == "lts") {
+      theta <- starts[2]
+    }
+    if (starting.value == "min_rho") {
+      theta <- starts[3]
+    }
+    if (is.numeric(starting.value)) {
+      theta <- starting.value
+    }
+
+    # IRLS loop
+    while (nit < maxit & conv > tol) {
+      var.y <- var_y(mle, theta, par, log)
+      w <- bsq_weight(theta, y, var.y, alpha)
+      new.theta <- sum(w * y / var.y) / sum(w / var.y)
+      nit <- nit + 1
+      conv <- abs(theta - new.theta)
+      theta <- new.theta
+    }
+    list(
+      est = new.theta,
+      weights = w,
+      n.iter = nit,
+      epsilon = conv
+    )
   }
-  list(est = new.theta, weights = w, n.iter = nit, epsilon = conv)
-}
 
 # -------------------------------------------------------------------
 #' The R-DIF test of a single item parameter.
@@ -542,24 +626,23 @@ rdif_z_test <- function(mle, par = "intercept", log = F) {
   theta <- rdif(mle, par, log)$est
   y <- y_fun(mle, par, log)
   var.y <- var_y(mle, theta, par, log)
-  var.theta <- 1/(sum(1/var.y))
+  var.theta <- 1 / (sum(1 / var.y))
   z.test <- (y - theta) / sqrt(var.y - var.theta)
   p.val <- (1 - pnorm(abs(z.test))) * 2
-  if(par == "intercept") {
+  if (par == "intercept") {
     names <- mle$par.names$original[grep(".d", mle$par.names$internal)]
   } else {
     names <- mle$par.names$original[grep(".a", mle$par.names$internal)]
   }
-   out <- data.frame(z.test = z.test, p.val = p.val)
-   row.names(out) <- names
-   out
+  out <- data.frame(z.test = z.test, p.val = p.val)
+  row.names(out) <- names
+  out
 }
 
 # -------------------------------------------------------------------
 #' The R-DIF test of all parameters for each item.
 #'
 #' Simultaneously tests for DIF in all the item intercepts/thresholds and slopes using an asymptotic chi-square test.
-#'
 #'
 #' @inheritParams cov_yz
 
@@ -578,32 +661,40 @@ rdif_z_test <- function(mle, par = "intercept", log = F) {
 #' @export
 # -------------------------------------------------------------------
 
-rdif_chisq_test<- function(mle, log = F) {
+rdif_chisq_test <- function(mle, log = F) {
   theta.y <- rdif(mle)$est
   theta.z <- rdif(mle, par = "slope", log)$est
   n.items <- nrow(mle$est$group.1)
   n.item.pars <- ncol(mle$est$group.1)
 
   # Set up vectors of Q form
-  y <- matrix(y_fun(mle, par = "intercept"),
-              nrow = n.items,
-              ncol = n.item.pars-1,
-              byrow = T) - theta.y
+  y <- matrix(
+    y_fun(mle, par = "intercept"),
+    nrow = n.items,
+    ncol = n.item.pars - 1,
+    byrow = T
+  ) - theta.y
 
   z <- y_fun(mle, par = "slope", log = log) - theta.z
 
   yz.cbind <- cbind(y, z)
-  yz.list <- lapply(1:nrow(yz.cbind), function(i) yz.cbind[i,])
+  yz.list <- lapply(1:nrow(yz.cbind), function(i)
+    yz.cbind[i,])
   yz.bdiag <- Matrix::bdiag(yz.list)
   vcov.yz <- cov_yz(theta.y, theta.z, mle, log)
 
   # Compute test
-  chi.square <- Matrix::diag(Matrix::t(yz.bdiag) %*% solve(vcov.yz) %*% yz.bdiag)
+  chi.square <-
+    Matrix::diag(Matrix::t(yz.bdiag) %*% solve(vcov.yz) %*% yz.bdiag)
   p.val <- 1 - pchisq(chi.square, n.item.pars)
-  out <- data.frame(chi.square = chi.square, df = n.item.pars, p.val = p.val)
+  out <-
+    data.frame(chi.square = chi.square,
+               df = n.item.pars,
+               p.val = p.val)
   item.names <- unique(substr(mle$par.names$original, 1,
-                      unlist(gregexpr(".", mle$par.names$original, fixed = T))-1 ))
+                              unlist(
+                                gregexpr(".", mle$par.names$original, fixed = T)
+                              ) - 1))
   row.names(out) <- item.names
   out
 }
-

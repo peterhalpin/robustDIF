@@ -18,8 +18,8 @@ impact (aka differential test functioning; `delta_test`).
 
 Ongoing developments focus on comparisons across more than 2 groups,
 dealing with dependent groups (e.g., longitudinal invariance), and
-omnibus tests of DIF that correspond to different “level” of measurement
-invariance.
+omnibus tests of DIF that correspond to different “levels” of
+measurement invariance.
 
 # Installation
 
@@ -45,29 +45,35 @@ info about how to format data for use with `robustDIF`.
 
 # The RDIF Procedure
 
-The RDIF procedure amounts to a robust version of “mean/mean” IRT-based
-scaling implemented as a post-estimation step following separate
-calibrations of a focal IRT model in a reference group (*g = 0*) and a
-comparison group (*g = 1*; see Kolen & Brennan, 2014, chap. 6). The RDIF
-procedure uses IRT scaling parameters that are functions of the
-parameters of the distributions of the latent trait. Letting $\mu$ and
-$\sigma^2$ denote the mean and variance of the latent trait in the
-comparison group, the scaling parameter used to test for DIF on the item
-intercepts is $\theta = \mu/\sigma$ and the item-level scaling functions
-are $Y_i = (d_{1} - d{0})/ a_1$ where $a$ is the item slope, $d$ is the
-item intercept, and subscripts denote groups. The scaling parameter used
-to test for DIF on the item slopes is $\theta = \sigma$ and the
-item-level scaling functions are $Y_i = a_1/ a_0$
+The RDIF procedure is a robust version of “mean/mean” IRT-based scaling
+(see Kolen & Brennan, 2014, chap. 6). It is implemented as a
+post-estimation step following separate calibrations of a focal IRT
+model in a reference group (*g = 0*) and a comparison group (*g = 1*).
+The IRT scaling parameters are estimated using functions of the item
+parameters, which are referred to as “item-level scaling functions”. The
+estimator is constructed to down-weight the item-level scaling functions
+when an item exhibits DIF.
+
+In the paper, it was emphasized how the down-weighting procedure can be
+tuned to flag items with DIF at the desired asymptotic Type I Error
+(false positive) rate during estimation of the scaling parameter.
+However, more flexibility is provided by comparing the item-level
+scaling functions to the robust estimate in a follow-up step. This is
+more flexible because one can construct multi-parameter different tests
+of interest (for all item parameters, for all items).
+
+Letting $\mu$ and $\sigma^2$ denote the mean and variance of the latent
+trait in the comparison group, the scaling parameter used to test for
+DIF on the item intercepts is $\theta = \mu/\sigma$ and the item-level
+scaling functions are $Y_i = (d_{1} - d_{0})/ a_1$ where $a$ is the item
+slope, $d$ is the item intercept, and subscripts denote groups. Note
+that $\theta = Y_i$ when item $i$ does not exhibit DIF. The scaling
+parameter used to test for DIF on the item slopes is $\theta = \sigma$
+and the item-level scaling functions are $Y_i = a_1/ a_0$.
 
 The `rdif` function estimates the IRT scaling parameters by applying a
-robust estimator of location to the item-level scaling functions. As a
-by-product, this estimator flags items with DIF at the desired
-asymptotic Type I Error rate (`alpha`). In the context of DIF, we are
-mainly interested in the flagging procedure. In the context of scaling,
-this amounts to a robust version of mean/mean scaling using the
-slope-intercept parameterization of an IRT model.
-
-In the output below, the estimated values of the scaling parameters are
+robust estimator of location to the item-level scaling functions. In the
+output below, the estimated values of the scaling parameters are
 indicated by `est`. Items with DIF are indicated by `weights = 0`. The
 other output describes the iteratively re-weighted least squares
 estimation routine (number of iterations and the convergence criterion).
@@ -106,20 +112,17 @@ rdif(mle = rdif.eg, par = "slope", alpha = .05)
     ## $epsilon
     ## [1] 8.302e-08
 
-We can see that the first item exhibits DIF on both the intercept (i.e.,
-it has a weight of zero). The estimated scaling parameters are
-reasonable approximations of the data-generating values.
+We can see that the first item exhibits DIF on the intercept (i.e., it
+has a weight of zero). The estimated scaling parameters are reasonable
+approximations of the data-generating values. Standard errors are
+available for the estimated scaling parameter but the main interest is
+to use them for testing DIF
 
 # “Stand-Alone” Wald Tests of DIF
 
-Inferences about DIF can also be made by following up `rdif` with
-stand-alone Wald tests of the item parameters. The stand-alone tests can
-be useful if one wishes to test for DIF using a different Type I Error
-rate than was used for estimation with `rdif`. Otherwise, the
-parameter-level tests provide the same inference as the weights in the
-`rdif` output (albeit in a more commonly used format).
-
-To test each item parameter separately, use the function `rdif_z_test`:
+Inferences about DIF can also be made by following-up `rdif` with
+stand-alone Wald tests of the item parameters. To test each item
+parameter separately, use the function `rdif_z_test`:
 
 ``` r
 # Wald test of item intercepts
@@ -149,7 +152,7 @@ Alternatively, the user can test all parameters for each item together
 using a Wald test whose degrees of freedom is equal the number of item
 parameters. These item-level tests (rather parameter-level tests) are
 not equivalent to the flagging procedure because they combine
-information across parameter estimates from the same item\`.
+information across parameter estimates from the same item.
 
 ``` r
 # Wald test of both parameters
@@ -164,7 +167,7 @@ rdif_chisq_test(mle = rdif.eg)
     ## Item_5     4.0397  2 0.132673
 
 In the example, the Wald tests lead to the same conclusions as the
-flagging procedures.
+flagging procedure.
 
 # Does DIF Affect Impact?
 
@@ -174,22 +177,21 @@ question is related to the topic of differential test functioning (DTF),
 which addresses the extent to which test scores are biased by DIF (e.g.,
 Chalmers et al., 2016). One way to approach this question is to compare
 a naive estimate of impact that ignores DIF to an estimator that is
-robust to DIF. In `robustDIF`, the naive estimator is chose to be the
+robust to DIF. In `robustDIF`, the naive estimator is chosen to be the
 MLE of the scaling parameter, computed from the item-level scaling
 functions, which is a precision-weighted version of the standard
 “mean-mean” approach. The robust estimator is as above (see Halpin,
 2022, for details). The null hypothesis that both estimators are
-consistent for the “true” scaling parameter leads to a Hausman-like
-specification test of DTF, based on the moments of the distribution of
-the latent trait.
+consistent for the “true” scaling parameter leads to a test of DTF.
 
-The `delta_test` function implement this test. Note that, unlike other
+The `delta_test` function implements this test. Note that, unlike other
 procedures for DTF, implementation of this test does not require an
 initial item-by-item analysis to identify which items may exhibit DIF –
 it allows the user to test for DTF *before* doing a DIF analysis.
 
 ``` r
-# Comparing Naive and Robust estimates to evaluate DTF on the means of the latent trait
+# Comparing Naive and Robust estimates to evaluate DTF 
+# on the means of the latent trait
 delta_test(mle = rdif.eg, par = "intercept")
 ```
 
@@ -228,8 +230,8 @@ plot(rho.slope$theta, rho.slope$rho, type = "l")
 
 ![](README_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
 
-Note the minimizing values of theta in the plots corresponds closely to
-the values reported by `rdif` above.
+Note the minimizing values of theta in the plots corresponds to the
+values reported by `rdif` above.
 
 # References
 
