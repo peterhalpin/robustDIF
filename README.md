@@ -13,7 +13,7 @@ model in two independent groups.
 
 ``` r
 install.packages("remotes")
-remotes::install_github("peterhalpin/robustDIF")
+remotes::install_github("peterhalpin/robustDIF@Halpin2022")
 library(robustDIF)
 ```
 
@@ -22,15 +22,10 @@ library(robustDIF)
 The main user-facing functions are illustrated below using the built-in
 example dataset `rdif.eg`. In the example dataset, there are a total of
 five items and the first item has DIF on the intercept and slope. DIF on
-the item difficulty (intercept slope) was additive and equal to
-![1/2](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;1%2F2 "1/2").
-DIF on the slope was multiplicative and equal to
-![2](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;2 "2").
-The latent trait was generated from
-![N(0,1)](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;N%280%2C1%29 "N(0,1)")
-in the reference group and
-![N(.5, 1)](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;N%28.5%2C%201%29 "N(.5, 1)")
-in the comparison group.
+the item difficulty (intercept slope) was additive and equal to $1/2$.
+DIF on the slope was multiplicative and equal to $2$. The latent trait
+was generated from $N(0,1)$ in the reference group and $N(.5, 1)$ in the
+comparison group.
 
 Check out the documentation for `rdif.eg` and `get_irt_pars` for more
 info about how to format data for use with `robustDIF`.
@@ -39,15 +34,10 @@ info about how to format data for use with `robustDIF`.
 
 The RDIF procedure involves IRT scaling parameters that are functions of
 the parameters of the distributions of the latent trait. Letting
-![\\mu = .5](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Cmu%20%3D%20.5 "\mu = .5")
-and
-![\\sigma^2 = 1](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Csigma%5E2%20%3D%201 "\sigma^2 = 1")
-denote the mean and variance of the latent trait in the comparison
-group, the scaling parameter used to test for DIF on the item intercepts
-is
-![\\theta = \\mu/\\sigma](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Ctheta%20%3D%20%5Cmu%2F%5Csigma "\theta = \mu/\sigma").
-The scaling parameter used to test for DIF on the item slopes is
-![\\theta = \\sigma](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Ctheta%20%3D%20%5Csigma "\theta = \sigma").
+$\mu = .5$ and $\sigma^2 = 1$ denote the mean and variance of the latent
+trait in the comparison group, the scaling parameter used to test for
+DIF on the item intercepts is $\theta = \mu/\sigma$. The scaling
+parameter used to test for DIF on the item slopes is $\theta = \sigma$.
 
 The `rdif` function estimates the IRT scaling parameters, and, as a
 by-product, flags items with DIF at the desired asymptotic Type I Error

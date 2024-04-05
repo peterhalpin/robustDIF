@@ -18,7 +18,7 @@ Currently `robustDIF` only supports the two-parameter logistc (2PL) IRT model in
 
 ```{r, eval = FALSE}
 install.packages("remotes")
-remotes::install_github("peterhalpin/robustDIF")
+remotes::install_github("peterhalpin/robustDIF@Halpin2022")
 library(robustDIF)
 ```
 
