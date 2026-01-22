@@ -2,25 +2,22 @@
 % Please edit documentation in R/robustDIF_functions.R
 \name{rho_grid}
 \alias{rho_grid}
-\title{Grid search for minimum value of the bi-square Rho function.}
+\title{Compute a grid of bi-square Rho values}
 \usage{
-rho_grid(y, var_fun, alpha = 0.05, grid.width = 0.05)
+rho_grid(mle, fun = "d_fun3", alpha = 0.05, grid.width = 0.01)
 }
 \arguments{
-\item{y}{output of \code{\link[robustDIF]{get_starts}}}
+\item{mle}{the output of \code{\link[robustDIF]{get_model_parms}}}
 
-\item{var_fun}{function that variance of \code{y} as a function of only the scale parameter.}
+\item{fun}{one of \code{c("a_fun1", "a_fun2", "d_fun1", "d_fun2", "d_fun3")}. See description for details.}
 
-\item{alpha}{The desired false positive rate for flagging items with DIF.}
+\item{alpha}{the desired false positive rate for flagging items with DIF.}
 
-\item{grid.width}{The width of grid points.}
+\item{grid.width}{the width of grid points.}
 }
 \value{
-The location parameter that minimizes the bi-square Rho function.
+A named list with theta values and the corresponding Rho values.
 }
 \description{
-This function is used by \code{\link[robustDIF]{get_starts}}, so its inputs are formatted for to take internal arguments of that function. For plotting, use \code{\link[robustDIF]{rho_fun}} instead.
-}
-\seealso{
-\code{\link[robustDIF]{get_starts}}
+Computes the objective function of the bi-square minimization problem in a location parameter, theta. The theta values are obtained internally by a grid search over the range of \code{\link[robustDIF]{y_fun}}. Used for starting values and graphically diagnosing local solutions.
 }

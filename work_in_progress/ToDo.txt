@@ -1,0 +1,15 @@
+robustDIF to do: 
+
+Short term  
+- Create rdif object class (S3)
+- print.rdif method that prints just estimate (to be added, also its SE). 
+- plot.rdif method that calls rho_grid and plots rho agaist theta 
+- summary.rdif method that pretty prints results of dif_test and appends a paragraph with output of delta_test (similar to summary.lm). 
+- check documentaiotn for errors
+
+Long term
+- Submit to CRAN
+- Create github.io page for pacakge
+- Two user vignettes, one for DIF testing and one for delta_test
+- Support for additional models (rasch, GPMC)
+- Cluster robust SEs from mirt

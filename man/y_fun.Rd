@@ -2,23 +2,28 @@
 % Please edit documentation in R/robustDIF_functions.R
 \name{y_fun}
 \alias{y_fun}
-\title{R-DIF scaling functions.}
+\title{R-DIF scaling functions for item intercepts/thresholds and slopes.}
 \usage{
-y_fun(mle, par = "intercept", log = F)
+y_fun(mle, fun = "d_fun3")
 }
 \arguments{
 \item{mle}{the output of \code{\link[robustDIF]{get_model_parms}}}
 
-\item{par}{character: use the scaling function for item intercepts or item slopes? One of \code{c("intercept", "slope")}.}
-
-\item{log}{logical: use log of scaling function? Only applies if \code{par = "slope"}.}
+\item{fun}{one of \code{c("a_fun1", "a_fun2", "d_fun1", "d_fun2", "d_fun3")}. See description for details.}
 }
 \value{
-A vector of Y values.
+A vector of scaling function values.
 }
 \description{
-Computes the R-DIF scaling function for item intercepts/thresholds or for item slopes.
+Computes the a scaling function using the item thresholds (d) and slopes (a) in groups = \{0, 1\}. The options are:
+\itemize{
+\item \code{"a_fun1"}: computes \code{a2/a1}
+\item \code{"a_fun2"}: computes \code{log(a2/a1)}
+\item \code{"d_fun1"}: computes \code{(d2 - d1)/a1} for each threshold
+\item \code{"d_fun2"}: computes \code{(d2 - d1)/a2} for each threshold
+\item \code{"d_fun3"}: computes \code{(d2 - d1)/sqrt((a1^2 + a2^2)/2)} for each threshold
 }
-\seealso{
-\code{\link[y_intercept]{y_intercept}}, \code{\link[robustDIF]{y_slope}}.
+}
+\details{
+Computes the scaling function specified by \code{fun}, for each item.
 }

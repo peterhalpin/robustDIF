@@ -9,14 +9,11 @@ rho(u, k = 1.96)
 \arguments{
 \item{u}{Can be a single value, vector, or matrix.}
 
-\item{k}{The tuning parameter Can be a scalar or the same dimension as \code{u}.}
+\item{k}{The tuning parameter. Can be a scalar or the same dimension as \code{u}.}
 }
 \value{
 The bi-square rho function.
 }
 \description{
-If \code{abs(u) > k} , \code{rho(u) = 1}. Else, \code{rho(u) = (1 - (1 - (u/k))^3)}.
-}
-\seealso{
-\code{\link[robustDIF]{rho_fun}}
+If \code{abs(u) > k} , \code{rho(u) = 1}. Else, \code{psi(u) = 1 - (1 - (u/k)^2)^3}.
 }

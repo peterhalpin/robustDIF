@@ -1,13 +1,3 @@
-# scratchpad for revising robustdDIF_functions
-
-# Where am I:
-# XX Step 1: Check read functions for mirt and lavaan
-# XX Step 2: rewrite current robustDIF functions that use irt.pars to take new format
-# XX Step 3: add functions to compute scaling functions and gradient for GRM
-# XX Step 4: check new functions for GRM
-#    Step 5: Need to double chisq_test against chisq_test_old -- getting same variances but different covariances. I think the new one is right by construction, the old one looks weird I don't remember what the code is doing.
-#   Step 6: new_func for GRM(bsq_var_weight, will need to accomdate covariance among scale functions from the same item)
-#   Step7: clean up documentation and put on github
 
 
 library(mirt)

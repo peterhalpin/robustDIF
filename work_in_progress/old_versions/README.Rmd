@@ -1,6 +1,13 @@
-# robustDIF
-Peter F Halpin
-2026-01-22
+---
+output:
+  github_document:
+    toc: False
+---
+
+```{r setup, include=FALSE}
+options(digits = 4)
+knitr::opts_chunk$set(echo = TRUE)
+```
 
 # robustDIF
 
@@ -20,8 +27,8 @@ remotes::install_github("peterhalpin/robustDIF")
 library(robustDIF)
 ```
 
-```{r, echo = F}
-#library(robustDIF)
+```{r, echo = F, message = F}
+library(robustDIF)
 ```
 
 # Example Dataset
@@ -61,7 +68,8 @@ as follows.
 
 The illustration uses `d_fun3`. Equality between the scaling parameter and the item-level scaling function requires assuming the item does not exhibit DIF on either the slope or intercept, although the function is more sensitive to intercept DIF than slope DIF. 
 
-## Robust Scaling
+
+# Robust Scaling
 
 ```{r}
 rdif(mle = rdif.eg, fun = "d_fun3", alpha = .05)
@@ -69,7 +77,7 @@ rdif(mle = rdif.eg, fun = "d_fun3", alpha = .05)
 
 The estimated scaling parameter is equal to approximately 0.38. We can see that the first item was downweighted to zero when estimating the scaling parameter. Note that the standard error of the scaling parameter is not provided by `rdif` but is available via `delta_test`. 
 
-## Wald Tests of DIF
+# Wald Tests of DIF
 
 Inferences about DIF can be made via Wald tests of whether the item-level scaling function differs from the estimated scaling parameter. 
 
@@ -77,9 +85,9 @@ Inferences about DIF can be made via Wald tests of whether the item-level scalin
 dif_test(mle = rdif.eg, fun = "d_fun3")
 ```
 
-In this output `delta` is the estimated scaling parameter subtracted from the item-level scaling function.  
+In this output, `delta` is the estimated scaling parameter subtracted from the item-level scaling function.  
 
-## Testing Whether DIF Affects Conclusions about Impact
+# Testing Whether DIF Affects Conclusions about Impact
 
 One may wish to know whether any DIF, if present, affects conclusions
 about impact (i.e., how the groups differ on the latent trait). 
@@ -92,9 +100,9 @@ consistent for the "true" scaling parameter leads to the following test.
 delta_test(mle = rdif.eg, fun = "d_fun3")
 ```
 
-In this output delta = `naive.est` - `rdif.est`
+In this output, `delta` = `naive.est` - `rdif.est`
 
-## The Rho Function
+# The Rho Function
 
 For data analyses, it is useful to check whether the robust estimator
 has a clear global minimum before proceeding to make inferences about DIF / Impact.  

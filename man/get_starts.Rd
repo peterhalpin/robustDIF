@@ -4,19 +4,17 @@
 \alias{get_starts}
 \title{Compute staring values for \code{\link[robustDIF]{rdif}}.}
 \usage{
-get_starts(mle, par = "intercept", log = F, alpha = 0.05)
+get_starts(mle, fun = "d_fun3", alpha = 0.05)
 }
 \arguments{
 \item{mle}{the output of \code{\link[robustDIF]{get_model_parms}}}
 
-\item{par}{character: use the scaling function for item intercepts or item slopes? One of \code{c("intercept", "slope")}.}
-
-\item{log}{logical: use log of scaling function? Only applies if \code{par = "slope"}.}
+\item{fun}{one of \code{c("a_fun1", "a_fun2", "d_fun1", "d_fun2", "d_fun3")}. See description for details.}
 
 \item{alpha}{the desired false positive rate for flagging items with DIF.}
 }
 \value{
-A vector containing the median of \code{\link[robustDIF]{y_fun}}, the least trimmed squares estimate of location for \code{\link[robustDIF]{y_fun}} with 50-percent trim rate, and the minimum of \code{\link[robustDIF]{rho_fun}}.
+A vector containing the median of \code{\link[robustDIF]{y_fun}}, the least trimmed squares estimate of location for \code{\link[robustDIF]{y_fun}} with 50-percent trim rate, and the minimum of \code{\link[robustDIF]{rho_grid}}.
 }
 \description{
 Compute staring values for \code{\link[robustDIF]{rdif}}.

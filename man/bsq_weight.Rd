@@ -2,22 +2,18 @@
 % Please edit documentation in R/robustDIF_functions.R
 \name{bsq_weight}
 \alias{bsq_weight}
-\title{Compute the weights of the bi-square function.}
+\title{The bi-square weight function.}
 \usage{
-bsq_weight(theta, y, var.y, alpha = 0.05)
+bsq_weight(u, k = 1.96)
 }
 \arguments{
-\item{theta}{the IRT scale parameter.}
+\item{u}{Can be a single value, vector, or matrix.}
 
-\item{y}{the output of \code{\link[robustDIF]{y_fun}}.}
-
-\item{var.y}{the output of \code{\link[robustDIF]{var_y}}.}
-
-\item{alpha}{the desired false positive rate for flagging items with DIF.}
+\item{k}{The tuning parameter. Can be a scalar or the same dimension as \code{u}.}
 }
 \value{
-The bi-square weights, for each item.
+The bi-square psi-prime function.
 }
 \description{
-The weights are used for estimation via iteratively re-weighted least squares, so the function is set up to take a pre-computed values of \code{theta} and \code{var.y}
+If \code{abs(u) > k} , \code{psi(u) = 0}. Else, \code{psi(u) = (1 - (u/k)^2)^2}.
 }

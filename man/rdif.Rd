@@ -2,12 +2,11 @@
 % Please edit documentation in R/robustDIF_functions.R
 \name{rdif}
 \alias{rdif}
-\title{Estimate IRT scale parameters using the RDIF procedure.}
+\title{Estimate IRT scale parameters using the robust DIF procedure.}
 \usage{
 rdif(
   mle,
-  par = "intercept",
-  log = F,
+  fun = "d_fun3",
   alpha = 0.05,
   starting.value = "all",
   tol = 1e-07,
@@ -18,33 +17,32 @@ rdif(
 \arguments{
 \item{mle}{the output of \code{\link[robustDIF]{get_model_parms}}}
 
-\item{par}{character: use the scaling function for item intercepts or item slopes? One of \code{c("intercept", "slope")}.}
-
-\item{log}{logical: use log of scaling function? Only applies if \code{par = "slope"}.}
+\item{fun}{one of \code{c("a_fun1", "a_fun2", "d_fun1", "d_fun2", "d_fun3")}. See description for details.}
 
 \item{alpha}{the desired false positive rate for flagging items with DIF.}
 
-\item{starting.value}{one of \code{c("med", "lts", "min_rho", "all")} or a numerical value to be used as the starting value. The default is \code{"all"} which returns the median of the other three.}
+\item{starting.value}{one of \code{c("med", "lts", "min_rho", "all")} or a numerical value to be used as the starting value. See description for details.}
 
 \item{tol}{convergence criterion for comparing subsequent values of estimate}
 
 \item{maxit}{maximum number of iterations}
 
-\item{method}{one of \code{c("irls", "nr")}. Currently, only IRLS is implemented.}
+\item{method}{one of \code{c("irls", "newton")}. Currently, only IRLS is implemented.}
 }
 \value{
-A named list containing the estimate of the IRT scale parameter, the bi-square weights, the number of iterations performed, and the value of the convergence criterion (difference of  estimate between subsequent iterations).
+A named list containing the estimate of the IRT scale parameter, the bi-square weights, the number of iterations performed, and the value of the convergence criterion (difference of  estimate between subsequent iterations). If multiple solutions were found, the one with the lowest value of the bi-square objective function is returned and the other solutions are appended to the list as \code{other.solutions}.
 }
 \description{
-Implements M-estimation of an IRT scale parameter using the bi-square loss function. Also returns the bi-square weights for each item. Weights with a value of zero indicate that the corresponding item was flagged as having DIF during estimation.
-
-Estimation can be performed using iteratively re-weighted least squares (IRLS) or Newton-Raphson (NR). Currently, only IRLS is implemented. NR can diverge with bi-square.
+Estimation can be performed using iteratively re-weighted least squares (IRLS) or Newton-Raphson (NR). Currently, only IRLS is implemented. If \code{starting.value = "all"}, three starting values are computed: the median of \code{\link[robustDIF]{y_fun}}, the least trimmed squares estimate of location for \code{\link[robustDIF]{y_fun}} with 50-percent trim rate, and the minimum of \code{\link[robustDIF]{rho_grid}}. The estimate is computed from each starting value, and the solution with the lowest value of the bi-square objective function is returned. If there are multiple solutions, the other solutions are appended to the output list as \code{other.solutions}.
+}
+\details{
+Implements M-estimation of an IRT scale parameter using the bi-square loss function. Also returns the bi-square weights for each item. #'
 }
 \examples{
 # Item intercepts, using the built-in example dataset "rdif.eg"
-\dontrun{rdif(mle = rdif.eg)}
+\dontrun{rdif(mle = rdif.eg, fun = "d_fun3")}
 
 # Item slopes
-\dontrun{rdif(mle = rdif.eg, par = "slope")}
+\dontrun{rdif(mle = rdif.eg, fun = "a_fun1")}
 
 }

@@ -2,3 +2,10 @@
 ^\.Rproj\.user$
 tests/
 R\test.R
+^work_in_progress$
+^README\.Rmd$
+^README\.qmd$
+^README\.html$
+^README_files$
+^robustDIF_12_20_2025\.qmd$
+^robustDIF_12_20_2025\.html$
