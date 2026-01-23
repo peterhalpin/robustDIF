@@ -44,7 +44,7 @@ down-weighting items that exhibit DIF. Following estimation of the
 scaling parameter, Wald tests of DIF can be implemented. The type of DIF
 that is tested depends on the choice of scaling parameter.
 
-Let `theta ~ N(mu, sigma)`$ in groups 1 and 2 and let `a_i` and `d_i` 
+Let `theta ~ N(mu, sigma)` in groups 1 and 2 and let `a_i` and `d_i` 
 denote the item slope and intercept/thresholds respectively. The choices
 of scaling parameters and corresponding item-level scaling functions are
 as follows. 
