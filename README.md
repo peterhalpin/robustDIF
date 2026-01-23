@@ -10,7 +10,7 @@ from robust statistics. Based on the paper:
 
 Halpin, P.F. (2022) Differential Item Functioning Via Robust Scaling. Arxiv Preprint. [https://arxiv.org/abs/2207.04598](https://arxiv.org/abs/2207.04598). Published in Psychometrika in 2024 under the same title.  
 
-Please see the `README.html` file for a more detailed discussion of the methodology and recent updates. 
+Please see https://htmlpreview.github.io/?https://github.com/peterhalpin/robustDIF/blob/master/README.html for a more detailed discussion of the methodology and recent updates. 
 
 # Installation
 
@@ -18,10 +18,6 @@ Please see the `README.html` file for a more detailed discussion of the methodol
 install.packages("remotes")
 remotes::install_github("peterhalpin/robustDIF")
 library(robustDIF)
-```
-
-```{r, echo = F}
-#library(robustDIF)
 ```
 
 # Example Dataset
@@ -44,7 +40,7 @@ down-weighting items that exhibit DIF. Following estimation of the
 scaling parameter, Wald tests of DIF can be implemented. The type of DIF
 that is tested depends on the choice of scaling parameter.
 
-Let `theta ~ N(mu, sigma)`$ in groups 1 and 2 and let `a_i` and `d_i` 
+Let `theta ~ N(mu, sigma)` in groups 1 and 2 and let `a_i` and `d_i` 
 denote the item slope and intercept/thresholds respectively. The choices
 of scaling parameters and corresponding item-level scaling functions are
 as follows. 
