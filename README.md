@@ -20,10 +20,6 @@ remotes::install_github("peterhalpin/robustDIF")
 library(robustDIF)
 ```
 
-```{r, echo = F}
-#library(robustDIF)
-```
-
 # Example Dataset
 
 The main user-facing functions are illustrated below using the built-in
