@@ -10,7 +10,7 @@ from robust statistics. Based on the paper:
 
 Halpin, P.F. (2022) Differential Item Functioning Via Robust Scaling. Arxiv Preprint. [https://arxiv.org/abs/2207.04598](https://arxiv.org/abs/2207.04598). Published in Psychometrika in 2024 under the same title.  
 
-Please see the `README.html` file for a more detailed discussion of the methodology and recent updates. 
+Please see https://htmlpreview.github.io/?https://github.com/peterhalpin/robustDIF/blob/master/README.html for a more detailed discussion of the methodology and recent updates. 
 
 # Installation
 
