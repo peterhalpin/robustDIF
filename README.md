@@ -4,13 +4,13 @@ Peter F Halpin
 
 # robustDIF
 
-An R package that provides functions for assessing differential item
-functioning (DIF) in item response theory (IRT) models using methods
-from robust statistics. Based on the paper: 
+This branch contains the replication code for 
 
-Halpin, P.F. (2022) Differential Item Functioning Via Robust Scaling. Arxiv Preprint. [https://arxiv.org/abs/2207.04598](https://arxiv.org/abs/2207.04598). Published in Psychometrika in 2024 under the same title.  
+Halpin, P.F. (2024) Differential Test Functioning Via Robust Scaling. Arxiv Preprint. [https://arxiv.org/abs/2409.03502](https://arxiv.org/abs/2409.03502). 
 
-Please see https://htmlpreview.github.io/?https://github.com/peterhalpin/robustDIF/blob/master/README.html for a more detailed discussion of the methodology and recent updates. 
+The replication code is contained in the folder Halpin2024_R
+
+This version of the `robustDIF` package was used for that paper. Please see the master branch for up-to-date version of the package. 
 
 # Installation
 

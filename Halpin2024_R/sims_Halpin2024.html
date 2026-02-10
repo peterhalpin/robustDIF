@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.7.32">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Peter Halpin">
+
+<title>Sim study for DTF via Robust Scaling</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="sims_Halpin2024_files/libs/clipboard/clipboard.min.js"></script>
+<script src="sims_Halpin2024_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="sims_Halpin2024_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="sims_Halpin2024_files/libs/quarto-html/popper.min.js"></script>
+<script src="sims_Halpin2024_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="sims_Halpin2024_files/libs/quarto-html/anchor.min.js"></script>
+<link href="sims_Halpin2024_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="sims_Halpin2024_files/libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="sims_Halpin2024_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="sims_Halpin2024_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="sims_Halpin2024_files/libs/bootstrap/bootstrap-81267100e462c21b3d6c0d5bf76a3417.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#initialization" id="toc-initialization" class="nav-link active" data-scroll-target="#initialization">Initialization</a></li>
+  <li><a href="#run-sims" id="toc-run-sims" class="nav-link" data-scroll-target="#run-sims">Run sims</a></li>
+  <li><a href="#format-data" id="toc-format-data" class="nav-link" data-scroll-target="#format-data">Format data</a></li>
+  <li><a href="#bias-and-precision" id="toc-bias-and-precision" class="nav-link" data-scroll-target="#bias-and-precision">Bias and precision</a></li>
+  <li><a href="#error-rates" id="toc-error-rates" class="nav-link" data-scroll-target="#error-rates">Error rates</a></li>
+  </ul>
+</nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Sim study for DTF via Robust Scaling</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Peter Halpin </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">Invalid Date</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="initialization" class="level1">
+<h1>Initialization</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">#remotes::install_github("peterhalpin/robustDIF")</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(robustDIF)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mirt)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(parallel)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(see) <span class="co"># Half violion</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(<span class="st">"DTF_sim_funcs.R"</span>) <span class="co"># Sim-power funcs to be added to robustDIF</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="run-sims" class="level1">
+<h1>Run sims</h1>
+<p>Code shown for replication purposes – use .RData files for analysis.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>sim.<span class="fl">200.0</span> <span class="ot">&lt;-</span> <span class="fu">data_sim</span>(<span class="dv">500</span>, <span class="at">n.persons =</span> <span class="dv">200</span>, <span class="at">n.dif =</span> <span class="dv">0</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>sim.<span class="fl">200.1</span> <span class="ot">&lt;-</span> <span class="fu">data_sim</span>(<span class="dv">500</span>, <span class="at">n.persons =</span> <span class="dv">200</span>, <span class="at">n.dif =</span> <span class="dv">1</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>sim.<span class="fl">200.2</span> <span class="ot">&lt;-</span> <span class="fu">data_sim</span>(<span class="dv">500</span>, <span class="at">n.persons =</span> <span class="dv">200</span>, <span class="at">n.dif =</span> <span class="dv">2</span>)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>sim.<span class="fl">200.3</span> <span class="ot">&lt;-</span> <span class="fu">data_sim</span>(<span class="dv">500</span>, <span class="at">n.persons =</span> <span class="dv">200</span>, <span class="at">n.dif =</span> <span class="dv">3</span>)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>sim.<span class="fl">200.4</span> <span class="ot">&lt;-</span> <span class="fu">data_sim</span>(<span class="dv">500</span>, <span class="at">n.persons =</span> <span class="dv">200</span>, <span class="at">n.dif =</span> <span class="dv">4</span>)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>sim.<span class="fl">200.5</span> <span class="ot">&lt;-</span> <span class="fu">data_sim</span>(<span class="dv">500</span>, <span class="at">n.persons =</span> <span class="dv">200</span>, <span class="at">n.dif =</span> <span class="dv">5</span>)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>sim.<span class="fl">200.6</span> <span class="ot">&lt;-</span> <span class="fu">data_sim</span>(<span class="dv">500</span>, <span class="at">n.persons =</span> <span class="dv">200</span>, <span class="at">n.dif =</span> <span class="dv">6</span>)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>sim.<span class="fl">200.7</span> <span class="ot">&lt;-</span> <span class="fu">data_sim</span>(<span class="dv">500</span>, <span class="at">n.persons =</span> <span class="dv">200</span>, <span class="at">n.dif =</span> <span class="dv">7</span>)</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>sim.<span class="fl">200.8</span> <span class="ot">&lt;-</span> <span class="fu">data_sim</span>(<span class="dv">500</span>, <span class="at">n.persons =</span> <span class="dv">200</span>, <span class="at">n.dif =</span> <span class="dv">8</span>)</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>sim.<span class="fl">200.9</span> <span class="ot">&lt;-</span> <span class="fu">data_sim</span>(<span class="dv">500</span>, <span class="at">n.persons =</span> <span class="dv">200</span>, <span class="at">n.dif =</span> <span class="dv">9</span>)</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>sim.<span class="fl">200.10</span> <span class="ot">&lt;-</span> <span class="fu">data_sim</span>(<span class="dv">500</span>, <span class="at">n.persons =</span> <span class="dv">200</span>, <span class="at">n.dif =</span> <span class="dv">10</span>)</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>sim.list<span class="fl">.200</span> <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    sim.<span class="fl">200.0</span>,</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    sim.<span class="fl">200.1</span>,</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    sim.<span class="fl">200.2</span>,</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    sim.<span class="fl">200.3</span>,</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    sim.<span class="fl">200.4</span>,</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>    sim.<span class="fl">200.5</span>,</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>    sim.<span class="fl">200.6</span>,</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>    sim.<span class="fl">200.7</span>,</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>    sim.<span class="fl">200.8</span>,</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>    sim.<span class="fl">200.9</span>,</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>    sim.<span class="fl">200.10</span>)</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a><span class="fu">save</span>(sim.list<span class="fl">.200</span>, <span class="at">file =</span> <span class="st">"sim.200.01.19.2025.RData"</span>)</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>sim.<span class="fl">350.0</span> <span class="ot">&lt;-</span> <span class="fu">data_sim</span>(<span class="dv">500</span>, <span class="at">n.persons =</span> <span class="dv">350</span>, <span class="at">n.dif =</span> <span class="dv">0</span>)</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>sim.<span class="fl">350.1</span> <span class="ot">&lt;-</span> <span class="fu">data_sim</span>(<span class="dv">500</span>, <span class="at">n.persons =</span> <span class="dv">350</span>, <span class="at">n.dif =</span> <span class="dv">1</span>)</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>sim.<span class="fl">350.2</span> <span class="ot">&lt;-</span> <span class="fu">data_sim</span>(<span class="dv">500</span>, <span class="at">n.persons =</span> <span class="dv">350</span>, <span class="at">n.dif =</span> <span class="dv">2</span>)</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>sim.<span class="fl">350.3</span> <span class="ot">&lt;-</span> <span class="fu">data_sim</span>(<span class="dv">500</span>, <span class="at">n.persons =</span> <span class="dv">350</span>, <span class="at">n.dif =</span> <span class="dv">3</span>)</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>sim.<span class="fl">350.4</span> <span class="ot">&lt;-</span> <span class="fu">data_sim</span>(<span class="dv">500</span>, <span class="at">n.persons =</span> <span class="dv">350</span>, <span class="at">n.dif =</span> <span class="dv">4</span>)</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>sim.<span class="fl">350.5</span> <span class="ot">&lt;-</span> <span class="fu">data_sim</span>(<span class="dv">500</span>, <span class="at">n.persons =</span> <span class="dv">350</span>, <span class="at">n.dif =</span> <span class="dv">5</span>)</span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>sim.<span class="fl">350.6</span> <span class="ot">&lt;-</span> <span class="fu">data_sim</span>(<span class="dv">500</span>, <span class="at">n.persons =</span> <span class="dv">350</span>, <span class="at">n.dif =</span> <span class="dv">6</span>)</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>sim.<span class="fl">350.7</span> <span class="ot">&lt;-</span> <span class="fu">data_sim</span>(<span class="dv">500</span>, <span class="at">n.persons =</span> <span class="dv">350</span>, <span class="at">n.dif =</span> <span class="dv">7</span>)</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>sim.<span class="fl">350.8</span> <span class="ot">&lt;-</span> <span class="fu">data_sim</span>(<span class="dv">500</span>, <span class="at">n.persons =</span> <span class="dv">350</span>, <span class="at">n.dif =</span> <span class="dv">8</span>)</span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>sim.<span class="fl">350.9</span> <span class="ot">&lt;-</span> <span class="fu">data_sim</span>(<span class="dv">500</span>, <span class="at">n.persons =</span> <span class="dv">350</span>, <span class="at">n.dif =</span> <span class="dv">9</span>)</span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>sim.<span class="fl">350.10</span> <span class="ot">&lt;-</span> <span class="fu">data_sim</span>(<span class="dv">500</span>, <span class="at">n.persons =</span> <span class="dv">350</span>, <span class="at">n.dif =</span> <span class="dv">10</span>)</span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>sim.list<span class="fl">.350</span> <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>    sim.<span class="fl">350.0</span>,</span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>    sim.<span class="fl">350.1</span>,</span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>    sim.<span class="fl">350.2</span>,</span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>    sim.<span class="fl">350.3</span>,</span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>    sim.<span class="fl">350.4</span>,</span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>    sim.<span class="fl">350.5</span>,</span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>    sim.<span class="fl">350.6</span>,</span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>    sim.<span class="fl">350.7</span>,</span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a>    sim.<span class="fl">350.8</span>,</span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a>    sim.<span class="fl">350.9</span>,</span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a>    sim.<span class="fl">350.10</span>)</span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a><span class="fu">save</span>(sim.list<span class="fl">.350</span>, <span class="at">file =</span> <span class="st">"sim.350.01.19.2025.RData"</span>)</span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a>sim.<span class="fl">500.0</span> <span class="ot">&lt;-</span> <span class="fu">data_sim</span>(<span class="dv">500</span>, <span class="at">n.persons =</span> <span class="dv">500</span>, <span class="at">n.dif =</span> <span class="dv">0</span>)</span>
+<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a>sim.<span class="fl">500.1</span> <span class="ot">&lt;-</span> <span class="fu">data_sim</span>(<span class="dv">500</span>, <span class="at">n.persons =</span> <span class="dv">500</span>, <span class="at">n.dif =</span> <span class="dv">1</span>)</span>
+<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a>sim.<span class="fl">500.2</span> <span class="ot">&lt;-</span> <span class="fu">data_sim</span>(<span class="dv">500</span>, <span class="at">n.persons =</span> <span class="dv">500</span>, <span class="at">n.dif =</span> <span class="dv">2</span>)</span>
+<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a>sim.<span class="fl">500.3</span> <span class="ot">&lt;-</span> <span class="fu">data_sim</span>(<span class="dv">500</span>, <span class="at">n.persons =</span> <span class="dv">500</span>, <span class="at">n.dif =</span> <span class="dv">3</span>)</span>
+<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a>sim.<span class="fl">500.4</span> <span class="ot">&lt;-</span> <span class="fu">data_sim</span>(<span class="dv">500</span>, <span class="at">n.persons =</span> <span class="dv">500</span>, <span class="at">n.dif =</span> <span class="dv">4</span>)</span>
+<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a>sim.<span class="fl">500.5</span> <span class="ot">&lt;-</span> <span class="fu">data_sim</span>(<span class="dv">500</span>, <span class="at">n.persons =</span> <span class="dv">500</span>, <span class="at">n.dif =</span> <span class="dv">5</span>)</span>
+<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a>sim.<span class="fl">500.6</span> <span class="ot">&lt;-</span> <span class="fu">data_sim</span>(<span class="dv">500</span>, <span class="at">n.persons =</span> <span class="dv">500</span>, <span class="at">n.dif =</span> <span class="dv">6</span>)</span>
+<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a>sim.<span class="fl">500.7</span> <span class="ot">&lt;-</span> <span class="fu">data_sim</span>(<span class="dv">500</span>, <span class="at">n.persons =</span> <span class="dv">500</span>, <span class="at">n.dif =</span> <span class="dv">7</span>)</span>
+<span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a>sim.<span class="fl">500.8</span> <span class="ot">&lt;-</span> <span class="fu">data_sim</span>(<span class="dv">500</span>, <span class="at">n.persons =</span> <span class="dv">500</span>, <span class="at">n.dif =</span> <span class="dv">8</span>)</span>
+<span id="cb2-64"><a href="#cb2-64" aria-hidden="true" tabindex="-1"></a>sim.<span class="fl">500.9</span> <span class="ot">&lt;-</span> <span class="fu">data_sim</span>(<span class="dv">500</span>, <span class="at">n.persons =</span> <span class="dv">500</span>, <span class="at">n.dif =</span> <span class="dv">9</span>)</span>
+<span id="cb2-65"><a href="#cb2-65" aria-hidden="true" tabindex="-1"></a>sim.<span class="fl">500.10</span> <span class="ot">&lt;-</span> <span class="fu">data_sim</span>(<span class="dv">500</span>, <span class="at">n.persons =</span> <span class="dv">500</span>, <span class="at">n.dif =</span> <span class="dv">10</span>)</span>
+<span id="cb2-66"><a href="#cb2-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-67"><a href="#cb2-67" aria-hidden="true" tabindex="-1"></a>sim.list<span class="fl">.500</span> <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb2-68"><a href="#cb2-68" aria-hidden="true" tabindex="-1"></a>    sim.<span class="fl">500.0</span>,</span>
+<span id="cb2-69"><a href="#cb2-69" aria-hidden="true" tabindex="-1"></a>    sim.<span class="fl">500.1</span>,</span>
+<span id="cb2-70"><a href="#cb2-70" aria-hidden="true" tabindex="-1"></a>    sim.<span class="fl">500.2</span>,</span>
+<span id="cb2-71"><a href="#cb2-71" aria-hidden="true" tabindex="-1"></a>    sim.<span class="fl">500.3</span>,</span>
+<span id="cb2-72"><a href="#cb2-72" aria-hidden="true" tabindex="-1"></a>    sim.<span class="fl">500.4</span>,</span>
+<span id="cb2-73"><a href="#cb2-73" aria-hidden="true" tabindex="-1"></a>    sim.<span class="fl">500.5</span>,</span>
+<span id="cb2-74"><a href="#cb2-74" aria-hidden="true" tabindex="-1"></a>    sim.<span class="fl">500.6</span>,</span>
+<span id="cb2-75"><a href="#cb2-75" aria-hidden="true" tabindex="-1"></a>    sim.<span class="fl">500.7</span>,</span>
+<span id="cb2-76"><a href="#cb2-76" aria-hidden="true" tabindex="-1"></a>    sim.<span class="fl">500.8</span>,</span>
+<span id="cb2-77"><a href="#cb2-77" aria-hidden="true" tabindex="-1"></a>    sim.<span class="fl">500.9</span>,</span>
+<span id="cb2-78"><a href="#cb2-78" aria-hidden="true" tabindex="-1"></a>    sim.<span class="fl">500.10</span>)</span>
+<span id="cb2-79"><a href="#cb2-79" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-80"><a href="#cb2-80" aria-hidden="true" tabindex="-1"></a><span class="fu">save</span>(sim.list<span class="fl">.500</span>, <span class="at">file =</span> <span class="st">"sim.500.01.18.2025.RData"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="format-data" class="level1">
+<h1>Format data</h1>
+<p>Unlist data and re-format</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Laod sim data</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="st">"sim.200.01.19.2025.RData"</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="st">"sim.350.01.19.2025.RData"</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="st">"sim.500.01.18.2025.RData"</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>sim.list <span class="ot">&lt;-</span> <span class="fu">c</span>(sim.list<span class="fl">.200</span>, sim.list<span class="fl">.350</span>, sim.list<span class="fl">.500</span>)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Parms</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>n.reps <span class="ot">&lt;-</span> <span class="dv">500</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>levels <span class="ot">&lt;-</span> <span class="dv">0</span><span class="sc">:</span><span class="dv">10</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>n.levels <span class="ot">&lt;-</span> <span class="dv">11</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>sample.sizes <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">200</span>, <span class="dv">350</span>, <span class="dv">500</span>)</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>n.sample.sizes <span class="ot">&lt;-</span> <span class="dv">3</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Format RDIF results</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>sim.rdif <span class="ot">&lt;-</span> <span class="fu">Reduce</span>(rbind, <span class="fu">lapply</span>(sim.list, <span class="cf">function</span> (x) x<span class="sc">$</span>rdif))</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>sim.rdif<span class="sc">$</span>n.persons <span class="ot">&lt;-</span> <span class="fu">rep</span>(sample.sizes, <span class="at">each =</span> n.reps<span class="sc">*</span>n.levels)</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>sim.rdif<span class="sc">$</span>n.dif <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="fu">rep</span>(levels, <span class="at">each =</span> n.reps), <span class="at">times =</span> n.sample.sizes)</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Format LRT results</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>sim.lrt <span class="ot">&lt;-</span> <span class="fu">lapply</span>(sim.list, <span class="cf">function</span> (x) x<span class="sc">$</span>lrt)</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>sim.lrt <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">unlist</span>(sim.lrt), </span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>                  <span class="at">ncol =</span> <span class="dv">8</span>, </span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>                  <span class="at">nrow =</span> n.reps<span class="sc">*</span>n.levels<span class="sc">*</span>n.sample.sizes, </span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>                  <span class="at">byrow =</span> T) <span class="sc">|&gt;</span> </span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>            <span class="fu">data.frame</span>()</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>sim.lrt<span class="sc">$</span>n.persons <span class="ot">&lt;-</span> <span class="fu">rep</span>(sample.sizes, <span class="at">each =</span> n.reps<span class="sc">*</span>n.levels)</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>sim.lrt<span class="sc">$</span>n.dif <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="fu">rep</span>(levels, <span class="at">each =</span> n.reps), <span class="at">times =</span> n.sample.sizes)</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(sim.lrt) <span class="ot">&lt;-</span> <span class="fu">names</span>(sim.rdif)</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a><span class="co"># Format True DIF pattern results</span></span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>sim.true <span class="ot">&lt;-</span> <span class="fu">lapply</span>(sim.list, <span class="cf">function</span> (x) x<span class="sc">$</span>true.delta.hat)</span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>sim.true <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">unlist</span>(sim.true), </span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>                   <span class="at">ncol =</span> <span class="dv">8</span>, </span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>                   <span class="at">nrow =</span> n.reps<span class="sc">*</span>n.levels<span class="sc">*</span>n.sample.sizes, </span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>                   <span class="at">byrow =</span> T) <span class="sc">|&gt;</span> </span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>            <span class="fu">data.frame</span>()</span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>sim.true<span class="sc">$</span>n.persons <span class="ot">&lt;-</span> <span class="fu">rep</span>(sample.sizes, <span class="at">each =</span> n.reps<span class="sc">*</span>n.levels)</span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a>sim.true<span class="sc">$</span>n.dif <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="fu">rep</span>(levels, <span class="at">each =</span> n.reps), <span class="at">times =</span> n.sample.sizes)</span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(sim.true) <span class="ot">&lt;-</span> <span class="fu">names</span>(sim.rdif)</span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a><span class="co"># Stack</span></span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a>sim <span class="ot">&lt;-</span> <span class="fu">rbind</span>(sim.rdif, sim.lrt, sim.true)</span>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>sim<span class="sc">$</span>method <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="fu">c</span>(<span class="st">"RDIF"</span>, <span class="st">"LRT"</span>, <span class="st">"True"</span>), <span class="at">each =</span> n.reps<span class="sc">*</span>n.levels<span class="sc">*</span>n.sample.sizes)</span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a>sim.scale <span class="ot">&lt;-</span> <span class="fu">lapply</span>(sim.list, <span class="cf">function</span> (x) x<span class="sc">$</span>true.scale) <span class="sc">|&gt;</span> <span class="fu">unlist</span>()</span>
+<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a>sim<span class="sc">$</span>true.scale <span class="ot">&lt;-</span> <span class="fu">rep</span>(sim.scale, <span class="at">times =</span> <span class="dv">3</span>)</span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(sim)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     naive.est  naive.se    rdif.est   rdif.se        delta   delta.se
+1  0.098970449 0.1132405  0.09017942 0.1221194  0.008791029 0.05098531
+2 -0.007520327 0.1141968 -0.05276023 0.1232161  0.045239899 0.04539399
+3 -0.089275066 0.1138873 -0.15348746 0.1197126  0.064212398 0.04605022
+4  0.022878606 0.1202770  0.01143316 0.1177026  0.011445448 0.06673528
+5  0.215135919 0.1205424  0.19712708 0.1307720  0.018008841 0.07403503
+6 -0.303393875 0.1126167 -0.23078831 0.1151276 -0.072605568 0.04042662
+      z.test      p.val n.persons n.dif method  true.scale
+1  0.1724228 0.86310516       200     0   RDIF  0.12832971
+2  0.9966056 0.31895600       200     0   RDIF -0.19972016
+3  1.3943993 0.16319706       200     0   RDIF -0.11951717
+4  0.1715052 0.86382654       200     0   RDIF -0.08734322
+5  0.2432476 0.80781360       200     0   RDIF  0.17315170
+6 -1.7959841 0.07249705       200     0   RDIF -0.23397502</code></pre>
+</div>
+</div>
+</section>
+<section id="bias-and-precision" class="level1">
+<h1>Bias and precision</h1>
+<p>Figure 2 from the paper</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>temp.bias <span class="ot">&lt;-</span> sim <span class="sc">|&gt;</span> </span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(method, n.persons, n.dif) <span class="sc">|&gt;</span> </span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">reframe</span>(<span class="at">bias.naive =</span> naive.est <span class="sc">-</span> true.scale,</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>          <span class="at">bias.dif =</span> rdif.est <span class="sc">-</span> true.scale) <span class="sc">|&gt;</span> </span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>()</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Naive not run when no items exhibit DIF on LRT/True, replicate from RDIF</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>naive <span class="ot">&lt;-</span> <span class="fu">cbind</span>(<span class="fu">rep</span>(<span class="st">"Naive"</span>, <span class="at">times =</span> n.sample.sizes<span class="sc">*</span>n.levels),  </span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>                     temp.bias[temp.bias<span class="sc">$</span>method <span class="sc">==</span> <span class="st">"RDIF"</span>, <span class="fu">c</span>(<span class="dv">2</span><span class="sc">:</span><span class="dv">4</span>)])</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>naive <span class="ot">&lt;-</span> <span class="fu">rbind</span>(naive, naive, naive)</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>other <span class="ot">&lt;-</span> temp.bias[<span class="sc">-</span><span class="dv">4</span>] </span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(naive) <span class="ot">&lt;-</span> <span class="fu">names</span>(other) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Method"</span>, <span class="st">"n.persons"</span>, <span class="st">"N.DIF"</span>, <span class="st">"Bias"</span>) </span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Set DIF bias to Naive bias when the former is missing (due to not run) </span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>index <span class="ot">&lt;-</span> <span class="fu">is.na</span>(other<span class="sc">$</span>Bias)</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>other<span class="sc">$</span>Bias[index] <span class="ot">&lt;-</span> naive<span class="sc">$</span>Bias[index]</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>sim.bias <span class="ot">&lt;-</span> <span class="fu">rbind</span>(other, naive)</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>sim.bias<span class="sc">$</span>Method <span class="ot">&lt;-</span> </span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">factor</span>(</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>    sim.bias<span class="sc">$</span>Method, </span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"Naive"</span>, <span class="st">"LRT"</span>, <span class="st">"RDIF"</span>, <span class="st">"True"</span>),</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">ordered =</span> T)</span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a><span class="co"># Graph parms</span></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>dodge_w <span class="ot">&lt;-</span> <span class="fl">0.8</span></span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>unc_dark  <span class="ot">&lt;-</span> <span class="st">"#254A73"</span><span class="co"># navy-ish</span></span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>unc_light <span class="ot">&lt;-</span> <span class="st">"#7BAFD4"</span>  <span class="co"># light blue-ish</span></span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot</span></span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(sim.bias, <span class="fu">aes</span>(<span class="at">x =</span> N.DIF, <span class="at">y =</span> Bias, <span class="at">fill =</span> Method)) <span class="sc">+</span></span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="dv">3</span>, <span class="at">linewidth =</span> <span class="fl">0.9</span>, <span class="at">color =</span> <span class="st">"grey40"</span>) <span class="sc">+</span></span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>  see<span class="sc">::</span><span class="fu">geom_violinhalf</span>(</span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">group =</span> <span class="fu">interaction</span>(N.DIF, Method)),</span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a>    <span class="at">position =</span> <span class="fu">position_dodge</span>(<span class="at">width =</span> dodge_w),</span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a>    <span class="at">side =</span> <span class="st">"l"</span>, </span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>    <span class="at">trim =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>    <span class="at">width =</span> <span class="dv">2</span>,        </span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a>    <span class="at">linewidth =</span> <span class="fl">0.3</span>,     </span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.85</span>) <span class="sc">+</span></span>
+<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>  <span class="co"># median marker</span></span>
+<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_summary</span>(</span>
+<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">group =</span> <span class="fu">interaction</span>(N.DIF, Method)),</span>
+<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a>    <span class="at">fun =</span> median,</span>
+<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a>    <span class="at">geom =</span> <span class="st">"point"</span>,</span>
+<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a>    <span class="at">position =</span> <span class="fu">position_dodge</span>(<span class="at">width =</span> dodge_w),</span>
+<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a>    <span class="at">size =</span> <span class="dv">1</span>,</span>
+<span id="cb5-49"><a href="#cb5-49" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
+<span id="cb5-50"><a href="#cb5-50" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(</span>
+<span id="cb5-51"><a href="#cb5-51" aria-hidden="true" tabindex="-1"></a>    <span class="at">breaks =</span> <span class="dv">0</span><span class="sc">:</span><span class="dv">10</span>,</span>
+<span id="cb5-52"><a href="#cb5-52" aria-hidden="true" tabindex="-1"></a>    <span class="at">labels =</span> <span class="fu">as.character</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">10</span>),</span>
+<span id="cb5-53"><a href="#cb5-53" aria-hidden="true" tabindex="-1"></a>    <span class="at">sec.axis =</span> <span class="fu">sec_axis</span>(</span>
+<span id="cb5-54"><a href="#cb5-54" aria-hidden="true" tabindex="-1"></a>      <span class="sc">~</span> . <span class="sc">/</span> <span class="dv">40</span>,</span>
+<span id="cb5-55"><a href="#cb5-55" aria-hidden="true" tabindex="-1"></a>      <span class="at">breaks =</span> (<span class="dv">0</span><span class="sc">:</span><span class="dv">10</span>) <span class="sc">/</span> <span class="dv">40</span>,                       </span>
+<span id="cb5-56"><a href="#cb5-56" aria-hidden="true" tabindex="-1"></a>      <span class="at">labels =</span> <span class="fu">sprintf</span>(<span class="st">"%.2f"</span>, (<span class="dv">0</span><span class="sc">:</span><span class="dv">10</span>) <span class="sc">/</span> <span class="dv">40</span>),</span>
+<span id="cb5-57"><a href="#cb5-57" aria-hidden="true" tabindex="-1"></a>      <span class="at">name =</span> <span class="fu">expression</span>(Delta))) <span class="sc">+</span></span>
+<span id="cb5-58"><a href="#cb5-58" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(</span>
+<span id="cb5-59"><a href="#cb5-59" aria-hidden="true" tabindex="-1"></a>    <span class="at">name =</span> <span class="st">"Method"</span>,</span>
+<span id="cb5-60"><a href="#cb5-60" aria-hidden="true" tabindex="-1"></a>    <span class="at">values =</span> <span class="fu">c</span>(<span class="st">"grey90"</span>, unc_dark, unc_light, <span class="st">"grey50"</span>)) <span class="sc">+</span></span>
+<span id="cb5-61"><a href="#cb5-61" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>(<span class="at">base_size =</span> <span class="dv">14</span>) <span class="sc">+</span></span>
+<span id="cb5-62"><a href="#cb5-62" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb5-63"><a href="#cb5-63" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.title =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">14</span>),</span>
+<span id="cb5-64"><a href="#cb5-64" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.text  =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">12</span>),</span>
+<span id="cb5-65"><a href="#cb5-65" aria-hidden="true" tabindex="-1"></a>    <span class="at">strip.text   =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">13</span>),</span>
+<span id="cb5-66"><a href="#cb5-66" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title   =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">14</span>),</span>
+<span id="cb5-67"><a href="#cb5-67" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.text    =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">12</span>),</span>
+<span id="cb5-68"><a href="#cb5-68" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.grid.minor =</span> <span class="fu">element_blank</span>()</span>
+<span id="cb5-69"><a href="#cb5-69" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb5-70"><a href="#cb5-70" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Number of Items with DIF (Out of 20)"</span>, </span>
+<span id="cb5-71"><a href="#cb5-71" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Estimate - True Value"</span>) <span class="sc">+</span></span>
+<span id="cb5-72"><a href="#cb5-72" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(</span>
+<span id="cb5-73"><a href="#cb5-73" aria-hidden="true" tabindex="-1"></a>    <span class="sc">~</span> n.persons, <span class="at">nrow =</span> <span class="dv">3</span>,</span>
+<span id="cb5-74"><a href="#cb5-74" aria-hidden="true" tabindex="-1"></a>    <span class="at">scales =</span> <span class="st">"free_y"</span>,</span>
+<span id="cb5-75"><a href="#cb5-75" aria-hidden="true" tabindex="-1"></a>    <span class="at">labeller =</span> <span class="fu">labeller</span>(</span>
+<span id="cb5-76"><a href="#cb5-76" aria-hidden="true" tabindex="-1"></a>      <span class="at">n.persons =</span> <span class="cf">function</span>(x) <span class="fu">paste0</span>(<span class="st">"Sample Size = "</span>, x))) <span class="sc">+</span> </span>
+<span id="cb5-77"><a href="#cb5-77" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylim</span>(<span class="fu">c</span>(<span class="sc">-</span>.<span class="dv">5</span>, .<span class="dv">75</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="sims_Halpin2024_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Bias table (for Appendix)</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>temp.bias <span class="ot">&lt;-</span> sim.bias[] <span class="sc">|&gt;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Method, n.persons, N.DIF) <span class="sc">|&gt;</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">bias =</span> <span class="fu">mean</span>(Bias, <span class="at">na.rm =</span> T),</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">SE =</span> <span class="fu">sd</span>(Bias, <span class="at">na.rm =</span> T))<span class="sc">|&gt;</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>()</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>sim.bias.wide <span class="ot">&lt;-</span> temp.bias[,<span class="sc">-</span><span class="dv">5</span>] <span class="sc">|&gt;</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_from  =</span> Method,</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_from =</span> bias) <span class="sc">|&gt;</span> </span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>()</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="co">#xtable::xtable(sim.bias.wide[, c(1, 2, 3, 4, 5, 6)], digits = 3)</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>sim.bias.wide</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   n.persons N.DIF         Naive           LRT          RDIF          True
+1        200     0  0.0022661821  0.0032592491  0.0015883074  0.0022661821
+2        200     1  0.0326529589  0.0227760303  0.0133492579  0.0087629259
+3        200     2  0.0505412216  0.0325634468  0.0165270500  0.0015130935
+4        200     3  0.0706355622  0.0421641571  0.0116790474 -0.0058694085
+5        200     4  0.0935850366  0.0585888368  0.0188722984 -0.0081896688
+6        200     5  0.1312636051  0.0931001354  0.0513576221  0.0063202741
+7        200     6  0.1530133815  0.1172792243  0.0604885447  0.0020484412
+8        200     7  0.1782390405  0.1491326583  0.1034146888  0.0026107763
+9        200     8  0.2124443582  0.1908545484  0.1393864655  0.0149003060
+10       200     9  0.2163162165  0.2053420656  0.1781493846 -0.0075292143
+11       200    10  0.2509873114  0.2528041440  0.2417981420  0.0031518350
+12       350     0 -0.0007570794 -0.0006891098 -0.0024779976 -0.0007570794
+13       350     1  0.0267335676  0.0109208347  0.0021425053  0.0019309025
+14       350     2  0.0527162144  0.0219563636  0.0078883227  0.0021477529
+15       350     3  0.0674188658  0.0213705275  0.0045193053 -0.0064656068
+16       350     4  0.0989583135  0.0380202930  0.0087689528 -0.0021440389
+17       350     5  0.1318185443  0.0620659835  0.0238776122  0.0062265600
+18       350     6  0.1482624334  0.0712885288  0.0209055366 -0.0052994503
+19       350     7  0.1765169078  0.1039991173  0.0473417650 -0.0004422366
+20       350     8  0.2045063435  0.1478326377  0.0831215040  0.0038409957
+21       350     9  0.2244221040  0.1915081099  0.1501560261 -0.0040158301
+22       350    10  0.2526172403  0.2577645222  0.2604571654  0.0007126776
+23       500     0  0.0031556877  0.0026463046  0.0012957858  0.0031556877
+24       500     1  0.0297944828  0.0101963019  0.0022820289  0.0048087155
+25       500     2  0.0471555446  0.0082910887 -0.0003662176 -0.0034630946
+26       500     3  0.0788526767  0.0216344021  0.0052697245  0.0035408424
+27       500     4  0.1051136236  0.0321910971  0.0101700713  0.0054495596
+28       500     5  0.1301027208  0.0407293872  0.0155197960  0.0044145266
+29       500     6  0.1491784483  0.0569260384  0.0135644563  0.0026995349
+30       500     7  0.1816462909  0.0800959891  0.0277522911  0.0063059079
+31       500     8  0.2041709317  0.1210763680  0.0519436937  0.0051043410
+32       500     9  0.2282994076  0.1864910396  0.1330469696  0.0058328244
+33       500    10  0.2504634299  0.2592353223  0.2337012341  0.0006514848</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># SE table (for Appendix)</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>sim.SE.wide <span class="ot">&lt;-</span> temp.bias[,<span class="sc">-</span><span class="dv">4</span>] <span class="sc">|&gt;</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_from  =</span> Method,</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_from =</span> SE) <span class="sc">|&gt;</span> </span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>()</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co">#xtable::xtable(sim.SE.wide[, c(1, 2, 3, 4, 5, 6)], digits = 3)</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>sim.SE.wide</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   n.persons N.DIF      Naive        LRT       RDIF       True
+1        200     0 0.11681166 0.11720605 0.12377044 0.11688966
+2        200     1 0.11872757 0.12084393 0.13001911 0.11984025
+3        200     2 0.11432745 0.11722509 0.12609465 0.11577987
+4        200     3 0.12111939 0.12672442 0.13198169 0.12391763
+5        200     4 0.12172730 0.12793441 0.13771130 0.12463000
+6        200     5 0.11692609 0.12714335 0.14407223 0.12205483
+7        200     6 0.10396138 0.11586964 0.14488678 0.11169977
+8        200     7 0.12130006 0.13486521 0.17567677 0.12729279
+9        200     8 0.11785723 0.13183294 0.18692498 0.12562324
+10       200     9 0.11564733 0.12310680 0.19915548 0.12277256
+11       200    10 0.11702023 0.12775190 0.21844298 0.13597771
+12       350     0 0.08265566 0.08269711 0.08966408 0.08271085
+13       350     1 0.09569505 0.09763483 0.10194884 0.09683720
+14       350     2 0.09296867 0.09633343 0.10162988 0.09424057
+15       350     3 0.09169195 0.09945110 0.10244677 0.09495200
+16       350     4 0.08790735 0.09608020 0.10399322 0.09088830
+17       350     5 0.08875961 0.10014319 0.10583820 0.09347650
+18       350     6 0.08965053 0.10454783 0.11503956 0.09409870
+19       350     7 0.08908488 0.10345088 0.14075766 0.09486334
+20       350     8 0.08984195 0.11489661 0.16993369 0.09842529
+21       350     9 0.08596823 0.11207115 0.20884820 0.09081343
+22       350    10 0.08954483 0.11744940 0.22452602 0.10016920
+23       500     0 0.07229468 0.07308209 0.07690347 0.07234296
+24       500     1 0.07054471 0.07160592 0.07374892 0.07047788
+25       500     2 0.07565180 0.07833019 0.08280531 0.07698010
+26       500     3 0.07434296 0.07990013 0.08211379 0.07691134
+27       500     4 0.07895570 0.08277522 0.08258600 0.07950698
+28       500     5 0.07245444 0.08123571 0.08910789 0.07423203
+29       500     6 0.07502951 0.08704361 0.09459239 0.07771199
+30       500     7 0.07088009 0.09358853 0.10429779 0.07710468
+31       500     8 0.07413004 0.10217742 0.15046974 0.07985563
+32       500     9 0.07453106 0.11786538 0.21722723 0.08185621
+33       500    10 0.07291552 0.11543583 0.24125434 0.08088547</code></pre>
+</div>
+</div>
+</section>
+<section id="error-rates" class="level1">
+<h1>Error rates</h1>
+<p>Figure 3 from the paper.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>sim.power <span class="ot">&lt;-</span> sim <span class="sc">|&gt;</span> </span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(method, n.persons, n.dif) <span class="sc">|&gt;</span> </span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">p.val =</span> <span class="fu">sum</span>(p.val <span class="sc">&lt;</span> .<span class="dv">05</span>, <span class="at">na.rm =</span> T)<span class="sc">/</span>n.reps) <span class="sc">|&gt;</span> </span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>()</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>sim.power<span class="sc">$</span>p.val[sim.power<span class="sc">$</span>method <span class="sc">==</span> <span class="st">"True"</span> <span class="sc">&amp;</span> sim.power<span class="sc">$</span>n.dif <span class="sc">==</span> <span class="dv">0</span>] <span class="ot">&lt;-</span> <span class="cn">NaN</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(sim.power, <span class="fu">aes</span>(<span class="at">x =</span> n.dif, <span class="at">y =</span> p.val, <span class="at">group =</span> method, <span class="at">color =</span> method)) <span class="sc">+</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>      <span class="at">yintercept =</span> <span class="fl">0.05</span>, <span class="at">linetype =</span> <span class="dv">3</span>, <span class="at">linewidth =</span> <span class="fl">0.9</span>, <span class="at">color =</span> <span class="st">"grey40"</span>) <span class="sc">+</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_hline</span>(</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>      <span class="at">yintercept =</span> <span class="fl">0.80</span>, <span class="at">linetype =</span> <span class="dv">3</span>, <span class="at">linewidth =</span> <span class="fl">0.9</span>, <span class="at">color =</span> <span class="st">"grey40"</span>) <span class="sc">+</span></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="fl">3.2</span>) <span class="sc">+</span></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> .<span class="dv">9</span>, <span class="at">linetype =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">name =</span> <span class="st">"Method"</span>,</span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">values =</span> <span class="fu">c</span>(unc_dark, unc_light, <span class="st">"grey50"</span>)) <span class="sc">+</span></span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(</span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">breaks =</span> <span class="dv">0</span><span class="sc">:</span><span class="dv">10</span>,</span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">labels =</span> <span class="fu">as.character</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">10</span>),</span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">sec.axis =</span> <span class="fu">sec_axis</span>(</span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>      <span class="sc">~</span> . <span class="sc">/</span> <span class="dv">40</span>,</span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>      <span class="at">breaks =</span> (<span class="dv">0</span><span class="sc">:</span><span class="dv">10</span>) <span class="sc">/</span> <span class="dv">40</span>,                       </span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>      <span class="at">labels =</span> <span class="fu">sprintf</span>(<span class="st">"%.2f"</span>, (<span class="dv">0</span><span class="sc">:</span><span class="dv">10</span>) <span class="sc">/</span> <span class="dv">40</span>),</span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>      <span class="at">name =</span> <span class="fu">expression</span>(Delta))) <span class="sc">+</span></span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>(<span class="at">base_size =</span> <span class="dv">14</span>) <span class="sc">+</span></span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.title =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">14</span>),</span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.text  =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">12</span>),</span>
+<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a>    <span class="at">strip.text   =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">13</span>),</span>
+<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title   =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">14</span>),</span>
+<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.text    =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">12</span>),</span>
+<span id="cb10-34"><a href="#cb10-34" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.grid.minor =</span> <span class="fu">element_blank</span>()) <span class="sc">+</span> </span>
+<span id="cb10-35"><a href="#cb10-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Number of Items with DIF (Out of 20)"</span>, <span class="at">y =</span> <span class="st">"Rejection Rate"</span>) <span class="sc">+</span> </span>
+<span id="cb10-36"><a href="#cb10-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(</span>
+<span id="cb10-37"><a href="#cb10-37" aria-hidden="true" tabindex="-1"></a>    <span class="sc">~</span> n.persons, <span class="at">nrow =</span> <span class="dv">3</span>,</span>
+<span id="cb10-38"><a href="#cb10-38" aria-hidden="true" tabindex="-1"></a>    <span class="at">labeller =</span> <span class="fu">labeller</span>(<span class="at">n.persons =</span> <span class="cf">function</span>(x) <span class="fu">paste0</span>(<span class="st">"Sample Size = "</span>, x))) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="sims_Halpin2024_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Tabular version (for Appendix)</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>sim.power.wide <span class="ot">&lt;-</span> sim.power <span class="sc">|&gt;</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_from  =</span> method,</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_from =</span> p.val) <span class="sc">|&gt;</span> </span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>()</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="co">#xtable::xtable(sim.power.wide, digits = 3)</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>sim.power.wide</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   n.persons n.dif   LRT  RDIF  True
+1        200     0 0.042 0.058   NaN
+2        200     1 0.278 0.122 0.516
+3        200     2 0.392 0.168 0.710
+4        200     3 0.512 0.232 0.860
+5        200     4 0.562 0.374 0.930
+6        200     5 0.582 0.390 0.946
+7        200     6 0.540 0.460 0.970
+8        200     7 0.520 0.536 0.976
+9        200     8 0.468 0.556 0.966
+10       200     9 0.460 0.582 0.996
+11       200    10 0.388 0.576 0.982
+12       350     0 0.056 0.072   NaN
+13       350     1 0.484 0.154 0.698
+14       350     2 0.714 0.280 0.918
+15       350     3 0.814 0.380 0.968
+16       350     4 0.868 0.572 0.990
+17       350     5 0.858 0.692 1.000
+18       350     6 0.854 0.768 0.998
+19       350     7 0.784 0.806 0.998
+20       350     8 0.684 0.826 0.998
+21       350     9 0.614 0.842 1.000
+22       350    10 0.554 0.844 1.000
+23       500     0 0.052 0.066   NaN
+24       500     1 0.654 0.150 0.834
+25       500     2 0.856 0.344 0.976
+26       500     3 0.910 0.562 0.994
+27       500     4 0.942 0.704 1.000
+28       500     5 0.946 0.822 1.000
+29       500     6 0.924 0.876 1.000
+30       500     7 0.902 0.926 1.000
+31       500     8 0.804 0.932 1.000
+32       500     9 0.666 0.938 1.000
+33       500    10 0.642 0.930 0.998</code></pre>
+</div>
+</div>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+        const codeEl = trigger.previousElementSibling.cloneNode(true);
+        for (const childEl of codeEl.children) {
+          if (isCodeAnnotation(childEl)) {
+            childEl.remove();
+          }
+        }
+        return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
