@@ -10,13 +10,13 @@ Halpin, P.F. (2024) Differential Test Functioning Via Robust Scaling. Arxiv Prep
 
 The replication code is contained in the folder Halpin2024_R
 
-This version of the `robustDIF` package was used for that paper. Please see the master branch for up-to-date version of the package. 
+This version of the `robustDIF` package was used for that paper. Please see the master branch for the up-to-date version of the package. 
 
 # Installation
 
 ```{r, eval = FALSE}
 install.packages("remotes")
-remotes::install_github("peterhalpin/robustDIF")
+remotes::install_github("peterhalpin/robustDIF@Halpin2024")
 library(robustDIF)
 ```
 
