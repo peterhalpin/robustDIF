@@ -2,24 +2,29 @@
 % Please edit documentation in R/robustDIF_functions.R
 \name{delta_test}
 \alias{delta_test}
-\title{Wald tests of overall DIF in IRT scale parameters.}
+\title{Wald test of differential test functioning.}
 \usage{
-delta_test(mle, fun = "d_fun3", alpha = 0.05)
+delta_test(mle, theta, k, fun = "d_fun3")
 }
 \arguments{
 \item{mle}{the output of \code{\link[robustDIF]{get_model_parms}}}
 
-\item{fun}{one of \code{c("a_fun1", "a_fun2", "d_fun1", "d_fun2", "d_fun3")}. See description for details.}
+\item{theta}{the estimated scaling parameter from \code{\link[robustDIF]{rdif}}}
 
-\item{alpha}{the desired false positive rate for flagging items with DIF.}
+\item{k}{the tuning parameter from \code{\link[robustDIF]{rdif}}}
+
+\item{fun}{one of \code{c("a_fun1", "a_fun2", "d_fun1", "d_fun2", "d_fun3")}. See description for details.}
 }
 \value{
-A data.frame whose rows containing the results of the test for each variation of the bi-square loss function.
+A data.frame that contains the output of the test.
 }
 \description{
-Tests for overall DIF in the IRT scale parameter using several variations of the bi-square loss function.
+A Wald test of the difference between the unweighted mean of the \code{\link[robustDIF]{y_fun}} and robust scaling parameter from \code{\link[robustDIF]{rdif}}. Called internally by \code{\link[robustDIF]{rdif}}
 }
 \examples{
-# Test thresholds, using the built-in example dataset "rdif.eg"
-\dontrun{delta_test(mle = rdif.eg, fun = "d_fun3")}
+#
+\dontrun{
+mod <- rdif(mle = rdif.eg)
+delta_test(mle = rdif.eg, theta = mod$est)
+}
 }

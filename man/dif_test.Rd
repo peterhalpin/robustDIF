@@ -2,14 +2,14 @@
 % Please edit documentation in R/robustDIF_functions.R
 \name{dif_test}
 \alias{dif_test}
-\title{Wald tests of DIF for individual item parameters.}
+\title{Wald tests of differential item functioning (DIF).}
 \usage{
-dif_test(mle, theta = NULL, fun = "d_fun3")
+dif_test(mle, theta, fun = "d_fun3")
 }
 \arguments{
 \item{mle}{the output of \code{\link[robustDIF]{get_model_parms}}}
 
-\item{theta}{(optional) the scaling parameter.}
+\item{theta}{the estimated scaling parameter from \code{\link[robustDIF]{rdif}}}
 
 \item{fun}{one of \code{c("a_fun1", "a_fun2", "d_fun1", "d_fun2", "d_fun3")}. See description for details.}
 }
@@ -17,18 +17,11 @@ dif_test(mle, theta = NULL, fun = "d_fun3")
 A data.frame whose rows containing the results of the test for each item parameter.
 }
 \description{
-Tests for DIF in each value of \code{y_fun} using asymptotic z-test. If \code{theta} is not provided,  \code{\link[robustDIF]{rdif}} is called internally using default values.
+A Wald test of DIF on each item. Called internally by \code{\link[robustDIF]{rdif}}
 }
 \examples{
-# Test thresholds, using the built-in example dataset "rdif.eg"
 \dontrun{
-rdif.d <- rdif(mle = rdif.eg, fun = "d_fun3")
-rdif_z_test(mle = rdif.eg, theta = rdif.d$est, fun = "d_fun3")
-}
-
-# Test slopes
-\dontrun{
-rdif.a <- rdif(mle = rdif.eg, par = "a_fun1")
-rdif_z_test(mle = rdif.eg, theta = rdif.d$est, fun = "a_fun1")
+mod <- rdif(mle = rdif.eg)
+dif_test(mle = rdif.eg, theta = mod$est)
 }
 }

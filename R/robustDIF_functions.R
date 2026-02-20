@@ -352,10 +352,10 @@ bsq_weight <- function(u, k = 1.96) {
 #' @param maxit maximum number of iterations
 #' @param method one of \code{c("irls", "newton")}. Currently, only IRLS is implemented.
 #'
-#' @return A named list containing the estimate of the IRT scale parameter, the bi-square weights, the number of iterations performed, and the value of the convergence criterion (difference of  estimate between subsequent iterations). If multiple solutions were found, the one with the lowest value of the bi-square objective function is returned and the other solutions are appended to the list as \code{other.solutions}.
+#' @return An \code{rdif} object.
 #'
 #' @description
-#' Estimation can be performed using iteratively re-weighted least squares (IRLS) or Newton-Raphson (NR). Currently, only IRLS is implemented. If \code{starting.value = "all"}, three starting values are computed: the median of \code{\link[robustDIF]{y_fun}}, the least trimmed squares estimate of location for \code{\link[robustDIF]{y_fun}} with 50-percent trim rate, and the minimum of \code{\link[robustDIF]{rho_grid}}. The estimate is computed from each starting value, and the solution with the lowest value of the bi-square objective function is returned. If there are multiple solutions, the other solutions are appended to the output list as \code{other.solutions}.
+#' Estimation can be performed using iteratively re-weighted least squares (IRLS) or Newton-Raphson (NR). Currently, only IRLS is implemented. If \code{starting.value = "all"}, three starting values are computed: the median of \code{\link[robustDIF]{y_fun}}, the least trimmed squares estimate of location for \code{\link[robustDIF]{y_fun}} with 50-percent trim rate, and the minimum of \code{\link[robustDIF]{rho_grid}}. The estimate is computed from each starting value, and the solution with the lowest value of the bi-square objective function is returned. If there are multiple solutions, they are stored \code{other.solutions}.
 #'
 #'
 #' @examples
@@ -384,8 +384,10 @@ rdif <- function(mle,
   # Starting values
   starts <- get_starts(mle, fun, alpha)
 
-  # # Tuning parameter
+  # Tuning parameter
   k <- qnorm(1 - alpha/2, 0, 1)
+
+  # # Adpative tuning
   # if (abs(mean(y) - starts[3]) <= 1.5*abs(starts[1] - starts[3])) {
   #    k <- 4.685
   # } else {
@@ -445,7 +447,7 @@ rdif <- function(mle,
     conv <- 1
   }
 
-  # Return solution(s)
+  # Check for multiple solutions
   rho.values <- sapply(sols, function(x) x$rho.value)
   min.sol <- which.min(rho.values)[1]
   out <- sols[[min.sol]]
@@ -453,7 +455,22 @@ rdif <- function(mle,
   if (out$multiple.solutions) {
     out$other.solutions <- sols[ -min.sol]
   }
- out
+
+  # Append data
+  out$data <- mle
+
+  # Call dif_test and delta_test
+  if (!is.na(out[["est"]])) {
+    out.est <- out[["est"]]
+    out$dif.test  <- dif_test(mle, theta = out.est, fun = fun)
+    out$delta.test <- delta_test(mle = mle, theta = out.est, k = k, fun = fun)
+  }
+
+  # Calls rho_grid using default grid.width
+  out$rho.plot <- rho_grid(mle = mle, fun = fun, alpha = alpha)
+
+  class(out) <- "rdif"
+  out
 }
 
 
@@ -548,34 +565,23 @@ rho_grid <- function(mle, fun = "d_fun3", alpha = .05, grid.width = .01){
 }
 
 # -------------------------------------------------------------------
-#' Wald tests of DIF for individual item parameters.
+#' Wald tests of differential item functioning (DIF).
 #'
-#' Tests for DIF in each value of \code{y_fun} using asymptotic z-test. If \code{theta} is not provided,  \code{\link[robustDIF]{rdif}} is called internally using default values.
+#' A Wald test of DIF on each item. Called internally by \code{\link[robustDIF]{rdif}}
 #'
 #' @inheritParams y_fun
-#' @param theta (optional) the scaling parameter.
+#' @param theta the estimated scaling parameter from \code{\link[robustDIF]{rdif}}
 #' @return A data.frame whose rows containing the results of the test for each item parameter.
 #'
 #' @examples
-#' # Test thresholds, using the built-in example dataset "rdif.eg"
 #' \dontrun{
-#' rdif.d <- rdif(mle = rdif.eg, fun = "d_fun3")
-#' rdif_z_test(mle = rdif.eg, theta = rdif.d$est, fun = "d_fun3")
-#' }
-#'
-#' # Test slopes
-#' \dontrun{
-#' rdif.a <- rdif(mle = rdif.eg, par = "a_fun1")
-#' rdif_z_test(mle = rdif.eg, theta = rdif.d$est, fun = "a_fun1")
+#' mod <- rdif(mle = rdif.eg)
+#' dif_test(mle = rdif.eg, theta = mod$est)
 #' }
 #' @export
 # -------------------------------------------------------------------
 
-dif_test <- function(mle, theta = NULL, fun = "d_fun3") {
-  if (is.null(theta)) {
-    rdif.out <- rdif(mle, fun)
-    theta <- rdif.out$est
-  }
+dif_test <- function(mle, theta, fun = "d_fun3") {
   y <- y_fun(mle, fun)
   numerator <- y - theta
 
@@ -598,41 +604,45 @@ dif_test <- function(mle, theta = NULL, fun = "d_fun3") {
 }
 
 # -------------------------------------------------------------------
-#' Wald tests of overall DIF in IRT scale parameters.
+#' Wald test of differential test functioning.
 #'
-#' Tests for overall DIF in the IRT scale parameter using several variations of the bi-square loss function.
+#' A Wald test of the difference between the unweighted mean of the \code{\link[robustDIF]{y_fun}} and robust scaling parameter from \code{\link[robustDIF]{rdif}}. Called internally by \code{\link[robustDIF]{rdif}}
+#'
+
 #' @inheritParams y_fun
-#' @param alpha the desired false positive rate for flagging items with DIF.
-#' @return A data.frame whose rows containing the results of the test for each variation of the bi-square loss function.
+#' @param theta the estimated scaling parameter from \code{\link[robustDIF]{rdif}}
+#' @param k the tuning parameter from \code{\link[robustDIF]{rdif}}
+
+#' @return A data.frame that contains the output of the test.
 #' @examples
-#' # Test thresholds, using the built-in example dataset "rdif.eg"
-#' \dontrun{delta_test(mle = rdif.eg, fun = "d_fun3")}
+#' #
+#' \dontrun{
+#' mod <- rdif(mle = rdif.eg)
+#' delta_test(mle = rdif.eg, theta = mod$est)
+#' }
 #' @export
 # -------------------------------------------------------------------
 
-delta_test <- function(mle, fun = "d_fun3", alpha = 0.05)
+delta_test <- function(mle, theta, k, fun = "d_fun3")
 {
   # Set up
   y <- y_fun(mle, fun)
   n <- length(y)
   y.bar <- mean(y)
-  rdif.out <- rdif(mle, fun, alpha)
-  rdif.theta <- rdif.out$est
-  delta <- y.bar - rdif.theta
+  delta <- y.bar - theta
 
   vcov.y <- vcov_y(mle, theta = NULL, fun) # for sandwich
-  var.y <- Matrix::diag(vcov_y(mle, theta = rdif.theta, fun)) # for bsq
-  u <- (y - rdif.theta) / sqrt(var.y)
-  k <-  rdif.out$k
+  var.y <- Matrix::diag(vcov_y(mle, theta = theta, fun)) # for bsq
+  u <- (y - theta) / sqrt(var.y)
   psi.prime <- psi_prime(u, k)
 
-  # Variance weights
+  # Variance weights (uses clamping for negative psi.prime)
   v.bar <- rep(1/n, n)
   v.psi.prime <- (pmax(psi.prime, 0)  / var.y) / sum(pmax(psi.prime, 0) / var.y)
 
   # SEs
   se.y.bar <- sqrt(t(v.bar)%*%vcov.y%*%(v.bar))[1,1]
-  se.rdif.theta <- sqrt(t(v.psi.prime)%*%vcov.y%*%(v.psi.prime))[1,1]
+  se.rdif <- sqrt(t(v.psi.prime)%*%vcov.y%*%(v.psi.prime))[1,1]
   se.delta <- sqrt(t(v.bar - v.psi.prime)%*%vcov.y%*%(v.bar - v.psi.prime))[1,1]
 
   # Delta test
@@ -643,15 +653,34 @@ delta_test <- function(mle, fun = "d_fun3", alpha = 0.05)
   data.frame(
     naive.est = y.bar,
     naive.se = se.y.bar,
-    rdif.est = rdif.theta,
-    rdif.se = se.rdif.theta,
+    rdif.est = theta,
+    rdif.se = se.rdif,
     delta = delta,
     delta.se = se.delta,
     z.test = z,
     p.val = p.val)
 }
 
-delta_test_from_dif <- function(dif.items, mle, fun = "d_fun3", alpha = 0.05)
+# -------------------------------------------------------------------
+#' Wald test of differential test functioning.
+#'
+#' A Wald test of the difference between the unweighted mean of the \code{\link[robustDIF]{y_fun}} computed for all items, and the unweighted mean excluding \code{dif.items}.
+#'
+
+#' @inheritParams y_fun
+#' @param dif.items the indices of the items with DIF.
+
+#' @return A data.frame that contains the output of the test.
+#' @examples
+#' #
+#' \dontrun{
+#' # Test for DTF omitting the first two items.
+#' delta_test_from_dif(mle = rdif.eg, dif.items = c(1, 2))
+#' }
+#' @export
+# -------------------------------------------------------------------
+
+delta_test_from_dif <- function(mle, dif.items, fun = "d_fun3")
 {
   # Set up
   y <- y_fun(mle, fun)
