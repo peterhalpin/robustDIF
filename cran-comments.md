@@ -13,7 +13,7 @@
 ## Notes
 * This is a new submission.
 * The only NOTE is `Possibly misspelled words in DESCRIPTION`.
-* The flagged terms are an intentional domain-specific acronym (DIF) and a proper name (author name), and are not typos.
+* The flagged terms are an intentional domain-specific acronym (DIF) and a proper name (author name), not typos.
 
 ## Downstream dependencies
 No reverse dependency checks were run.
