@@ -5,6 +5,8 @@ R\test.R
 ^README\.Rmd$
 ^README\.qmd$
 ^README\.html$
+^technical-notes\.qmd$
+^technical-notes\.html$
 ^README_files$
 ^robustDIF_12_20_2025\.qmd$
 ^robustDIF_12_20_2025\.html$

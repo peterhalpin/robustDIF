@@ -6,9 +6,12 @@ if (identical(quarto, "")) {
   )
 }
 
-status <- system2(quarto, c("render", "README.qmd"))
-if (!identical(status, 0L)) {
-  stop("Quarto render failed.", call. = FALSE)
+targets <- c("README.qmd", "technical-notes.qmd")
+for (target in targets) {
+  status <- system2(quarto, c("render", target))
+  if (!identical(status, 0L)) {
+    stop(sprintf("Quarto render failed for %s.", target), call. = FALSE)
+  }
 }
 
-message("Rendered README.md and README.html from README.qmd")
+message("Rendered README.md, README.html, and technical-notes.html")
