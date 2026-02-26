@@ -4,10 +4,12 @@
 \alias{summary.rdif}
 \title{S3 summary method for objects of class "rdif"}
 \usage{
-\method{summary}{rdif}(object)
+\method{summary}{rdif}(object, ...)
 }
 \arguments{
 \item{object}{An object of class 'rdif', a saved list of values from \code{rdif()}}
+
+\item{...}{Additional arguments passed through from the generic.}
 }
 \value{
 A printed summary of values

@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Peter F Halpin">
-<meta name="dcterms.date" content="2026-01-22">
+<meta name="dcterms.date" content="2026-02-26">
 
 <title>robustDIF</title>
 <style>
@@ -2342,7 +2342,7 @@ window.Quarto = {
   </ul></li>
   <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references"><span class="header-section-number">5</span> References</a></li>
   </ul>
-</nav>
+<div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="README.md"><i class="bi bi-file-code"></i>Github (GFM)</a></li></ul></div></nav>
 </div>
 <main class="content" id="quarto-document-content">
 
@@ -2365,7 +2365,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">January 22, 2026</p>
+      <p class="date">February 26, 2026</p>
     </div>
   </div>
   
@@ -2377,22 +2377,21 @@ window.Quarto = {
 </header>
 
 
-<hr>
 <section id="robustdif" class="level1" data-number="1">
 <h1 data-number="1"><span class="header-section-number">1</span> robustDIF</h1>
 <p>An R package that provides functions for assessing differential item functioning (DIF) in item response theory (IRT) models using methods from robust statistics. Based on the paper:</p>
-<p>Halpin, P.F. (2022) Differential Item Functioning Via Robust Scaling. Arxiv Preprint. <a href="https://arxiv.org/abs/2207.04598">https://arxiv.org/abs/2207.04598</a>. Published in Psychometrika in 2024 under the same title.</p>
+<p>Halpin, P.F. (2022) Differential Item Functioning Via Robust Scaling. arXiv preprint. <a href="https://arxiv.org/abs/2207.04598">https://arxiv.org/abs/2207.04598</a>. Published in Psychometrika in 2024 under the same title.</p>
 <p>Recent additions:</p>
 <ul>
 <li>Support for graded response model</li>
-<li>Read functions for and </li>
-<li>Test whether naive estimates of impact are affected by DIF ()</li>
+<li>Read functions for <code>mirt</code> and <code>lavaan</code></li>
+<li>Test whether naive estimates of impact are affected by DIF (<code>delta_test</code>)</li>
 </ul>
 <p>Under development:</p>
 <ul>
 <li>S3 rdif class with supporting methods</li>
 <li>Multi-parameter tests of DIF / measurement invariance</li>
-<li>Additionalmodels and multiple groups</li>
+<li>Additional models and multiple groups</li>
 </ul>
 <p>A discussion of the methodology follows the code illustration.</p>
 </section>
@@ -2403,18 +2402,13 @@ window.Quarto = {
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">&quot;peterhalpin/robustDIF&quot;</span>)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(robustDIF)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell">
-<div class="cell-output cell-output-stderr">
-<pre><code>Loading required package: Matrix</code></pre>
-</div>
-</div>
 </section>
 <section id="illustration" class="level1" data-number="3">
 <h1 data-number="3"><span class="header-section-number">3</span> Illustration</h1>
 <section id="example-dataset" class="level2" data-number="3.1">
 <h2 data-number="3.1" class="anchored" data-anchor-id="example-dataset"><span class="header-section-number">3.1</span> Example Dataset</h2>
 <p>The main user-facing functions are illustrated below using the built-in example dataset <code>rdif.eg</code>. In the example dataset, there are a total of five binary items and the first item has DIF on the intercept (threshold) equal to 1/2 SD on the latent trait. The latent trait was generated from <em>N</em>(0,1) in the reference group and <em>N</em>(.5, 1) in the comparison group.</p>
-<p>Check out the documentation for <code>rdif.eg</code> and <code>get_model_parms</code> for more info about how to format data for use with <code>robustDIF</code>.</p>
+<p>Check out the documentation for <code>rdif.eg</code> and <code>get_model_parms</code> for more info about formatting model output for use with <code>robustDIF</code>.</p>
 </section>
 <section id="choice-of-scaling-functions" class="level2" data-number="3.2">
 <h2 data-number="3.2" class="anchored" data-anchor-id="choice-of-scaling-functions"><span class="header-section-number">3.2</span> Choice of Scaling Functions</h2>
@@ -2473,38 +2467,19 @@ window.Quarto = {
 <section id="robust-scaling" class="level2" data-number="3.3">
 <h2 data-number="3.3" class="anchored" data-anchor-id="robust-scaling"><span class="header-section-number">3.3</span> Robust Scaling</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rdif</span>(<span class="at">mle =</span> rdif.eg, <span class="at">fun =</span> <span class="st">&quot;d_fun3&quot;</span>, <span class="at">alpha =</span> .<span class="dv">05</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>mod <span class="ot">&lt;-</span> <span class="fu">rdif</span>(<span class="at">mle =</span> rdif.eg, <span class="at">fun =</span> <span class="st">&quot;d_fun3&quot;</span>, <span class="at">alpha =</span> .<span class="dv">05</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>mod</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>$est
-[1] 0.3761707
-
-$weights
- item1_d1  item2_d1  item3_d1  item4_d1  item5_d1 
-0.0000000 0.9979409 0.9919637 0.9995349 0.2535865 
-
-$rho.value
-[1] 1.888116
-
-$n.iter
-[1] 6
-
-$epsilon
-[1] 5.426662e-08
-
-$k
-[1] 1.959964
-
-$multiple.solutions
-[1] FALSE</code></pre>
+<pre><code>Est: 0.3761707     SE: 0.09282802 </code></pre>
 </div>
 </div>
-<p>The estimated scaling parameter is equal to approximately 0.38. We can see that the first item was downweighted to zero when estimating the scaling parameter. Note that the standard error of the scaling parameter is not provided by <code>rdif</code> but is available via <code>delta_test</code>.</p>
+<p>The estimated scaling parameter is approximately 0.38. The first item is downweighted to zero when estimating the scaling parameter.</p>
 </section>
 <section id="wald-tests-of-dif" class="level2" data-number="3.4">
 <h2 data-number="3.4" class="anchored" data-anchor-id="wald-tests-of-dif"><span class="header-section-number">3.4</span> Wald Tests of DIF</h2>
-<p>Inferences about DIF can be made via Wald tests of whether the item-level scaling function differs from the estimated scaling parameter.</p>
+<p>Inferences about DIF can be made via Wald tests of whether the item-level scaling function differs from the estimated scaling parameter. Using the intended workflow, pass the <code>rdif</code> object directly:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">dif_test</span>(<span class="at">mle =</span> rdif.eg, <span class="at">fun =</span> <span class="st">&quot;d_fun3&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">dif_test</span>(mod)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>                delta         se      z.test        p.val
 item1_d1  0.351129635 0.09867331  3.55850682 0.0003729691
@@ -2520,7 +2495,7 @@ item5_d1 -0.357290253 0.24134142 -1.48043486 0.1387572332</code></pre>
 <h2 data-number="3.5" class="anchored" data-anchor-id="testing-whether-dif-affects-conclusions-about-impact"><span class="header-section-number">3.5</span> Testing Whether DIF Affects Conclusions about Impact</h2>
 <p>One may wish to know whether any DIF, if present, affects conclusions about impact (i.e., how the groups differ on the latent trait). One way to approach this question is to compare a naive estimate of impact that ignores DIF to an estimator that is robust to DIF. In <code>robustDIF</code>, the naive estimator is chosen to be the unweighted mean of the item-level functions (i.e., the usual IRT moment-based scaling procedure). The robust estimator is as above. The null hypothesis that both estimators are consistent for the “true” scaling parameter leads to the following test.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">delta_test</span>(<span class="at">mle =</span> rdif.eg, <span class="at">fun =</span> <span class="st">&quot;d_fun3&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">delta_test</span>(mod)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>  naive.est   naive.se  rdif.est    rdif.se       delta   delta.se    z.test
 1 0.3783724 0.09673559 0.3761707 0.09282802 0.002201709 0.06256331 0.0351917
@@ -2533,10 +2508,10 @@ item5_d1 -0.357290253 0.24134142 -1.48043486 0.1387572332</code></pre>
 <section id="the-rho-function" class="level2" data-number="3.6">
 <h2 data-number="3.6" class="anchored" data-anchor-id="the-rho-function"><span class="header-section-number">3.6</span> The Rho Function</h2>
 <p>For data analyses, it is useful to check whether the robust estimator has a clear global minimum before proceeding to make inferences about DIF / Impact.<br>
-In <code>robustDIF</code>, the minimization problem is described by <code>rho_fun</code>.</p>
+In <code>robustDIF</code>, the minimization problem is described by <code>rho_grid</code>.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>rho <span class="ot">&lt;-</span> <span class="fu">rho_grid</span>(<span class="at">mle =</span> rdif.eg, <span class="at">fun =</span> <span class="st">&quot;d_fun3&quot;</span>, <span class="at">grid.width =</span> .<span class="dv">01</span>)</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(rho<span class="sc">$</span>theta, rho<span class="sc">$</span>rho, <span class="at">type =</span> <span class="st">&quot;l&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>rho <span class="ot">&lt;-</span> <span class="fu">rho_grid</span>(<span class="at">mle =</span> rdif.eg, <span class="at">fun =</span> <span class="st">&quot;d_fun3&quot;</span>, <span class="at">grid.width =</span> .<span class="dv">01</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(rho<span class="sc">$</span>theta, rho<span class="sc">$</span>rho, <span class="at">type =</span> <span class="st">&quot;l&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -2545,14 +2520,14 @@ In <code>robustDIF</code>, the minimization problem is described by <code>rho_fu
 </div>
 </div>
 </div>
-<p>Note the minimizing values of theta in the plots corresponds to the values reported by <code>rdif</code> above.</p>
+<p>Note the minimizing value of theta in the plot corresponds to the value reported by <code>rdif</code> above.</p>
 </section>
 </section>
 <section id="technical-notes" class="level1" data-number="4">
 <h1 data-number="4"><span class="header-section-number">4</span> Technical Notes</h1>
-<p>These notes oultine an updated version of the robust DIF procedure described in Halpin (2022) that is now implemented by the <code>robustDIF</code> package.</p>
+<p>These notes outline an updated version of the robust DIF procedure described in Halpin (2022) that is now implemented by the <code>robustDIF</code> package.</p>
 <p>Assume two groups of respondents with sample sizes <span class="math inline">\(n_1\)</span> and <span class="math inline">\(n_2\)</span> and let <span class="math inline">\(n = n_1 + n_2\)</span>. Also let <span class="math inline">\(Y = (Y_1,\dots,Y_m)^\top\)</span> denote item-level statistics derived from the parameter estimates of items <span class="math inline">\(i = 1, \dots m\)</span>. The asymptotic arguments presented below assume that <span class="math inline">\(n_1\)</span> and <span class="math inline">\(n_2\)</span> go to infinity at the same rate but that the number of items <span class="math inline">\(m\)</span> remains fixed and finite.</p>
-<p>The <span class="math inline">\(Y_i\)</span> are chosen so that <span class="math inline">\(\sqrt{n}(\boldsymbol{Y} - \theta_0 \mathbf 1)\overset{P}\rightarrow N(0, \Sigma_0)\)</span> under the null hypothesis of no DIF on any item. In this set-up, DIF means that <span class="math inline">\(Y_i\)</span> converges in probability to a fixed value other than <span class="math inline">\(\theta_0\)</span>. Some specific choices of <span class="math inline">\(Y_i\)</span> are detailed in Halpin (2024, 2025) and Halpin &amp; Gilbert (2025). The notation <span class="math inline">\(V_0(\boldsymbol{Y}) = \Sigma_0/n\)</span> is used to denote the finite sample variance of <span class="math inline">\(\boldsymbol{Y}\)</span>, and similarly for other statistics.</p>
+<p>The <span class="math inline">\(Y_i\)</span> are chosen so that <span class="math inline">\(\sqrt{n}(\boldsymbol{Y} - \theta_0 \mathbf 1)\overset{d}\rightarrow N(0, \Sigma_0)\)</span> under the null hypothesis of no DIF on any item. In this set-up, DIF means that <span class="math inline">\(Y_i\)</span> converges in probability to a fixed value other than <span class="math inline">\(\theta_0\)</span>. Some specific choices of <span class="math inline">\(Y_i\)</span> are detailed in Halpin (2024, 2025) and Halpin &amp; Gilbert (2025). The notation <span class="math inline">\(V_0(\boldsymbol{Y}) = \Sigma_0/n\)</span> is used to denote the finite sample variance of <span class="math inline">\(\boldsymbol{Y}\)</span>, and similarly for other statistics.</p>
 <p>The robust DIF procedure can be seen as solving two interrelated problems. First, it provides an M-estimator of <span class="math inline">\(\theta_0\)</span> that is highly robust to DIF. Second, it provides a procedure for flagging items with DIF, which happens automatically as a by-product of estimating <span class="math inline">\(\theta_0\)</span>. Standard Wald tests of DIF are also available.</p>
 <p>Halpin (2024) used the (unstated) assumption that <span class="math inline">\(\Sigma_0\)</span> is diagonal and attempted to combine efficiency and robustness in a way that did not clearly separate these two opposing considerations. These notes address these shortcomings and implement a new, simpler and more general, version of the robust DIF procedure. The analytical details are stated so that they apply to any bounded, redescending loss function, although for computation the focus is on Tukey’s bisquare. Differences with Halpin (2022) are pointed out as they arise.</p>
 <section id="the-updated-robust-dif-procedure" class="level2" data-number="4.1">
@@ -2571,20 +2546,20 @@ In <code>robustDIF</code>, the minimization problem is described by <code>rho_fu
 <p>The scaling factors <span class="math inline">\(s_i\)</span> are required to ensure that <span class="math inline">\(\tilde\theta\)</span> is equivariant under re-scaling of the <span class="math inline">\(Y_i\)</span>. In conventional applications, the <span class="math inline">\(Y_i\)</span> are “raw” data points and the scaling factors <span class="math inline">\(s_i = s\)</span> are chosen to be an ancillary estimate of the scale of the <span class="math inline">\(Y_i\)</span> (e.g., the median absolute deviation or MAD). In this situation, the scaling factors are constant over <span class="math inline">\(i\)</span>, so they factor out of the estimating equation and cancel out in the numerator and denominator of the normalized weights <span class="math inline">\(w_i\)</span>.</p>
 <p>In the present application, item-specific scaling factors <span class="math inline">\(s_i\)</span> are available because we can derive <span class="math inline">\(\Sigma_0\)</span> (the asymptotic covariance matrix of the <span class="math inline">\(Y_i\)</span> under the null hypothesis of no DIF) by applying the Delta method to the item parameter estimates. As shown above, this somewhat complicates the relationship among the different definitions of <span class="math inline">\(\tilde\theta\)</span>, because it is now important to keep track of how the item-specific scaling factors appear in the different definitions. However, the item-specific scaling factors are worth this additional complication for the following two reasons, both of which were noted in Halpin (2024).</p>
 <ul>
-<li><p>First, obtaining item-specific scaling factors <span class="math inline">\(s_i\)</span> analytically from <span class="math inline">\(\Sigma_0\)</span> means that we not longer require an ancillary estimate based on the scale of the realized values of <span class="math inline">\(Y_i\)</span>. This is important because it leads the resulting estimator to be highly robust to DIF. This is also the main detail that separates the proposed approach from that considered (and dismissed) by Stocking and Lord (1984). Stocking and Lord used <span class="math inline">\(s = MAD(Y_i)\)</span>. However, the MAD has a breakdown point of 1/4, so any estimator of <span class="math inline">\(\theta\)</span> that uses <span class="math inline">\(s = MAD(Y_i)\)</span> will breakdown if <span class="math inline">\(\geq 1/4\)</span> of the items exhibit DIF (see Huber and Roncetti, 2009, chapter 6). By contrast <span class="math inline">\(\Sigma_0\)</span> does not depend directly on the scale of the realized values of <span class="math inline">\(Y_i\)</span> – it can be computed directly from the item parameters. For some choices of <span class="math inline">\(Y_i\)</span>, the value of <span class="math inline">\(Y_i\)</span> also appears in the resulting expression for <span class="math inline">\(V_0(Y_i)\)</span>, which does complicate matters. However, the null hypothesis that the item does not exhibit DIF gives <span class="math inline">\(Y_i \overset{p}\rightarrow\theta_0\)</span>. This motivates using the substition <span class="math inline">\(Y_i = \theta^*\)</span> when estimating <span class="math inline">\(\Sigma_0\)</span>, where <span class="math inline">\(\theta^\star\)</span> is a consistent, high-breakdown estimate of <span class="math inline">\(\theta\)</span> (e.g., the median). The overall result is that the robustness of the resulting M-estimator no longer depends on that of an ancillary scaling factor.</p></li>
+<li><p>First, obtaining item-specific scaling factors <span class="math inline">\(s_i\)</span> analytically from <span class="math inline">\(\Sigma_0\)</span> means that we no longer require an ancillary estimate based on the scale of the realized values of <span class="math inline">\(Y_i\)</span>. This is important because it leads the resulting estimator to be highly robust to DIF. This is also the main detail that separates the proposed approach from that considered (and dismissed) by Stocking and Lord (1984). Stocking and Lord used <span class="math inline">\(s = MAD(Y_i)\)</span>. However, the MAD has a breakdown point of 1/4, so any estimator of <span class="math inline">\(\theta\)</span> that uses <span class="math inline">\(s = MAD(Y_i)\)</span> will breakdown if <span class="math inline">\(\geq 1/4\)</span> of the items exhibit DIF (see Huber and Roncetti, 2009, chapter 6). By contrast <span class="math inline">\(\Sigma_0\)</span> does not depend directly on the scale of the realized values of <span class="math inline">\(Y_i\)</span> – it can be computed directly from the item parameters. For some choices of <span class="math inline">\(Y_i\)</span>, the value of <span class="math inline">\(Y_i\)</span> also appears in the resulting expression for <span class="math inline">\(V_0(Y_i)\)</span>, which does complicate matters. However, the null hypothesis that the item does not exhibit DIF gives <span class="math inline">\(Y_i \overset{p}\rightarrow\theta_0\)</span>. This motivates using the substitution <span class="math inline">\(Y_i = \theta^\star\)</span> when estimating <span class="math inline">\(\Sigma_0\)</span>, where <span class="math inline">\(\theta^\star\)</span> is a consistent, high-breakdown estimate of <span class="math inline">\(\theta\)</span> (e.g., the median). The overall result is that the robustness of the resulting M-estimator no longer depends on that of an ancillary scaling factor.</p></li>
 <li><p>Second, using item-specific scaling factors implies that we can downweight items with DIF at a desired asymptotic false positive rate during IRLS-based estimation. For example, if we choose <span class="math inline">\(s_i = \sqrt{V_0(Y_i)}\)</span> and <span class="math inline">\(k\)</span> as the <span class="math inline">\(1-\alpha/2\)</span> quantile of <span class="math inline">\(N(0, 1)\)</span>, then items are down-weighted to zero once <span class="math inline">\(|Y_i|\)</span> lies beyond <span class="math inline">\((1-\alpha) \times 100%\)</span> confidence interval (CI) centered at <span class="math inline">\(\theta\)</span>. In this way, DIF detection arises as a by-product of robust scaling.</p></li>
 </ul>
 <p>Halpin (2024) chose <span class="math inline">\(s_i = V_0(Y_i)\)</span> based on a (flawed) argument about efficiency in the absence of DIF, which also complicated the choice of the tuning parameter <span class="math inline">\(k\)</span>. The argument was flawed because (a) it was based on the unstated assumption that <span class="math inline">\(\Sigma_0\)</span> is diagonal, which is not true for many IRT estimators, and (b) it did not account for the scaling factors that appear outside the influence function in the estimating equation (see point 2 in the previous section).</p>
-<p>To address these issues, the robust DIF estimator has been updated to use <span class="math inline">\(s_i = \sqrt{V_0(Y_i)}\)</span> with tuning parameter <span class="math inline">\(k\)</span> based on the asymptotic CI rationale outline above. This approach ignores sampling variation in <span class="math inline">\(\tilde\theta\)</span> when downweighting items with DIF. A more accurate downweighting procedure could instead be based on <span class="math inline">\(s_i = \sqrt{V_0(Y_i - \tilde\theta)}\)</span>. While this is possible (see Halpin, 2024), the additional complication is not really worth it. It turns out that any choice of <span class="math inline">\(s_i = O(n^{-1/2})\)</span> leads to an estimator with the same asymptotic properties as that obtained using <span class="math inline">\(s_i = \sqrt{V_0(Y_i)}\)</span>. Once the estimator is available, item-by-item tests of DIF can be conducted using a standard Wald test:</p>
+<p>To address these issues, the robust DIF estimator has been updated to use <span class="math inline">\(s_i = \sqrt{V_0(Y_i)}\)</span> with tuning parameter <span class="math inline">\(k\)</span> based on the asymptotic CI rationale outlined above. This approach ignores sampling variation in <span class="math inline">\(\tilde\theta\)</span> when downweighting items with DIF. A more accurate downweighting procedure could instead be based on <span class="math inline">\(s_i = \sqrt{V_0(Y_i - \tilde\theta)}\)</span>. While this is possible (see Halpin, 2024), the additional complication is not really worth it. It turns out that any choice of <span class="math inline">\(s_i = O(n^{-1/2})\)</span> leads to an estimator with the same asymptotic properties as that obtained using <span class="math inline">\(s_i = \sqrt{V_0(Y_i)}\)</span>. Once the estimator is available, item-by-item tests of DIF can be conducted using a standard Wald test:</p>
 <p><span class="math display">\[ z_i = \frac{Y_i - \tilde\theta}{\sqrt{V_0(Y_i - \tilde\theta)}}.\]</span></p>
 </section>
 <section id="the-asymptotic-distribution-of-tildetheta" class="level3" data-number="4.1.3">
 <h3 data-number="4.1.3" class="anchored" data-anchor-id="the-asymptotic-distribution-of-tildetheta"><span class="header-section-number">4.1.3</span> The Asymptotic Distribution of <span class="math inline">\(\tilde\theta\)</span></h3>
-<p>Halpin (2024) obtained the asymptotic distribution of <span class="math inline">\(\tilde\theta\)</span> using the Delta method and the implicit function theorem. The deriviation is recapitulated here for general (i.e., non-diagonal) <span class="math inline">\(\Sigma_0\)</span>, and the results presented in Halpin (2022) are seen to follow from the assumption that <span class="math inline">\(\Sigma_0\)</span> is diagonal.</p>
+<p>Halpin (2024) obtained the asymptotic distribution of <span class="math inline">\(\tilde\theta\)</span> using the Delta method and the implicit function theorem. The derivation is recapitulated here for general (i.e., non-diagonal) <span class="math inline">\(\Sigma_0\)</span>, and the results presented in Halpin (2022) are seen to follow from the assumption that <span class="math inline">\(\Sigma_0\)</span> is diagonal.</p>
 <p>The estimator <span class="math inline">\(\tilde\theta = g(\boldsymbol{Y})\)</span> is implicitly defined as the solution to the estimating equation</p>
 <p><span class="math display">\[ \Psi(\theta; \boldsymbol{Y}) = \sum_{i=1}^m \frac{\psi\left({(Y_i-\theta})/{s_i}\right)}{s_i} = 0.\]</span></p>
 <p>Let the asymptotic distribution of <span class="math inline">\(\boldsymbol{Y}\)</span> be denoted as</p>
-<p><span class="math display">\[\sqrt{n}(\boldsymbol{Y}-\boldsymbol{\mu}) \overset{p}{\rightarrow} N(0,\Sigma)\]</span> with the null hypothesis of no DIF leading to <span class="math inline">\(\boldsymbol{\mu} = \theta_0\boldsymbol{1}\)</span> and <span class="math inline">\(\Sigma = \Sigma_0\)</span>. Also let <span class="math inline">\(\theta^\star\)</span> be defined as any solution to the population estimating equation <span class="math inline">\(E_\boldsymbol{Y}[\Psi(\theta; \boldsymbol{Y})]= 0\)</span>. There may be multiple local solutions when using a resdescending loss function, and the asymptotic results described here apply to any local solution. In practice, local minimama can be diagnosed by plotting <span class="math inline">\(R(\theta)\)</span> over a grid of <span class="math inline">\(\theta\)</span> values.</p>
+<p><span class="math display">\[\sqrt{n}(\boldsymbol{Y}-\boldsymbol{\mu}) \overset{p}{\rightarrow} N(0,\Sigma)\]</span> with the null hypothesis of no DIF leading to <span class="math inline">\(\boldsymbol{\mu} = \theta_0\boldsymbol{1}\)</span> and <span class="math inline">\(\Sigma = \Sigma_0\)</span>. Also let <span class="math inline">\(\theta^\star\)</span> be defined as any solution to the population estimating equation <span class="math inline">\(E_\boldsymbol{Y}[\Psi(\theta; \boldsymbol{Y})]= 0\)</span>. There may be multiple local solutions when using a redescending loss function, and the asymptotic results described here apply to any local solution. In practice, local minima can be diagnosed by plotting <span class="math inline">\(R(\theta)\)</span> over a grid of <span class="math inline">\(\theta\)</span> values.</p>
 <p>The following assumptions are used:</p>
 <ul>
 <li>A1: <span class="math inline">\(\psi(u)\)</span> continuously differentiable.</li>

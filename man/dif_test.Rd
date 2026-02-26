@@ -4,10 +4,10 @@
 \alias{dif_test}
 \title{Wald tests of differential item functioning (DIF).}
 \usage{
-dif_test(mle, theta, fun = "d_fun3")
+dif_test(object, theta = NULL, fun = "d_fun3")
 }
 \arguments{
-\item{mle}{the output of \code{\link[robustDIF]{get_model_parms}}}
+\item{object}{either the output of \code{\link[robustDIF]{get_model_parms}} or an \code{rdif} object from \code{\link[robustDIF]{rdif}}.}
 
 \item{theta}{the estimated scaling parameter from \code{\link[robustDIF]{rdif}}}
 
@@ -22,6 +22,7 @@ A Wald test of DIF on each item. Called internally by \code{\link[robustDIF]{rdi
 \examples{
 \dontrun{
 mod <- rdif(mle = rdif.eg)
-dif_test(mle = rdif.eg, theta = mod$est)
+dif_test(object = rdif.eg, theta = mod$est)
+dif_test(mod)
 }
 }

@@ -3,12 +3,18 @@ title: "robustDIF"
 author: "Peter F Halpin"
 date: last-modified
 format: 
+  gfm:
+    output-file: README.md
   html:
+    output-file: README.html
     toc: true
     number-sections: true
     code-fold: false
     embed-resources: true
----
+execute:
+  echo: true
+  warning: false
+  message: false
 ---
 
 # robustDIF
@@ -17,19 +23,19 @@ An R package that provides functions for assessing differential item
 functioning (DIF) in item response theory (IRT) models using methods
 from robust statistics. Based on the paper: 
 
-Halpin, P.F. (2022) Differential Item Functioning Via Robust Scaling. Arxiv Preprint. [https://arxiv.org/abs/2207.04598](https://arxiv.org/abs/2207.04598). Published in Psychometrika in 2024 under the same title.  
+Halpin, P.F. (2022) Differential Item Functioning Via Robust Scaling. arXiv preprint. [https://arxiv.org/abs/2207.04598](https://arxiv.org/abs/2207.04598). Published in Psychometrika in 2024 under the same title.  
 
 Recent additions: 
 
 * Support for graded response model 
-* Read functions for \code{mirt} and \code{lavaan} 
-* Test whether naive estimates of impact are affected by DIF (\code{delta_test})
+* Read functions for `mirt` and `lavaan` 
+* Test whether naive estimates of impact are affected by DIF (`delta_test`)
 
 Under development: 
 
-* S3 rdif class with supporting methods 
-* Multi-parameter tests of DIF / measurement invariance 
-* Additionalmodels and multiple groups
+- S3 rdif class with supporting methods 
+- Multi-parameter tests of DIF / measurement invariance 
+- Additional models and multiple groups
 
 A discussion of the methodology follows the code illustration.
 
@@ -41,8 +47,12 @@ remotes::install_github("peterhalpin/robustDIF")
 library(robustDIF)
 ```
 
-```{r, echo = F}
-library(robustDIF)
+```{r, include = FALSE}
+if (requireNamespace("pkgload", quietly = TRUE)) {
+  pkgload::load_all(".", export_all = FALSE, quiet = TRUE)
+} else {
+  library(robustDIF)
+}
 ```
 
 # Illustration
@@ -57,7 +67,7 @@ generated from *N*(0,1) in the reference group and *N*(.5, 1) in the
 comparison group.
 
 Check out the documentation for `rdif.eg` and `get_model_parms` for more
-info about how to format data for use with `robustDIF`.
+info about formatting model output for use with `robustDIF`.
 
 ## Choice of Scaling Functions 
 
@@ -86,17 +96,19 @@ The illustration uses `d_fun3`. Equality between the scaling parameter and the i
 ## Robust Scaling
 
 ```{r}
-rdif(mle = rdif.eg, fun = "d_fun3", alpha = .05)
+mod <- rdif(mle = rdif.eg, fun = "d_fun3", alpha = .05)
+mod
 ```
 
-The estimated scaling parameter is equal to approximately 0.38. We can see that the first item was downweighted to zero when estimating the scaling parameter. Note that the standard error of the scaling parameter is not provided by `rdif` but is available via `delta_test`. 
+The estimated scaling parameter is approximately 0.38. The first item is downweighted to zero when estimating the scaling parameter.
 
 ## Wald Tests of DIF
 
-Inferences about DIF can be made via Wald tests of whether the item-level scaling function differs from the estimated scaling parameter. 
+Inferences about DIF can be made via Wald tests of whether the item-level scaling function differs from the estimated scaling parameter.
+Using the intended workflow, pass the `rdif` object directly:
 
 ```{r}
-dif_test(mle = rdif.eg, fun = "d_fun3")
+dif_test(mod)
 ```
 
 In this output, `delta` is the estimated scaling parameter subtracted from the item-level scaling function.  
@@ -105,13 +117,13 @@ In this output, `delta` is the estimated scaling parameter subtracted from the i
 
 One may wish to know whether any DIF, if present, affects conclusions
 about impact (i.e., how the groups differ on the latent trait). 
-One way to approach this question is to compare a naive estimate of impact that ignores DIF to 
+One way to approach this question is to compare a naive estimate of impact that ignores DIF to
 an estimator that is robust to DIF. In `robustDIF`, the naive estimator is chosen to be the
-unweighted mean of the item-level functions (i.e., the usual IRT moment-based scaling procedure). The robust estimator is as above.  The null hypothesis that both estimators are
+unweighted mean of the item-level functions (i.e., the usual IRT moment-based scaling procedure). The robust estimator is as above. The null hypothesis that both estimators are
 consistent for the "true" scaling parameter leads to the following test.
 
 ```{r}
-delta_test(mle = rdif.eg, fun = "d_fun3")
+delta_test(mod)
 ```
 
 In this output, `delta` = `naive.est` - `rdif.est`
@@ -120,19 +132,19 @@ In this output, `delta` = `naive.est` - `rdif.est`
 
 For data analyses, it is useful to check whether the robust estimator
 has a clear global minimum before proceeding to make inferences about DIF / Impact.  
-In `robustDIF`, the minimization problem is described by `rho_fun`.
+In `robustDIF`, the minimization problem is described by `rho_grid`.
 
 ```{r}
 rho <- rho_grid(mle = rdif.eg, fun = "d_fun3", grid.width = .01)
 plot(rho$theta, rho$rho, type = "l")
 ```
 
-Note the minimizing values of theta in the plots corresponds to the
-values reported by `rdif` above. 
+Note the minimizing value of theta in the plot corresponds to the
+value reported by `rdif` above. 
 
 # Technical Notes
 
-These notes oultine an updated version of the robust DIF procedure
+These notes outline an updated version of the robust DIF procedure
 described in Halpin (2022) that is now implemented by the `robustDIF` package. 
 
 Assume two groups of respondents with sample sizes $n_1$ and $n_2$ and
@@ -143,7 +155,7 @@ $n_1$ and $n_2$ go to infinity at the same rate but that the number of
 items $m$ remains fixed and finite.
 
 The $Y_i$ are chosen so that
-$\sqrt{n}(\boldsymbol{Y} - \theta_0 \mathbf 1)\overset{P}\rightarrow N(0, \Sigma_0)$
+$\sqrt{n}(\boldsymbol{Y} - \theta_0 \mathbf 1)\overset{d}\rightarrow N(0, \Sigma_0)$
 under the null hypothesis of no DIF on any item. In this set-up, DIF
 means that $Y_i$ converges in probability to a fixed value other than
 $\theta_0$. Some specific choices of $Y_i$ are detailed in Halpin (2024,
@@ -225,7 +237,7 @@ complication for the following two reasons, both of which were noted in
 Halpin (2024).
 
 -   First, obtaining item-specific scaling factors $s_i$ analytically
-    from $\Sigma_0$ means that we not longer require an ancillary
+    from $\Sigma_0$ means that we no longer require an ancillary
     estimate based on the scale of the realized values of $Y_i$. This is
     important because it leads the resulting estimator to be highly
     robust to DIF. This is also the main detail that separates the
@@ -240,7 +252,7 @@ Halpin (2024).
     appears in the resulting expression for $V_0(Y_i)$, which does
     complicate matters. However, the null hypothesis that the item does
     not exhibit DIF gives $Y_i \overset{p}\rightarrow\theta_0$. This
-    motivates using the substition $Y_i = \theta^*$ when estimating
+    motivates using the substitution $Y_i = \theta^\star$ when estimating
     $\Sigma_0$, where $\theta^\star$ is a consistent, high-breakdown
     estimate of $\theta$ (e.g., the median). The overall result is that
     the robustness of the resulting M-estimator no longer depends on
@@ -265,7 +277,7 @@ estimating equation (see point 2 in the previous section).
 
 To address these issues, the robust DIF estimator has been updated to
 use $s_i = \sqrt{V_0(Y_i)}$ with tuning parameter $k$ based on the
-asymptotic CI rationale outline above. This approach ignores sampling
+asymptotic CI rationale outlined above. This approach ignores sampling
 variation in $\tilde\theta$ when downweighting items with DIF. A more
 accurate downweighting procedure could instead be based on
 $s_i = \sqrt{V_0(Y_i - \tilde\theta)}$. While this is possible (see
@@ -281,7 +293,7 @@ $$ z_i = \frac{Y_i - \tilde\theta}{\sqrt{V_0(Y_i - \tilde\theta)}}.$$
 
 Halpin (2024) obtained the asymptotic distribution of $\tilde\theta$
 using the Delta method and the implicit function theorem. The
-deriviation is recapitulated here for general (i.e., non-diagonal)
+derivation is recapitulated here for general (i.e., non-diagonal)
 $\Sigma_0$, and the results presented in Halpin (2022) are seen to
 follow from the assumption that $\Sigma_0$ is diagonal.
 
@@ -297,9 +309,9 @@ with the null hypothesis of no DIF leading to
 $\boldsymbol{\mu} = \theta_0\boldsymbol{1}$ and $\Sigma = \Sigma_0$.
 Also let $\theta^\star$ be defined as any solution to the population
 estimating equation $E_\boldsymbol{Y}[\Psi(\theta; \boldsymbol{Y})]= 0$.
-There may be multiple local solutions when using a resdescending loss
+There may be multiple local solutions when using a redescending loss
 function, and the asymptotic results described here apply to any local
-solution. In practice, local minimama can be diagnosed by plotting
+solution. In practice, local minima can be diagnosed by plotting
 $R(\theta)$ over a grid of $\theta$ values.
 
 The following assumptions are used:

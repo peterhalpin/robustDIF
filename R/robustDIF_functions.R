@@ -33,7 +33,6 @@ NULL
 #'  \item \code{type = 3}: computes \code{d.fun3 = (d2 - d1)/sqrt{(a1^2 + a2^2)/2}}
 #'  }
 #'
-#' @export
 # -------------------------------------------------------------------
 
 d_fun <- function(mle, type = 3) {
@@ -66,7 +65,6 @@ d_fun <- function(mle, type = 3) {
 #' @param log logical: return of log(a2/a1)?
 #'
 #' @return The vector of scaling function values.
-#' @export
 # -------------------------------------------------------------------
 
 a_fun <- function(mle, log = F) {
@@ -98,6 +96,9 @@ a_fun <- function(mle, log = F) {
 # -------------------------------------------------------------------
 
 y_fun <- function(mle, fun = "d_fun3") {
+  check_mle(mle)
+  check_fun(fun)
+
   if (fun == "a_fun1") {y <- a_fun(mle, log = F)}
   if (fun == "a_fun2") {y <- a_fun(mle, log = T)}
   if (fun == "d_fun1") {y <- d_fun(mle, type = 1)}
@@ -119,7 +120,6 @@ y_fun <- function(mle, fun = "d_fun3") {
 #' @param theta (optional) the scaling parameter. Replaces item-specific values of d_fun if provided.
 #' @return A matrix in which the columns are the gradient vectors of \code{\link[robustDIF]{d_fun}}, for each item and threshold.
 #' @seealso \code{\link[robustDIF]{d_fun}}
-#' @export
 # -------------------------------------------------------------------
 
 grad_d <- function(mle, theta = NULL, type = 3) {
@@ -189,7 +189,6 @@ grad_d <- function(mle, theta = NULL, type = 3) {
 #' @param theta (optional) the scaling parameter. Replaces item-specific values of alpha if provided.
 #' @return A matrix in which the columns are the gradient vectors of \code{\link[robustDIF]{a_fun}}, for each item.
 #' @seealso \code{\link[robustDIF]{a_fun}}
-#' @export
 # -------------------------------------------------------------------
 
 grad_a <- function(mle, theta = NULL, log = F) {
@@ -250,6 +249,10 @@ grad_a <- function(mle, theta = NULL, log = F) {
 # -------------------------------------------------------------------
 
 vcov_y <- function(mle, theta = NULL, fun = "d_fun3") {
+  check_mle(mle)
+  check_fun(fun)
+  check_theta(theta, allow_null = TRUE)
+
   if (fun == "a_fun1") {grad <- grad_a(mle, theta, log = F)}
   if (fun == "a_fun2") {grad <- grad_a(mle, theta, log = T)}
   if (fun == "d_fun1") {grad <- grad_d(mle, theta, type = 1)}
@@ -270,7 +273,6 @@ vcov_y <- function(mle, theta = NULL, fun = "d_fun3") {
 #' @param u Can be a single value, vector, or matrix.
 #' @param k The tuning parameter. Can be a scalar or the same dimension as \code{u}.
 #' @return The bi-square rho function.
-#' @export
 # -------------------------------------------------------------------
 
 rho <- function(u, k = 1.96) {
@@ -291,7 +293,6 @@ rho <- function(u, k = 1.96) {
 #' @param u Can be a single value, vector, or matrix.
 #' @param k The tuning parameter. Can be a scalar or the same dimension as \code{u}.
 #' @return The bi-square psi function.
-#' @export
 # -------------------------------------------------------------------
 
 psi <- function(u, k = 1.96) {
@@ -311,7 +312,6 @@ psi <- function(u, k = 1.96) {
 #' @param u Can be a single value, vector, or matrix.
 #' @param k The tuning parameter. Can be a scalar or the same dimension as \code{u}.
 #' @return The bi-square psi-prime function.
-#' @export
 # -------------------------------------------------------------------
 
 psi_prime <- function(u, k = 1.96) {
@@ -330,7 +330,6 @@ psi_prime <- function(u, k = 1.96) {
 #' @param u Can be a single value, vector, or matrix.
 #' @param k The tuning parameter. Can be a scalar or the same dimension as \code{u}.
 #' @return The bi-square psi-prime function.
-#' @export
 # -------------------------------------------------------------------
 
 bsq_weight <- function(u, k = 1.96) {
@@ -344,7 +343,8 @@ bsq_weight <- function(u, k = 1.96) {
 # -------------------------------------------------------------------
 #' Estimate IRT scale parameters using the robust DIF procedure.
 #'
-#' Implements M-estimation of an IRT scale parameter using the bi-square loss function. Also returns the bi-square weights for each item. #'
+#' Implements M-estimation of an IRT scale parameter using the bi-square loss function.
+#' Also returns the bi-square weights for each item.
 #' @inheritParams y_fun
 #' @param alpha the desired false positive rate for flagging items with DIF.
 #' @param starting.value one of \code{c("med", "lts", "min_rho", "all")} or a numerical value to be used as the starting value. See description for details.
@@ -375,6 +375,18 @@ rdif <- function(mle,
                  tol = 1e-7,
                  maxit = 100,
                  method = "irls") {
+  check_mle(mle)
+  check_fun(fun)
+  check_alpha(alpha)
+  check_starting_value(starting.value)
+  check_method(method)
+  if (!is.numeric(tol) || length(tol) != 1 || !is.finite(tol) || tol <= 0) {
+    stop("`tol` must be a single positive finite numeric value.", call. = FALSE)
+  }
+  if (!is.numeric(maxit) || length(maxit) != 1 || !is.finite(maxit) || maxit < 1 || maxit %% 1 != 0) {
+    stop("`maxit` must be a single positive integer.", call. = FALSE)
+  }
+
   nit <- 0
   conv <- 1
 
@@ -462,8 +474,8 @@ rdif <- function(mle,
   # Call dif_test and delta_test
   if (!is.na(out[["est"]])) {
     out.est <- out[["est"]]
-    out$dif.test  <- dif_test(mle, theta = out.est, fun = fun)
-    out$delta.test <- delta_test(mle = mle, theta = out.est, k = k, fun = fun)
+    out$dif.test  <- dif_test(object = mle, theta = out.est, fun = fun)
+    out$delta.test <- delta_test(object = mle, theta = out.est, k = k, fun = fun)
   }
 
   # Calls rho_grid using default grid.width
@@ -475,7 +487,7 @@ rdif <- function(mle,
 
 
 # -------------------------------------------------------------------
-#' Compute staring values for \code{\link[robustDIF]{rdif}}.
+#' Compute starting values for \code{\link[robustDIF]{rdif}}.
 #'
 #' @inheritParams y_fun
 #' @param alpha the desired false positive rate for flagging items with DIF.
@@ -544,6 +556,10 @@ lts <- function(y, p = 0.5) {
 # -------------------------------------------------------------------
 
 rho_grid <- function(mle, fun = "d_fun3", alpha = .05, grid.width = .01){
+  check_mle(mle)
+  check_fun(fun)
+  check_alpha(alpha)
+  check_grid_width(grid.width)
 
   y <- y_fun(mle, fun)
   theta <- seq(from = max(min(y), -2), to = min(max(y), 2), by = grid.width)
@@ -570,22 +586,35 @@ rho_grid <- function(mle, fun = "d_fun3", alpha = .05, grid.width = .01){
 #' A Wald test of DIF on each item. Called internally by \code{\link[robustDIF]{rdif}}
 #'
 #' @inheritParams y_fun
+#' @param object either the output of \code{\link[robustDIF]{get_model_parms}} or an \code{rdif} object from \code{\link[robustDIF]{rdif}}.
 #' @param theta the estimated scaling parameter from \code{\link[robustDIF]{rdif}}
 #' @return A data.frame whose rows containing the results of the test for each item parameter.
 #'
 #' @examples
 #' \dontrun{
 #' mod <- rdif(mle = rdif.eg)
-#' dif_test(mle = rdif.eg, theta = mod$est)
+#' dif_test(object = rdif.eg, theta = mod$est)
+#' dif_test(mod)
 #' }
 #' @export
 # -------------------------------------------------------------------
 
-dif_test <- function(mle, theta, fun = "d_fun3") {
-  y <- y_fun(mle, fun)
+dif_test <- function(object, theta = NULL, fun = "d_fun3") {
+  if (inherits(object, "rdif")) {
+    if (is.null(object[["dif.test"]])) {
+      stop("`object` is an `rdif` object but has no stored `dif.test` output.", call. = FALSE)
+    }
+    return(object[["dif.test"]])
+  }
+
+  check_mle(object)
+  check_theta(theta)
+  check_fun(fun)
+
+  y <- y_fun(object, fun)
   numerator <- y - theta
 
-  vcov.y <- vcov_y(mle, theta, fun)
+  vcov.y <- vcov_y(object, theta, fun)
   var.y <- Matrix::diag(vcov.y)
   I <- diag(1, length(y))
   P <- matrix((1/var.y) / sum(1/var.y), nrow = length(y), ncol = length(y))
@@ -610,29 +639,43 @@ dif_test <- function(mle, theta, fun = "d_fun3") {
 #'
 
 #' @inheritParams y_fun
-#' @param theta the estimated scaling parameter from \code{\link[robustDIF]{rdif}}
-#' @param k the tuning parameter from \code{\link[robustDIF]{rdif}}
+#' @param object either the output of \code{\link[robustDIF]{get_model_parms}} or an \code{rdif} object from \code{\link[robustDIF]{rdif}}.
+#' @param theta the estimated scaling parameter from \code{\link[robustDIF]{rdif}}. Not needed when \code{object} is an \code{rdif} object.
+#' @param k the tuning parameter from \code{\link[robustDIF]{rdif}}. Not needed when \code{object} is an \code{rdif} object.
 
 #' @return A data.frame that contains the output of the test.
 #' @examples
 #' #
 #' \dontrun{
 #' mod <- rdif(mle = rdif.eg)
-#' delta_test(mle = rdif.eg, theta = mod$est)
+#' delta_test(object = rdif.eg, theta = mod$est, k = mod$k)
+#' delta_test(mod)
 #' }
 #' @export
 # -------------------------------------------------------------------
 
-delta_test <- function(mle, theta, k, fun = "d_fun3")
+delta_test <- function(object, theta = NULL, k = NULL, fun = "d_fun3")
 {
+  if (inherits(object, "rdif")) {
+    if (is.null(object[["delta.test"]])) {
+      stop("`object` is an `rdif` object but has no stored `delta.test` output.", call. = FALSE)
+    }
+    return(object[["delta.test"]])
+  }
+
+  check_mle(object)
+  check_theta(theta)
+  check_k(k)
+  check_fun(fun)
+
   # Set up
-  y <- y_fun(mle, fun)
+  y <- y_fun(object, fun)
   n <- length(y)
   y.bar <- mean(y)
   delta <- y.bar - theta
 
-  vcov.y <- vcov_y(mle, theta = NULL, fun) # for sandwich
-  var.y <- Matrix::diag(vcov_y(mle, theta = theta, fun)) # for bsq
+  vcov.y <- vcov_y(object, theta = NULL, fun) # for sandwich
+  var.y <- Matrix::diag(vcov_y(object, theta = theta, fun)) # for bsq
   u <- (y - theta) / sqrt(var.y)
   psi.prime <- psi_prime(u, k)
 
@@ -677,7 +720,6 @@ delta_test <- function(mle, theta, k, fun = "d_fun3")
 #' # Test for DTF omitting the first two items.
 #' delta_test_from_dif(mle = rdif.eg, dif.items = c(1, 2))
 #' }
-#' @export
 # -------------------------------------------------------------------
 
 delta_test_from_dif <- function(mle, dif.items, fun = "d_fun3")
@@ -718,7 +760,3 @@ delta_test_from_dif <- function(mle, dif.items, fun = "d_fun3")
     z.test = z,
     p.val = p.val)
 }
-
-
-
-

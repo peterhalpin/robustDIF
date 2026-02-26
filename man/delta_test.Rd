@@ -4,14 +4,14 @@
 \alias{delta_test}
 \title{Wald test of differential test functioning.}
 \usage{
-delta_test(mle, theta, k, fun = "d_fun3")
+delta_test(object, theta = NULL, k = NULL, fun = "d_fun3")
 }
 \arguments{
-\item{mle}{the output of \code{\link[robustDIF]{get_model_parms}}}
+\item{object}{either the output of \code{\link[robustDIF]{get_model_parms}} or an \code{rdif} object from \code{\link[robustDIF]{rdif}}.}
 
-\item{theta}{the estimated scaling parameter from \code{\link[robustDIF]{rdif}}}
+\item{theta}{the estimated scaling parameter from \code{\link[robustDIF]{rdif}}. Not needed when \code{object} is an \code{rdif} object.}
 
-\item{k}{the tuning parameter from \code{\link[robustDIF]{rdif}}}
+\item{k}{the tuning parameter from \code{\link[robustDIF]{rdif}}. Not needed when \code{object} is an \code{rdif} object.}
 
 \item{fun}{one of \code{c("a_fun1", "a_fun2", "d_fun1", "d_fun2", "d_fun3")}. See description for details.}
 }
@@ -25,6 +25,7 @@ A Wald test of the difference between the unweighted mean of the \code{\link[rob
 #
 \dontrun{
 mod <- rdif(mle = rdif.eg)
-delta_test(mle = rdif.eg, theta = mod$est)
+delta_test(object = rdif.eg, theta = mod$est, k = mod$k)
+delta_test(mod)
 }
 }

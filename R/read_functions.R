@@ -8,7 +8,7 @@
 #' Takes a 1-factor model fit or list of 1-factor model fits from \code{\link[mirt]{mirt}} or \code{\link[lavaan]{cfa}}
 #' and formats the item parameter estimates and their covariance matrix for use in other \code{robustDIF} functions.
 #'
-#' @param object model fit from a multigroup analysis or list of model fits for each group for a 1-factor model. See **Details**.
+#' @param object model fit from a multigroup analysis or list of model fits for each group for a 1-factor model. See Details.
 #'
 #' @details
 #' The function takes a fitted 1-factor multigroup model or list of fitted 1-factor single group models. The factor must be standardized (i.e., variance = 1) and the covariance matrix be asymptotically correct.
@@ -21,9 +21,9 @@
 #'
 #' @return A three-element \code{list}:
 #' \itemize{
-#' \item vector of parameter names taking the form "item.parameter"
-#' \item list (one element per group) of vectors of item parameter estimates
-#' \item list (one element per group) of covariance matrices of item parameter estimates
+#' \item \code{par.names}: list with \code{internal} and \code{original} parameter names.
+#' \item \code{est}: list (one element per group) of data frames containing item parameters by row (\code{a1}, \code{d1}, \code{d2}, ...).
+#' \item \code{var.cov}: list (one element per group) of covariance matrices for the corresponding parameter vectors.
 #' }
 #'
 #' @seealso \code{\link[robustDIF]{rdif.eg}}
@@ -32,6 +32,8 @@
 # -------------------------------------------------------------------
 
 get_model_parms <- function(object) {
+  check_model_object(object)
+
   if(inherits(object, "list")){
     if(inherits(object[[1]], "SingleGroupClass")){
       temp <- lapply(object, get_mirt_pars)
@@ -49,6 +51,11 @@ get_model_parms <- function(object) {
     # } else if(inherits(object[[1]], "mplus.inp")){ # multigroup object
     #   out <- get_mplus_params(object)
     #   # groups in alphabetical order
+    } else {
+      stop(
+        "`object` list must contain model fits of class `SingleGroupClass` (mirt) or `lavaan`.",
+        call. = FALSE
+      )
     }
 
     if(is.null(out)){
@@ -65,6 +72,11 @@ get_model_parms <- function(object) {
   } else if(inherits(object, "lavaan")){
     out <- get_lavaan_pars(object)
     # groups in order observed in data; see lavaan::lavInspect(object, what = "group.label")
+  } else {
+    stop(
+      "`object` must be either a mirt `MultipleGroupClass`, a `lavaan` fit, or a non-empty list of compatible single-group fits.",
+      call. = FALSE
+    )
   }
  reformat_out(out)
 }
@@ -82,7 +94,6 @@ get_model_parms <- function(object) {
 #'
 #' @importFrom mirt coef
 #' @importFrom mirt vcov
-#' @export
 # -------------------------------------------------------------------
 
 get_mirt_pars <- function(mirt.object){
@@ -160,7 +171,6 @@ get_mirt_pars <- function(mirt.object){
 #' }
 #'
 #' @importFrom lavaan lavInspect
-#' @export
 # -------------------------------------------------------------------
 
 get_lavaan_pars <- function(lavaan.object){
@@ -418,4 +428,3 @@ reformat_out <- function(out){
   names(out$est) <- names(out$var.cov) <- paste0("group.", 1:n.groups)
   out
 }
-

@@ -3,35 +3,35 @@
 #' S3 print method for objects of class "rdif"
 #' Prints the estimated scaling parameter from rdif. (to be added: SE)
 #'
-#' @param object An object of class 'rdif', the saved output from the \code{rdif()} function.
+#' @param x An object of class 'rdif', the saved output from the \code{rdif()} function.
+#' @param ... Additional arguments passed through from the generic.
 #'
-#' @return An object of class rdif, a string with rdif estimate value.
-#' @export
+#' @return The input object, returned invisibly.
 #'
 #' @examples
-#' \dontrun {
+#' \dontrun{
 #' mod <- rdif(rdif.eg)
 #' print(mod)
 #' }
-print.rdif <- function(object) {
-  if (!inherits(object, "rdif")) stop("Object is not of class 'rdif'")
-  est <- object$est
-  se <- object[["delta.test"]][["rdif.se"]]
+print.rdif <- function(x, ...) {
+  if (!inherits(x, "rdif")) stop("Object is not of class 'rdif'")
+  est <- x$est
+  se <- x[["delta.test"]][["rdif.se"]]
   if (is.null(est)) {
     cat("Estimated scaling parameter is null.\n")
   } else {
     cat("Est:", est, "    SE:", se, "\n")
   }
-  invisible(object)
+  invisible(x)
 }
 
 # -------------------------------------------------------------------
 #' S3 summary method for objects of class "rdif"
 #'
 #' @param object An object of class 'rdif', a saved list of values from \code{rdif()}
+#' @param ... Additional arguments passed through from the generic.
 #'
 #' @return A printed summary of values
-#' @export
 #'
 #' @examples
 #' \dontrun{
@@ -39,9 +39,12 @@ print.rdif <- function(object) {
 #' summary(mod)
 #' }
 
-summary.rdif <- function(object) {
+summary.rdif <- function(object, ...) {
 
-  df.name <- as.character(object[["df"]])
+  df.name <- "unknown"
+  if (!is.null(object[["data"]][["est"]][["group.1"]])) {
+    df.name <- paste0(nrow(object[["data"]][["est"]][["group.1"]]), " items")
+  }
   n.iter <- as.character(object$n.iter)
   n.sols <- object$multiple.solutions
   theta <- as.character(round(object[["est"]], 3))
@@ -70,34 +73,28 @@ summary.rdif <- function(object) {
 #' S3 plot method for objects of class "rdif"
 #' Plots the rho function of the output from rdif.
 #'
-#' @param object A saved output from \code{rdif()} that is to be plotted.
+#' @param x A saved output from \code{rdif()} that is to be plotted.
 #' @param ... Additional arguments to be passed to \code{plot()}
 #'
-#' @return An object of class rdif, a plot with components:
-#' \itemize {
-#' \item{\code{xlab}}{theta}
-#' \item{\code{ylab}}{rho}
-#' \item{\code{type}}{line}
-#' }
-#' @export
+#' @return The input object, returned invisibly. Called for plotting side effects.
 #'
 #' @examples
 #' \dontrun{
 #' # Assuming "rdif.eg" is a list of parameter values
-#' rho <- rdif(mle = rdif.eg, fun = "d_fun3", grid.width = .01)
+#' rho <- rdif(mle = rdif.eg, fun = "d_fun3")
 #' plot(rho)
 #' }
-plot.rdif <- function(object, ...) {
-  if (!inherits(object, "rdif")) stop("Object is not of class 'rdif'")
+plot.rdif <- function(x, ...) {
+  if (!inherits(x, "rdif")) stop("Object is not of class 'rdif'")
 
   # Validate output and plot
-  if (!is.null(object[["rho.plot"]][["theta"]]) && !is.null(object[["rho.plot"]][["rho"]])) {
-    plot(object[["rho.plot"]][["theta"]], object[["rho.plot"]][["rho"]], type = "l", xlab = "theta", ylab = "Rho", ...)
+  if (!is.null(x[["rho.plot"]][["theta"]]) && !is.null(x[["rho.plot"]][["rho"]])) {
+    plot(x[["rho.plot"]][["theta"]], x[["rho.plot"]][["rho"]], type = "l", xlab = "theta", ylab = "Rho", ...)
   } else {
     stop("rho_grid did not return 'theta' and 'rho' components suitable for plotting.")
   }
 
-  invisible(object)
+  invisible(x)
 }
 
 # -------------------------------------------------------------------
@@ -106,11 +103,10 @@ plot.rdif <- function(object, ...) {
 #' - plot for class "rdif"
 #' - summary for class "rdif"
 #'
-#' @param libname
-#' @param pkgname
+#' @param libname Character string with the path to the package library.
+#' @param pkgname Character string with the package name.
 #'
-#' @return
-#' @export
+#' @return No return value, called for side effects when the package loads.
 #'
 .onLoad <- function(libname, pkgname) {
   envir <- parent.env(environment())
@@ -122,8 +118,8 @@ plot.rdif <- function(object, ...) {
   }
 
   # Register plot method for class "rdif" if available.
-  if (exists("plot.rdif.rho", mode = "function", envir = envir)) {
-    registerS3method("plot", "rdif", get("plot.rdif.rho", envir = envir), envir = ns)
+  if (exists("plot.rdif", mode = "function", envir = envir)) {
+    registerS3method("plot", "rdif", get("plot.rdif", envir = envir), envir = ns)
   }
 
   # Register summary method for class "rdif" if available.

@@ -1,0 +1,40 @@
+.onLoad                 Registers S3 methods at load time: - print for
+                        class "rdif" - plot for class "rdif" - summary
+                        for class "rdif"
+a_fun                   The R-DIF scaling function for item slopes.
+bsq_weight              The bi-square weight function.
+d_fun                   The R-DIF scaling functions for item intercepts
+                        / thresholds.
+delta_test              Wald test of differential test functioning.
+delta_test_from_dif     Wald test of differential test functioning.
+dif_test                Wald tests of differential item functioning
+                        (DIF).
+format_pars             Helper function used to format parameters
+                        estimates
+get_lavaan_pars         Extract item parameter estimates and their
+                        covariance matrix from 'lavaan'.
+get_mirt_pars           Extract item parameter estimates and their
+                        covariance matrix from 'mirt'.
+get_model_parms         Extract and format item parameter estimates and
+                        their covariance matrix
+get_starts              Compute starting values for 'rdif'.
+grad_a                  The gradient matrix of 'a_fun'.
+grad_d                  The gradient matrix of 'd_fun'.
+lts                     The least trimmed squares (LTS) estimate of
+                        location
+plot.rdif               S3 plot method for objects of class "rdif"
+                        Plots the rho function of the output from rdif.
+print.rdif              S3 print method for objects of class "rdif"
+                        Prints the estimated scaling parameter from
+                        rdif. (to be added: SE)
+psi                     The bi-square psi function.
+psi_prime               The derivative of the bi-square psi function.
+rdif                    Estimate IRT scale parameters using the robust
+                        DIF procedure.
+rdif.eg                 Example data set for R-DIF functions.
+rho                     The bi-square rho function.
+rho_grid                Compute a grid of bi-square Rho values
+summary.rdif            S3 summary method for objects of class "rdif"
+vcov_y                  The covariance matrix of IRT scaling functions.
+y_fun                   R-DIF scaling functions for item
+                        intercepts/thresholds and slopes.
