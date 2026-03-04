@@ -15,21 +15,47 @@ vignette: >
 ``` {r, echo = FALSE, results = "asis", message = FALSE, warning = FALSE}
 library(robustDIF)
 library(mirt)
-data(rdif.eg)
+data(irwdata)
 ```
 
-Some example text here.
+# Differential item functioning
+
+In the Item Response Theory (IRT) literature, Differential Item Functioning (DIF) is an approach to assessing situations where response values to an assessment differ as a function of an external covariate; for example, gender or treatment condition. In many contexts, the main goal of DIF analysis is to evaluate whether the items on an assessment are biased in regards to these external covariates. Traditional DIF methods require analysts pre-specify a set of anchor items (items assumed to not have DIF). In the robust DIF method, no such requirement is made. (See technical notes for more details)
+
+The following example demonstrates how to use \code{robustDIF} to investigate DIF across treatment condition on a set of mathematical achievement items.
+
+# Effect of an Adaptive Game-Based Math Learning App on Students' Learning
+
+In a recent block randomized control trial, Bang, Li, and Flynn (2022) investigated whether using My Math Academy, a personalized adaptive learning app, could improve math achievement and learning engagement in K-1 students (n=505 treatment, n=481 control). My Math Academy supplemented school curricula with game-based activities, performance dashboards for teachers, and offline additional learning activities. Between February and June 2019, 41 classrooms from 11 elementary schools participated. Treatment teachers were tasked with using My Math Academy for at least 60 minutes per week. Math achievement was measured using items selected from the Certica assessment item bank at both pre-test and post-test for both conditions. Findings indicated students using My Math Academy had greater math achievement gains than students who did not.
+
+All data were collected from the Item Response Warehouse (cite, 2022).
+
+# Calculating multiple group 2PL model
+
+The following code utilizes \code{mirt} to build 2PL IRT models for future testing of \code{robustDIF}:
 
 ``` {r message = FALSE, warning = FALSE}
+# Subset data to just items
 items <- irwdata[,-39]
 # IRW data 23 - has impact
 
+# Calculate 1-factor 2PL models, using treatment to split groups and specifying SE=TRUE for the covariance matrix.
 mirt <- multipleGroup(items,
                       model = 1, 
                       group=irwdata$treat,
                       itemtype = "2PL",
                       SE=TRUE)
+# Plot the IRFs
 plot(mirt, type = "trace", facet = F)
+```
+
+A useful first step is to investigate the IRFs of the multiple group 2PL model using \code{plot}.
+
+# The Robust DIF procedure
+
+The \code{get_model_parms} function from \code{robustDIF} can now be used to extract the estimates from the \code{mirt} object. After, robust DIF can be investigated using the \code{rdif} function, specifying an \code{alpha} of .05 and testing for DIF on the slope and intercept with \code{fun = "d_fun3"}.
+
+```{r message=FALSE, warning=FALSE}
 parms <- get_model_parms(mirt)
 
 mod <- rdif(mle = parms, fun = "d_fun3", alpha = .05)
@@ -37,13 +63,16 @@ print(mod)
 summary(mod)
 ```
 
-Some more text here.
+The \code{print} function provides the scaling parameter and standard error estimated using iteratively reweighted least squares with Tukey's bisquare, and \code{summary} provides information regarding Wald tests on each of the items. Significant p-values indicate that, at the chosen \code{alpha}, the item was flagged for DIF. Those items are downweighted to zero during estimation of the scaling parameter. \code{delta} is the estimated scaling parameter subtracted from the item-level scaling function value.
 
-``` {r message = FALSE, warning = FALSE}
-delta_test(mod)
-```
+The items that indicate DIF are:
 
-Even more text.
+# The Rho Function
+
+It is useful to use the \code{plot} function to visually inspect the Rho Function for a clear global minimum before proceeding with analyses and making inferences about DIF.
+
 ``` {r message = FALSE, warning = FALSE}
 plot(mod)
 ```
+
+Here, the Rho Function has a clear global minimum.
