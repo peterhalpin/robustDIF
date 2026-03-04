@@ -14,8 +14,8 @@ vignette: >
 
 ``` {r, echo = FALSE, results = "asis", message = FALSE, warning = FALSE}
 library(robustDIF)
-library(mirt)
-data(irwdata)
+#library(mirt)
+mirt.dat <- readRDS("../data/mirtdat.rds")
 ```
 
 # Differential item functioning
@@ -36,17 +36,17 @@ The following code utilizes \code{mirt} to build 2PL IRT models for future testi
 
 ``` {r message = FALSE, warning = FALSE}
 # Subset data to just items
-items <- irwdata[,-39]
+#items <- mirt.dat[,-39]
 # IRW data 23 - has impact
 
 # Calculate 1-factor 2PL models, using treatment to split groups and specifying SE=TRUE for the covariance matrix.
-mirt <- multipleGroup(items,
-                      model = 1, 
-                      group=irwdata$treat,
-                      itemtype = "2PL",
-                      SE=TRUE)
+# mirt <- multipleGroup(items,
+#                       model = 1,
+#                       group=mirt.dat$treat,
+#                       itemtype = "2PL",
+#                       SE=TRUE)
 # Plot the IRFs
-plot(mirt, type = "trace", facet = F)
+#plot(mirt.dat, type = "trace", facet = F)
 ```
 
 A useful first step is to investigate the IRFs of the multiple group 2PL model using \code{plot}.
@@ -56,10 +56,14 @@ A useful first step is to investigate the IRFs of the multiple group 2PL model u
 The \code{get_model_parms} function from \code{robustDIF} can now be used to extract the estimates from the \code{mirt} object. After, robust DIF can be investigated using the \code{rdif} function, specifying an \code{alpha} of .05 and testing for DIF on the slope and intercept with \code{fun = "d_fun3"}.
 
 ```{r message=FALSE, warning=FALSE}
-parms <- get_model_parms(mirt)
+# Save model parameters
+parms <- get_model_parms(mirt.dat)
 
+# Investigate DIF
 mod <- rdif(mle = parms, fun = "d_fun3", alpha = .05)
+# Print estimate
 print(mod)
+# Print summary
 summary(mod)
 ```
 
@@ -72,6 +76,7 @@ The items that indicate DIF are:
 It is useful to use the \code{plot} function to visually inspect the Rho Function for a clear global minimum before proceeding with analyses and making inferences about DIF.
 
 ``` {r message = FALSE, warning = FALSE}
+# Plot Rho Function
 plot(mod)
 ```
 
