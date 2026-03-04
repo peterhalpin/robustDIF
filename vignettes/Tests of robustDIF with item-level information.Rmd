@@ -1,0 +1,49 @@
+---
+title: "Tests of robustDIF with item-level information"
+author: "Peter F Halpin"
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_vignette:
+    number_sections: true
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{Tests of robustDIF with item-level information}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+``` {r, echo = FALSE, results = "asis", message = FALSE, warning = FALSE}
+library(robustDIF)
+library(mirt)
+data(rdif.eg)
+```
+
+Some example text here.
+
+``` {r message = FALSE, warning = FALSE}
+items <- irwdata[,-39]
+# IRW data 23 - has impact
+
+mirt <- multipleGroup(items,
+                      model = 1, 
+                      group=irwdata$treat,
+                      itemtype = "2PL",
+                      SE=TRUE)
+plot(mirt, type = "trace", facet = F)
+parms <- get_model_parms(mirt)
+
+mod <- rdif(mle = parms, fun = "d_fun3", alpha = .05)
+print(mod)
+summary(mod)
+```
+
+Some more text here.
+
+``` {r message = FALSE, warning = FALSE}
+delta_test(mod)
+```
+
+Even more text.
+``` {r message = FALSE, warning = FALSE}
+plot(mod)
+```

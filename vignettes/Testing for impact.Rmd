@@ -1,0 +1,19 @@
+---
+title: "Testing for impact"
+author: "Peter F Halpin"
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_vignette:
+    number_sections: true
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{Testing for impact}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+``` {r, echo = FALSE, results = "asis", message = FALSE, warning = FALSE}
+library(robustDIF)
+data(rdif.eg)
+```
+
