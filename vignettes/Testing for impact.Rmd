@@ -35,7 +35,7 @@ All data were collected from the Item Response Warehouse (cite, 2022).
 
 The following code utilizes \code{mirt} to build 2PL IRT models for future testing of \code{robustDIF}:
 
-``` {r message = FALSE, warning = FALSE, execute=FALSE}
+``` {r eval=FALSE}
 # Subset data to just items
 items <- mirt.dat[,-39]
 # IRW data 23 - has impact
@@ -50,7 +50,7 @@ mirt <- multipleGroup(items,
 plot(mirt.dat, type = "trace", facet = F)
 ```
 ``` {r echo = FALSE, message = FALSE, warning = FALSE}
-knitr::include_graphics('../data/mirt_plot.png')
+knitr::include_graphics("figures/mirt_plot.png")
 ```
 
 A useful first step is to investigate the IRFs of the multiple group 2PL model using \code{plot}.
