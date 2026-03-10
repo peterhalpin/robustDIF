@@ -37,19 +37,16 @@ The following code utilizes `mirt` to build 2PL IRT models for future testing of
 
 ``` {r eval=FALSE}
 # Subset data to just items
-items <- mirt.dat[,-39]
+items <- data[,-39]
 
 # Calculate 1-factor 2PL models, using treatment to split groups and specifying SE=TRUE for the covariance matrix.
-mirt <- multipleGroup(items,
+mirt.dat <- multipleGroup(items,
                       model = 1,
-                      group=mirt.dat$treat,
+                      group=data$treat,
                       itemtype = "2PL",
                       SE=TRUE)
 # Plot the IRFs
 plot(mirt.dat, type = "trace", facet = F)
-```
-``` {r echo = FALSE, message = FALSE, warning = FALSE}
-#knitr::include_graphics(here::here("figures", "mirt_plot.png"))
 ```
 
 ![IRF](figures/mirt_plot.png)
@@ -58,7 +55,7 @@ A useful first step is to investigate the IRFs of the multiple group 2PL model u
 
 # The Robust DIF procedure
 
-The `get_model_parms()` function from `robustDIF` can now be used to extract the estimates from the `mirt` object. After, robust DIF can be investigated using the `rdif()` function, specifying an `alpha` of .05 and testing for DIF on the slope and intercept with `fun = "d_fun3"`.
+The `get_model_parms()` function from `robustDIF` can now be used to extract the estimates from the `mirt` object. After, robust DIF can be investigated using the `rdif()` function. Users supply a significance level by setting `alpha` (here, `.05`) and testing for DIF on slope (discrimination), intercept (difficulty), or both with `fun`. Here, we choose `d_fun3` to test for DIF on both.
 
 ```{r message=FALSE, warning=FALSE}
 # Save model parameters
