@@ -1,0 +1,24 @@
+---
+title: "References"
+author: "Peter F Halpin"
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_vignette:
+    number_sections: false
+    toc: false
+vignette: >
+  %\VignetteIndexEntry{References}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+Bang, H.J., Li, L. & Flynn, K. (2023) Efficacy of an Adaptive Game-Based Math Learning App to Support Personalized Learning and Improve Early Elementary School Students’ Learning. Early Childhood Educ J 51, 717–732. https://doi.org/10.1007/s10643-022-01332-3
+
+Halpin, P.F. (2022) Differential Item Functioning Via Robust Scaling. Arxiv Preprint. [https://arxiv.org/abs/2207.04598](https://arxiv.org/abs/2207.04598). Published in Psychometrika in 2024 under the same title.  
+
+Halpin, P.F. (2024) Differential Test Functioning Via Robust Scaling. Arxiv Preprint. [https://arxiv.org/abs/2409.03502](https://arxiv.org/abs/2409.03502). 
+
+Halpin, P. F., & Gilbert, J. (2025). Testing Whether Reported Treatment Effects Are Unduly Influenced by Item-Level Heterogeneity. PsyArxiv Preprint. [https://doi.org/10.31234/osf.io/9ru45_v1](https://doi.org/10.31234/osf.io/9ru45_v1)
+
+Hanauer, D. I., Graham, M. J., Hatfull, G. F., & Brickman, P. (2016). A Measure of College Student 
+Persistence in the Sciences (PITS). CBE-Life Sciences Education.

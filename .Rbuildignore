@@ -11,3 +11,7 @@ R\test.R
 ^robustDIF_12_20_2025\.qmd$
 ^robustDIF_12_20_2025\.html$
 ^CRAN-SUBMISSION$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^\.github$
