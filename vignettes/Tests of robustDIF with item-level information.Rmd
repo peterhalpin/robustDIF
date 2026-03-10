@@ -15,7 +15,7 @@ vignette: >
 library(robustDIF)
 #library(mirt)
 set.seed(1234)
-eg_pits <- readRDS("../data/eg_pits.rds")
+mirt <- readRDS("../data/pitsmirt.rds")
 ```
 # Differential item functioning
 
@@ -76,7 +76,7 @@ It is useful to use the `plot()` function to visually inspect the Rho Function f
 
 ``` {r message=FALSE, warning=FALSE}
 # Plot Rho Function
-plot(mod2)
+plot(mod)
 ```
 
 Here, there is a clear global minimum.
