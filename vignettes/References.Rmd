@@ -19,3 +19,6 @@ Halpin, P.F. (2022) Differential Item Functioning Via Robust Scaling. Arxiv Prep
 Halpin, P.F. (2024) Differential Test Functioning Via Robust Scaling. Arxiv Preprint. [https://arxiv.org/abs/2409.03502](https://arxiv.org/abs/2409.03502). 
 
 Halpin, P. F., & Gilbert, J. (2025). Testing Whether Reported Treatment Effects Are Unduly Influenced by Item-Level Heterogeneity. PsyArxiv Preprint. [https://doi.org/10.31234/osf.io/9ru45_v1](https://doi.org/10.31234/osf.io/9ru45_v1)
+
+Hanauer, D. I., Graham, M. J., Hatfull, G. F., & Brickman, P. (2016). A Measure of College Student 
+Persistence in the Sciences (PITS). CBE-Life Sciences Education.
