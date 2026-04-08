@@ -1,0 +1,32 @@
+Package: robustDIF
+Type: Package
+Title: Differential Item Functioning Using Robust Statistics
+Version: 0.2.0
+Authors@R:
+  c(
+    person(given = "Peter",
+           family = "Halpin",
+           role = c("aut", "cre"),
+           email = "peter.halpin@unc.edu"),
+    person(given = "Kyle",
+           family = "Nickodem",
+           role = "ctb"),
+    person(given = "James",
+           family = "Eagle",
+           role = "ctb")
+  )
+Description: Functions for assessing differential item functioning (DIF) in item response theory (IRT) models using methods from robust statistics. Based on the paper: Halpin, P.F. (2022) Differential Item Functioning Via Robust Scaling. 
+License: GPL (>= 3)
+Encoding: UTF-8
+LazyData: true
+Depends:
+  R(>= 3.5.0),
+  Matrix
+Imports: 
+  mirt,
+  lavaan
+Suggests:
+  testthat (>= 3.0.0)
+Config/testthat/edition: 3
+RoxygenNote: 7.3.3
+URL: https://peterhalpin.github.io/robustDIF/
