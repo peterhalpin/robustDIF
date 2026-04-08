@@ -1,22 +1,19 @@
 ---
 title: "robustDIF Technical Notes"
 author: "Peter F Halpin"
-date: last-modified
-format:
-  html:
-    output-file: technical-notes.html
-    toc: true
-    number-sections: true
-    code-fold: false
-    embed-resources: true
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_vignette:
+    number_sections: false
+    toc: false
+vignette: >
+  %\VignetteIndexEntry{Technical Notes}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 execute:
   echo: true
   warning: false
   message: false
-vignette: >
-  %\VignetteIndexEntry{Tests of robustDIF with item-level information}
-  %\VignetteEngine{quarto::quarto}
-  %\VignetteEncoding{UTF-8}
 ---
 
 These notes outline an updated version of the robust DIF procedure
