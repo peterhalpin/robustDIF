@@ -71,12 +71,12 @@ and $d_{ig}$ denote the item slope and intercept/thresholds
 respectively. The choices of scaling parameters and corresponding
 item-level scaling functions are as follows.
 
-| Name | Scaling parameter | Item-level scaling function | Test for DIF on |
-|----|----|----|----|
-| `a_fun1` | $\sigma_{2}/\sigma_{1}$ | $a_{2i}/a_{1i}$ | slope |
-| `a_fun2` | $\log\left( \sigma_{2}/\sigma_{1} \right)$ | $\log\left( a_{2i}/a_{1i} \right)$ | slope |
-| `d_fun1` | $\left( \mu_{2} - \mu_{1} \right)/\sigma_{1}$ | $\left( d_{2i} - d_{1i} \right)/a_{1i}$ | intercept |
-| `d_fun2` | $\left( \mu_{2} - \mu_{1} \right)/\sigma_{2}$ | $\left( d_{2i} - d_{1i} \right)/a_{2i}$ | intercept |
+| Name     | Scaling parameter                                                                          | Item-level scaling function                                                      | Test for DIF on   |
+|----------|--------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|-------------------|
+| `a_fun1` | $\sigma_{2}/\sigma_{1}$                                                                    | $a_{2i}/a_{1i}$                                                                  | slope             |
+| `a_fun2` | $\log\left( \sigma_{2}/\sigma_{1} \right)$                                                 | $\log\left( a_{2i}/a_{1i} \right)$                                               | slope             |
+| `d_fun1` | $\left( \mu_{2} - \mu_{1} \right)/\sigma_{1}$                                              | $\left( d_{2i} - d_{1i} \right)/a_{1i}$                                          | intercept         |
+| `d_fun2` | $\left( \mu_{2} - \mu_{1} \right)/\sigma_{2}$                                              | $\left( d_{2i} - d_{1i} \right)/a_{2i}$                                          | intercept         |
 | `d_fun3` | $\left( \mu_{2} - \mu_{1} \right)/\sqrt{\left( \sigma_{1}^{2} + \sigma_{2}^{2} \right)/2}$ | $\left( d_{2i} - d_{1i} \right)/\sqrt{\left( a_{1i}^{2} + a_{2i}^{2} \right)/2}$ | slope + intercept |
 
 The illustration uses `d_fun3`. This function is more sensitive to
@@ -172,6 +172,9 @@ the value reported above by `rdif`.
 - [`bsq_weight()`](https://peterhalpin.github.io/robustDIF/reference/bsq_weight.md)
   : The bi-square weight function.
 
+- [`d_fun()`](https://peterhalpin.github.io/robustDIF/reference/d_fun.md)
+  : The R-DIF scaling functions for item intercepts / thresholds.
+
 - [`delta_test()`](https://peterhalpin.github.io/robustDIF/reference/delta_test.md)
   : Wald test of differential test functioning.
 
@@ -184,9 +187,6 @@ the value reported above by `rdif`.
 - [`.onLoad()`](https://peterhalpin.github.io/robustDIF/reference/dot-onLoad.md)
   : Registers S3 methods at load time: - print for class "rdif" - plot
   for class "rdif" - summary for class "rdif"
-
-- [`d_fun()`](https://peterhalpin.github.io/robustDIF/reference/d_fun.md)
-  : The R-DIF scaling functions for item intercepts / thresholds.
 
 - [`format_pars()`](https://peterhalpin.github.io/robustDIF/reference/format_pars.md)
   : Helper function used to format parameters estimates
@@ -242,11 +242,11 @@ the value reported above by `rdif`.
 - [`psi_prime()`](https://peterhalpin.github.io/robustDIF/reference/psi_prime.md)
   : The derivative of the bi-square psi function.
 
-- [`rdif.eg`](https://peterhalpin.github.io/robustDIF/reference/rdif.eg.md)
-  : Example data set for R-DIF functions.
-
 - [`rdif()`](https://peterhalpin.github.io/robustDIF/reference/rdif.md)
   : Estimate IRT scale parameters using the robust DIF procedure.
+
+- [`rdif.eg`](https://peterhalpin.github.io/robustDIF/reference/rdif.eg.md)
+  : Example data set for R-DIF functions.
 
 - [`rho()`](https://peterhalpin.github.io/robustDIF/reference/rho.md) :
   The bi-square rho function.

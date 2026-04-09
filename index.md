@@ -71,12 +71,12 @@ and $d_{ig}$ denote the item slope and intercept/thresholds
 respectively. The choices of scaling parameters and corresponding
 item-level scaling functions are as follows.
 
-| Name | Scaling parameter | Item-level scaling function | Test for DIF on |
-|----|----|----|----|
-| `a_fun1` | $\sigma_{2}/\sigma_{1}$ | $a_{2i}/a_{1i}$ | slope |
-| `a_fun2` | $\log\left( \sigma_{2}/\sigma_{1} \right)$ | $\log\left( a_{2i}/a_{1i} \right)$ | slope |
-| `d_fun1` | $\left( \mu_{2} - \mu_{1} \right)/\sigma_{1}$ | $\left( d_{2i} - d_{1i} \right)/a_{1i}$ | intercept |
-| `d_fun2` | $\left( \mu_{2} - \mu_{1} \right)/\sigma_{2}$ | $\left( d_{2i} - d_{1i} \right)/a_{2i}$ | intercept |
+| Name     | Scaling parameter                                                                          | Item-level scaling function                                                      | Test for DIF on   |
+|----------|--------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|-------------------|
+| `a_fun1` | $\sigma_{2}/\sigma_{1}$                                                                    | $a_{2i}/a_{1i}$                                                                  | slope             |
+| `a_fun2` | $\log\left( \sigma_{2}/\sigma_{1} \right)$                                                 | $\log\left( a_{2i}/a_{1i} \right)$                                               | slope             |
+| `d_fun1` | $\left( \mu_{2} - \mu_{1} \right)/\sigma_{1}$                                              | $\left( d_{2i} - d_{1i} \right)/a_{1i}$                                          | intercept         |
+| `d_fun2` | $\left( \mu_{2} - \mu_{1} \right)/\sigma_{2}$                                              | $\left( d_{2i} - d_{1i} \right)/a_{2i}$                                          | intercept         |
 | `d_fun3` | $\left( \mu_{2} - \mu_{1} \right)/\sqrt{\left( \sigma_{1}^{2} + \sigma_{2}^{2} \right)/2}$ | $\left( d_{2i} - d_{1i} \right)/\sqrt{\left( a_{1i}^{2} + a_{2i}^{2} \right)/2}$ | slope + intercept |
 
 The illustration uses `d_fun3`. This function is more sensitive to
