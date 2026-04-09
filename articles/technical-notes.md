@@ -196,7 +196,7 @@ $R(\theta)$ over a grid of $\theta$ values.
 The following assumptions are used:
 
 - A1: $\psi(u)$ continuously differentiable.
-- A2: $\psi(u)$ is odd (i.e. $\psi(-u) = -\psi(u)$).
+- A2: $\psi(u)$ is odd (i.e. $\psi( - u) = - \psi(u)$).
 - A3: $\psi\prime(0) \neq 0$.
 - A4: $\Psi\prime\left( \theta^{\star};{\mathbf{μ}} \right) \neq 0$.
 
@@ -215,11 +215,11 @@ $$\sqrt{n}\left( \widetilde{\theta} - \theta^{\star} \right)\overset{p}{\rightar
 The gradient of $g(\mathbf{Y})$ is obtained from the implicit function
 theorem (using A4):
 
-$$\nabla g(\mathbf{Y}) = -\left( \frac{\partial\Psi(\theta;\mathbf{Y})}{\partial\theta} \right)^{-1}\frac{\partial\Psi(\theta;\mathbf{Y})}{\partial\mathbf{Y}}.$$
+$$\nabla g(\mathbf{Y}) = - \left( \frac{\partial\Psi(\theta;\mathbf{Y})}{\partial\theta} \right)^{- 1}\frac{\partial\Psi(\theta;\mathbf{Y})}{\partial\mathbf{Y}}.$$
 
 Evaluating the partial derivatives gives
 
-$$\frac{\partial\Psi(\theta;\mathbf{Y})}{\partial\theta} = -\sum\limits_{i = 1}^{m}\frac{\psi\prime\left( \left( Y_{i} - \theta \right)/s_{i} \right)}{s_{i}^{2}}$$
+$$\frac{\partial\Psi(\theta;\mathbf{Y})}{\partial\theta} = - \sum\limits_{i = 1}^{m}\frac{\psi\prime\left( \left( Y_{i} - \theta \right)/s_{i} \right)}{s_{i}^{2}}$$
 
 and
 $$\frac{\partial\Psi(\theta;\mathbf{Y})}{\partial Y_{i}} = \frac{\psi\prime\left( \left( Y_{i} - \theta \right)/s_{i} \right)}{s_{i}^{2}}.$$
@@ -241,7 +241,7 @@ distributed about zero. Combined with the assumption that $\psi(u)$ is
 odd (A2), this gives $\theta^{\star} = \theta_{0}$ by the following
 argument:
 
-$$E_{\mathbf{Y}}\left\lbrack \Psi\left( \theta_{0};\mathbf{Y} \right) \right\rbrack = \sum\limits_{i}E_{\mathbf{Y}}\left\lbrack \psi\left( U_{0i} \right) \right\rbrack = \sum\limits_{i}E_{\mathbf{Y}}\left\lbrack \psi\left( -U_{0i} \right) \right\rbrack = \sum\limits_{i}E_{\mathbf{Y}}\left\lbrack -\psi\left( U_{0i} \right) \right\rbrack = -E_{\mathbf{Y}}\left\lbrack \Psi\left( \theta_{0};\mathbf{Y} \right) \right\rbrack.$$
+$$E_{\mathbf{Y}}\left\lbrack \Psi\left( \theta_{0};\mathbf{Y} \right) \right\rbrack = \sum\limits_{i}E_{\mathbf{Y}}\left\lbrack \psi\left( U_{0i} \right) \right\rbrack = \sum\limits_{i}E_{\mathbf{Y}}\left\lbrack \psi\left( - U_{0i} \right) \right\rbrack = \sum\limits_{i}E_{\mathbf{Y}}\left\lbrack - \psi\left( U_{0i} \right) \right\rbrack = - E_{\mathbf{Y}}\left\lbrack \Psi\left( \theta_{0};\mathbf{Y} \right) \right\rbrack.$$
 The second equality follows from the symmetry of $U_{0i}$ about zero and
 the third from A2. The chain of equalities shows that
 $E_{\mathbf{Y}}\left\lbrack \Psi\left( \theta_{0};\mathbf{Y} \right) \right\rbrack = 0$.
@@ -267,7 +267,7 @@ $$\sqrt{n}\left( \widetilde{\theta} - \theta_{0} \right)\overset{p}{\rightarrow}
 Under the additional assumption that $\Sigma_{0}$ is diagonal, the
 resulting expression for the null variance of $\widetilde{\theta}$ is
 
-$$V_{0}\left( \widetilde{\theta} \right) = \sum\limits_{i = 1}^{m}p_{i}^{2}\, V_{0}\left( Y_{i} \right) = \sum\limits_{i = 1}^{m}\left( \frac{1/V_{0}\left( Y_{i} \right)}{\sum\limits_{j = 1}^{m}1/V_{0}\left( Y_{i} \right)} \right)^{2}V_{0}\left( Y_{i} \right) = \left( \sum\limits_{j = 1}^{m}1/V_{0}\left( Y_{i} \right) \right)^{-1}.$$
+$$V_{0}\left( \widetilde{\theta} \right) = \sum\limits_{i = 1}^{m}p_{i}^{2}\, V_{0}\left( Y_{i} \right) = \sum\limits_{i = 1}^{m}\left( \frac{1/V_{0}\left( Y_{i} \right)}{\sum\limits_{j = 1}^{m}1/V_{0}\left( Y_{i} \right)} \right)^{2}V_{0}\left( Y_{i} \right) = \left( \sum\limits_{j = 1}^{m}1/V_{0}\left( Y_{i} \right) \right)^{- 1}.$$
 
 This is the result given in part (a) of Theorem 1 in Halpin (2022).
 
