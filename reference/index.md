@@ -8,9 +8,6 @@
 - [`bsq_weight()`](https://peterhalpin.github.io/robustDIF/reference/bsq_weight.md)
   : The bi-square weight function.
 
-- [`d_fun()`](https://peterhalpin.github.io/robustDIF/reference/d_fun.md)
-  : The R-DIF scaling functions for item intercepts / thresholds.
-
 - [`delta_test()`](https://peterhalpin.github.io/robustDIF/reference/delta_test.md)
   : Wald test of differential test functioning.
 
@@ -23,6 +20,9 @@
 - [`.onLoad()`](https://peterhalpin.github.io/robustDIF/reference/dot-onLoad.md)
   : Registers S3 methods at load time: - print for class "rdif" - plot
   for class "rdif" - summary for class "rdif"
+
+- [`d_fun()`](https://peterhalpin.github.io/robustDIF/reference/d_fun.md)
+  : The R-DIF scaling functions for item intercepts / thresholds.
 
 - [`format_pars()`](https://peterhalpin.github.io/robustDIF/reference/format_pars.md)
   : Helper function used to format parameters estimates
@@ -78,11 +78,11 @@
 - [`psi_prime()`](https://peterhalpin.github.io/robustDIF/reference/psi_prime.md)
   : The derivative of the bi-square psi function.
 
-- [`rdif()`](https://peterhalpin.github.io/robustDIF/reference/rdif.md)
-  : Estimate IRT scale parameters using the robust DIF procedure.
-
 - [`rdif.eg`](https://peterhalpin.github.io/robustDIF/reference/rdif.eg.md)
   : Example data set for R-DIF functions.
+
+- [`rdif()`](https://peterhalpin.github.io/robustDIF/reference/rdif.md)
+  : Estimate IRT scale parameters using the robust DIF procedure.
 
 - [`rho()`](https://peterhalpin.github.io/robustDIF/reference/rho.md) :
   The bi-square rho function.
