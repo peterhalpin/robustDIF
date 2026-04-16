@@ -12,23 +12,22 @@ Halpin, P.F. (2022) Differential Item Functioning Via Robust Scaling.
 arXiv preprint. <https://arxiv.org/abs/2207.04598>. Published in
 Psychometrika in 2024 under the same title.
 
-Recent additions:
+Recent additions (version 0.2.0):
 
 - Support for graded response model
 - Read functions for `mirt` and `lavaan`
 - Test whether naive estimates of impact are affected by DIF
   (`delta_test`)
-
-Under development:
-
 - S3 rdif class with supporting methods
+- Illustrative vignettes added to https://peterhalpin.github.io/robustDIF/articles/
+- Published on CRAN
+  
+
+Under development (version 0.3.0):
+- cluster robust SEs for `mirt` models
 - Multi-parameter tests of DIF / measurement invariance
 - Additional models and multiple groups
 
-Technical notes:
-
-- HTML:
-  <https://htmlpreview.github.io/?https://github.com/peterhalpin/robustDIF/blob/master/technical-notes.html>
 
 # Installation
 
