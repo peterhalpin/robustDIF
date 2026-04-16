@@ -19,9 +19,4 @@ The input object, returned invisibly.
 S3 print method for objects of class "rdif"
 Prints the estimated scaling parameter from rdif. (to be added: SE)
 }
-\examples{
-\dontrun{
-mod <- rdif(rdif.eg)
-print(mod)
-}
-}
+\keyword{internal}

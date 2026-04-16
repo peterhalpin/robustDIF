@@ -2,6 +2,7 @@
 
 export(delta_test)
 export(dif_test)
+export(get_model_parms)
 export(rdif)
 export(rho_grid)
 export(vcov_y)

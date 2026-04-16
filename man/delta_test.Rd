@@ -23,7 +23,7 @@ A Wald test of the difference between the unweighted mean of the \code{\link[rob
 }
 \examples{
 #
-\dontrun{
+\donttest{
 mod <- rdif(mle = rdif.eg)
 delta_test(object = rdif.eg, theta = mod$est, k = mod$k)
 delta_test(mod)

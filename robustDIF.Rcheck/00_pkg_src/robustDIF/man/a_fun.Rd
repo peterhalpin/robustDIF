@@ -4,7 +4,7 @@
 \alias{a_fun}
 \title{The R-DIF scaling function for item slopes.}
 \usage{
-a_fun(mle, log = F)
+a_fun(mle, log = FALSE)
 }
 \arguments{
 \item{mle}{the output of \code{\link[robustDIF]{get_model_parms}}}

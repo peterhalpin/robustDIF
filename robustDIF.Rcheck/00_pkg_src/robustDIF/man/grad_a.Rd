@@ -4,7 +4,7 @@
 \alias{grad_a}
 \title{The gradient matrix of \code{\link[robustDIF]{a_fun}}.}
 \usage{
-grad_a(mle, theta = NULL, log = F)
+grad_a(mle, theta = NULL, log = FALSE)
 }
 \arguments{
 \item{mle}{the output of \code{\link[robustDIF]{get_model_parms}}}

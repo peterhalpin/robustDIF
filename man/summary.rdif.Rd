@@ -17,9 +17,4 @@ A printed summary of values
 \description{
 S3 summary method for objects of class "rdif"
 }
-\examples{
-\dontrun{
-mod <- rdif(rdif.eg)
-summary(mod)
-}
-}
+\keyword{internal}

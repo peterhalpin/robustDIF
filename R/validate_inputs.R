@@ -106,3 +106,47 @@ check_model_object <- function(object) {
     call. = FALSE
   )
 }
+
+check_cluster_input <- function(cluster, object) {
+  if (is.null(cluster)) {
+    return(invisible(TRUE))
+  }
+
+  if (inherits(object, "lavaan")) {
+    stop("`cluster` is currently supported only for mirt model objects.", call. = FALSE)
+  }
+
+  if (inherits(object, "MultipleGroupClass")) {
+    n <- nrow(object@Data$data)
+    if (!is.atomic(cluster) || length(cluster) != n) {
+      stop("For mirt `MultipleGroupClass`, `cluster` must be an atomic vector of length equal to the number of observations.", call. = FALSE)
+    }
+    if (any(is.na(cluster))) {
+      stop("`cluster` must not contain missing values.", call. = FALSE)
+    }
+    return(invisible(TRUE))
+  }
+
+  if (inherits(object, "list") && inherits(object[[1]], "SingleGroupClass")) {
+    if (!inherits(cluster, "list") || length(cluster) != length(object)) {
+      stop("For a list of mirt `SingleGroupClass` fits, `cluster` must be a list with one vector per fitted model.", call. = FALSE)
+    }
+    for (i in seq_along(object)) {
+      n <- nrow(object[[i]]@Data$data)
+      ci <- cluster[[i]]
+      if (!is.atomic(ci) || length(ci) != n) {
+        stop("Each element of `cluster` must be an atomic vector with length equal to the number of observations in the corresponding model fit.", call. = FALSE)
+      }
+      if (any(is.na(ci))) {
+        stop("Cluster vectors must not contain missing values.", call. = FALSE)
+      }
+    }
+    return(invisible(TRUE))
+  }
+
+  if (inherits(object, "list") && inherits(object[[1]], "lavaan")) {
+    stop("`cluster` is currently supported only for mirt model objects.", call. = FALSE)
+  }
+
+  stop("Unsupported `object` / `cluster` combination.", call. = FALSE)
+}

@@ -8,6 +8,8 @@
 }
 \arguments{
 \item{object}{An object of class 'rdif', a saved list of values from \code{rdif()}}
+
+\item{...}{Additional arguments passed through from the generic.}
 }
 \value{
 A printed summary of values
@@ -15,9 +17,4 @@ A printed summary of values
 \description{
 S3 summary method for objects of class "rdif"
 }
-\examples{
-\dontrun{
-mod <- rdif(rdif.eg)
-summary(mod)
-}
-}
+\keyword{internal}

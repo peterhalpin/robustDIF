@@ -75,3 +75,34 @@ check_method <- function(method) {
   }
   invisible(TRUE)
 }
+
+check_model_object <- function(object) {
+  if (inherits(object, "list")) {
+    if (length(object) == 0) {
+      stop("`object` must be a non-empty list of model fits.", call. = FALSE)
+    }
+    first <- object[[1]]
+    if (inherits(first, "SingleGroupClass")) {
+      if (!all(vapply(object, inherits, logical(1), what = "SingleGroupClass"))) {
+        stop("`object` list must contain only mirt `SingleGroupClass` fits.", call. = FALSE)
+      }
+      return(invisible(TRUE))
+    }
+    if (inherits(first, "lavaan")) {
+      if (!all(vapply(object, inherits, logical(1), what = "lavaan"))) {
+        stop("`object` list must contain only `lavaan` fits.", call. = FALSE)
+      }
+      return(invisible(TRUE))
+    }
+    stop("`object` list must contain model fits of class `SingleGroupClass` (mirt) or `lavaan`.", call. = FALSE)
+  }
+
+  if (inherits(object, "MultipleGroupClass") || inherits(object, "lavaan")) {
+    return(invisible(TRUE))
+  }
+
+  stop(
+    "`object` must be either a mirt `MultipleGroupClass`, a `lavaan` fit, or a non-empty list of compatible single-group fits.",
+    call. = FALSE
+  )
+}

@@ -19,10 +19,4 @@ The input object, returned invisibly. Called for plotting side effects.
 S3 plot method for objects of class "rdif"
 Plots the rho function of the output from rdif.
 }
-\examples{
-\dontrun{
-# Assuming "rdif.eg" is a list of parameter values
-rho <- rdif(mle = rdif.eg, fun = "d_fun3")
-plot(rho)
-}
-}
+\keyword{internal}

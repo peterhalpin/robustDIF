@@ -8,11 +8,7 @@
 #'
 #' @return The input object, returned invisibly.
 #'
-#' @examples
-#' \dontrun{
-#' mod <- rdif(rdif.eg)
-#' print(mod)
-#' }
+#' @keywords internal
 print.rdif <- function(x, ...) {
   if (!inherits(x, "rdif")) stop("Object is not of class 'rdif'")
   est <- x$est
@@ -33,11 +29,7 @@ print.rdif <- function(x, ...) {
 #'
 #' @return A printed summary of values
 #'
-#' @examples
-#' \dontrun{
-#' mod <- rdif(rdif.eg)
-#' summary(mod)
-#' }
+#' @keywords internal
 
 summary.rdif <- function(object, ...) {
 
@@ -78,12 +70,7 @@ summary.rdif <- function(object, ...) {
 #'
 #' @return The input object, returned invisibly. Called for plotting side effects.
 #'
-#' @examples
-#' \dontrun{
-#' # Assuming "rdif.eg" is a list of parameter values
-#' rho <- rdif(mle = rdif.eg, fun = "d_fun3")
-#' plot(rho)
-#' }
+#' @keywords internal
 plot.rdif <- function(x, ...) {
   if (!inherits(x, "rdif")) stop("Object is not of class 'rdif'")
 

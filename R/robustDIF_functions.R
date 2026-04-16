@@ -67,7 +67,7 @@ d_fun <- function(mle, type = 3) {
 #' @return The vector of scaling function values.
 # -------------------------------------------------------------------
 
-a_fun <- function(mle, log = F) {
+a_fun <- function(mle, log = FALSE) {
   y <- mle$est$group.2$a1  / mle$est$group.1$a1
   if (log) { y <- log(y) }
   names(y) <- paste0(rownames(mle$est$group.1),"_a")
@@ -99,8 +99,8 @@ y_fun <- function(mle, fun = "d_fun3") {
   check_mle(mle)
   check_fun(fun)
 
-  if (fun == "a_fun1") {y <- a_fun(mle, log = F)}
-  if (fun == "a_fun2") {y <- a_fun(mle, log = T)}
+  if (fun == "a_fun1") {y <- a_fun(mle, log = FALSE)}
+  if (fun == "a_fun2") {y <- a_fun(mle, log = TRUE)}
   if (fun == "d_fun1") {y <- d_fun(mle, type = 1)}
   if (fun == "d_fun2") {y <- d_fun(mle, type = 2)}
   if (fun == "d_fun3") {y <- d_fun(mle, type = 3)}
@@ -191,7 +191,7 @@ grad_d <- function(mle, theta = NULL, type = 3) {
 #' @seealso \code{\link[robustDIF]{a_fun}}
 # -------------------------------------------------------------------
 
-grad_a <- function(mle, theta = NULL, log = F) {
+grad_a <- function(mle, theta = NULL, log = FALSE) {
   n.items <- nrow(mle$est$group.1)
   n.thresholds <- ncol(mle$est$group.1) - 1
   n.groups <- length(mle$est)
@@ -253,8 +253,8 @@ vcov_y <- function(mle, theta = NULL, fun = "d_fun3") {
   check_fun(fun)
   check_theta(theta, allow_null = TRUE)
 
-  if (fun == "a_fun1") {grad <- grad_a(mle, theta, log = F)}
-  if (fun == "a_fun2") {grad <- grad_a(mle, theta, log = T)}
+  if (fun == "a_fun1") {grad <- grad_a(mle, theta, log = FALSE)}
+  if (fun == "a_fun2") {grad <- grad_a(mle, theta, log = TRUE)}
   if (fun == "d_fun1") {grad <- grad_d(mle, theta, type = 1)}
   if (fun == "d_fun2") {grad <- grad_d(mle, theta, type = 2)}
   if (fun == "d_fun3") {grad <- grad_d(mle, theta, type = 3)}
@@ -360,10 +360,10 @@ bsq_weight <- function(u, k = 1.96) {
 #'
 #' @examples
 #' # Item intercepts, using the built-in example dataset "rdif.eg"
-#' \dontrun{rdif(mle = rdif.eg, fun = "d_fun3")}
+#' \donttest{rdif(mle = rdif.eg, fun = "d_fun3")}
 #'
 #' # Item slopes
-#' \dontrun{rdif(mle = rdif.eg, fun = "a_fun1")}
+#' \donttest{rdif(mle = rdif.eg, fun = "a_fun1")}
 #'
 #' @export
 # -------------------------------------------------------------------
@@ -568,7 +568,7 @@ rho_grid <- function(mle, fun = "d_fun3", alpha = .05, grid.width = .01){
   k <- qnorm(1 - alpha/2, 0, 1)
 
   Y <- matrix(y, nrow = n.items, ncol = n.theta)
-  Theta <- matrix(theta, nrow = n.items, ncol = n.theta, byrow = T)
+  Theta <- matrix(theta, nrow = n.items, ncol = n.theta, byrow = TRUE)
 
   var_fun <- function(theta) {Matrix::diag(vcov_y(mle, theta, fun))}
   Var.Y <- Reduce(cbind, lapply(theta, function(x) var_fun(x)))
@@ -591,7 +591,7 @@ rho_grid <- function(mle, fun = "d_fun3", alpha = .05, grid.width = .01){
 #' @return A data.frame whose rows containing the results of the test for each item parameter.
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' mod <- rdif(mle = rdif.eg)
 #' dif_test(object = rdif.eg, theta = mod$est)
 #' dif_test(mod)
@@ -646,7 +646,7 @@ dif_test <- function(object, theta = NULL, fun = "d_fun3") {
 #' @return A data.frame that contains the output of the test.
 #' @examples
 #' #
-#' \dontrun{
+#' \donttest{
 #' mod <- rdif(mle = rdif.eg)
 #' delta_test(object = rdif.eg, theta = mod$est, k = mod$k)
 #' delta_test(mod)
@@ -714,12 +714,7 @@ delta_test <- function(object, theta = NULL, k = NULL, fun = "d_fun3")
 #' @param dif.items the indices of the items with DIF.
 
 #' @return A data.frame that contains the output of the test.
-#' @examples
-#' #
-#' \dontrun{
-#' # Test for DTF omitting the first two items.
-#' delta_test_from_dif(mle = rdif.eg, dif.items = c(1, 2))
-#' }
+#' @keywords internal
 # -------------------------------------------------------------------
 
 delta_test_from_dif <- function(mle, dif.items, fun = "d_fun3")

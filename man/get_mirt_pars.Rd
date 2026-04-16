@@ -4,10 +4,13 @@
 \alias{get_mirt_pars}
 \title{Extract item parameter estimates and their covariance matrix from \code{\link[mirt]{mirt}}.}
 \usage{
-get_mirt_pars(mirt.object)
+get_mirt_pars(mirt.object, cluster = NULL)
 }
 \arguments{
 \item{mirt.object}{a \code{\link[mirt]{mirt}} object of class \code{SingleGroupClass} or \code{MultipleGroupClass}. Expected to be a 1-factor model with \code{SE = TRUE} and \code{itemtype} of any combination of \code{"2PL", "graded", or "gpcm"}.}
+
+\item{cluster}{optional cluster-ID vector used to compute a cluster-robust covariance matrix
+using Oakes bread, empirical score outer products aggregated by cluster, and a CR1 finite-sample correction.}
 }
 \value{
 A three-element \code{list}:

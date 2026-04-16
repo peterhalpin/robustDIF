@@ -20,7 +20,7 @@ A data.frame whose rows containing the results of the test for each item paramet
 A Wald test of DIF on each item. Called internally by \code{\link[robustDIF]{rdif}}
 }
 \examples{
-\dontrun{
+\donttest{
 mod <- rdif(mle = rdif.eg)
 dif_test(object = rdif.eg, theta = mod$est)
 dif_test(mod)

@@ -19,10 +19,4 @@ A data.frame that contains the output of the test.
 \description{
 A Wald test of the difference between the unweighted mean of the \code{\link[robustDIF]{y_fun}} computed for all items, and the unweighted mean excluding \code{dif.items}.
 }
-\examples{
-#
-\dontrun{
-# Test for DTF omitting the first two items.
-delta_test_from_dif(mle = rdif.eg, dif.items = c(1, 2))
-}
-}
+\keyword{internal}

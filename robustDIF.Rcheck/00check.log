@@ -11,7 +11,19 @@
 * checking extension type ... Package
 * this is package 'robustDIF' version '0.2.0'
 * package encoding: UTF-8
-* checking CRAN incoming feasibility ... OK
+* checking CRAN incoming feasibility ... NOTE
+Maintainer: 'Peter Halpin <peter.halpin@unc.edu>'
+
+Found the following (possibly) invalid URLs:
+  URL: https://arxiv.org/abs/2207.04598
+    From: DESCRIPTION
+    Status: Error
+    Message: libcurl error code 6:
+      	Could not resolve host: arxiv.org
+
+The Description field contains
+  <https://arxiv.org/abs/2207.04598>.
+Please refer to arXiv e-prints via their arXiv DOI <doi:10.48550/arXiv.YYMM.NNNNN>.
 * checking package namespace information ... OK
 * checking package dependencies ... OK
 * checking if this is a source package ... OK
@@ -40,4 +52,4 @@ During startup - Warning messages:
 4: Setting LC_MESSAGES failed, using "C" 
 5: Setting LC_MONETARY failed, using "C" 
 * DONE
-Status: 1 ERROR, 1 WARNING, 1 NOTE
+Status: 1 ERROR, 1 WARNING, 2 NOTEs

@@ -1,13 +1,28 @@
 Package: robustDIF
 Type: Package
-Title: Differential Item Functioning Using Robust Statistics
+Title: Differential Item Functioning Using Robust Scaling
 Version: 0.2.0
 Authors@R: 
-  person(given = "Peter",
-         family = "Halpin",
-         role = c("aut", "cre"),
-         email = "peter.halpin@unc.edu")
-Description: Functions for assessing differential item functioning (DIF) in item response theory (IRT) models using methods from robust statistics. Based on the paper: Halpin, P.F. (2022) Differential Item Functioning Via Robust Scaling. 
+  c(
+    person(given = "Peter",
+           family = "Halpin",
+           role = c("aut", "cre"),
+           email = "peter.halpin@unc.edu"),
+    person(given = "Kyle",
+           family = "Nickodem",
+           role = "ctb"),
+    person(given = "James",
+           family = "Eagle",
+           role = "ctb")
+  )
+Description: Provides tools for robust differential item functioning (DIF)
+    analysis in two-group item response theory models. The package computes
+    item-level scaling functions, estimates robust scaling parameters via
+    iteratively reweighted least squares with Tukey's bisquare loss, and
+    supports Wald-type tests for item-level and aggregate impact differences.
+    Inputs can be supplied directly from model parameter/covariance objects or
+    extracted from fitted 'mirt' and 'lavaan' models. Methods are described in
+    Halpin (2022) <https://arxiv.org/abs/2207.04598>.
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
@@ -17,7 +32,9 @@ Suggests: testthat (>= 3.0.0)
 Config/testthat/edition: 3
 RoxygenNote: 7.3.3
 NeedsCompilation: no
-Packaged: 2026-02-26 18:58:17 UTC; peterhalpin
-Author: Peter Halpin [aut, cre]
+Packaged: 2026-04-16 13:21:54 UTC; peterhalpin
+Author: Peter Halpin [aut, cre],
+  Kyle Nickodem [ctb],
+  James Eagle [ctb]
 Maintainer: Peter Halpin <peter.halpin@unc.edu>
-Built: R 4.5.2; ; 2026-02-26 18:58:17 UTC; unix
+Built: R 4.5.2; ; 2026-04-16 13:22:01 UTC; unix

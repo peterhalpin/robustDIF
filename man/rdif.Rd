@@ -41,9 +41,9 @@ Also returns the bi-square weights for each item.
 }
 \examples{
 # Item intercepts, using the built-in example dataset "rdif.eg"
-\dontrun{rdif(mle = rdif.eg, fun = "d_fun3")}
+\donttest{rdif(mle = rdif.eg, fun = "d_fun3")}
 
 # Item slopes
-\dontrun{rdif(mle = rdif.eg, fun = "a_fun1")}
+\donttest{rdif(mle = rdif.eg, fun = "a_fun1")}
 
 }

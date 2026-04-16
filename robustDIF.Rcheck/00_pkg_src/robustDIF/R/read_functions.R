@@ -27,10 +27,13 @@
 #' }
 #'
 #' @seealso \code{\link[robustDIF]{rdif.eg}}
+#' @export
 #'
 # -------------------------------------------------------------------
 
 get_model_parms <- function(object) {
+  check_model_object(object)
+
   if(inherits(object, "list")){
     if(inherits(object[[1]], "SingleGroupClass")){
       temp <- lapply(object, get_mirt_pars)
@@ -48,6 +51,11 @@ get_model_parms <- function(object) {
     # } else if(inherits(object[[1]], "mplus.inp")){ # multigroup object
     #   out <- get_mplus_params(object)
     #   # groups in alphabetical order
+    } else {
+      stop(
+        "`object` list must contain model fits of class `SingleGroupClass` (mirt) or `lavaan`.",
+        call. = FALSE
+      )
     }
 
     if(is.null(out)){
@@ -64,6 +72,11 @@ get_model_parms <- function(object) {
   } else if(inherits(object, "lavaan")){
     out <- get_lavaan_pars(object)
     # groups in order observed in data; see lavaan::lavInspect(object, what = "group.label")
+  } else {
+    stop(
+      "`object` must be either a mirt `MultipleGroupClass`, a `lavaan` fit, or a non-empty list of compatible single-group fits.",
+      call. = FALSE
+    )
   }
  reformat_out(out)
 }

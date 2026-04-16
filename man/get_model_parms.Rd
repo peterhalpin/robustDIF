@@ -4,10 +4,14 @@
 \alias{get_model_parms}
 \title{Extract and format item parameter estimates and their covariance matrix}
 \usage{
-get_model_parms(object)
+get_model_parms(object, cluster = NULL)
 }
 \arguments{
 \item{object}{model fit from a multigroup analysis or list of model fits for each group for a 1-factor model. See Details.}
+
+\item{cluster}{optional clustering IDs used to compute a cluster-robust covariance matrix for mirt fits.
+For \code{MultipleGroupClass}, provide an atomic vector of length equal to the number of observations.
+For a list of \code{SingleGroupClass} fits, provide a list of cluster-ID vectors (one per model).}
 }
 \value{
 A three-element \code{list}:
@@ -28,6 +32,10 @@ Currently, the function accepts:
 \item a \code{\link[mirt]{mirt}} object of class \code{SingleGroupClass} or \code{MultipleGroupClass} with \code{SE = TRUE} (to return covariance matrix) and \code{itemtype} of any combination of \code{"2PL", "graded", or "gpcm"}.
 \item a \code{lavaan} object estimated from \code{\link[lavaan]{cfa}} with \code{std.lv = TRUE}.
 }
+When \code{cluster} is supplied for mirt fits, the covariance matrix is computed using a cluster-robust sandwich estimator with Oakes bread and cluster-summed empirical scores.
+A CR1 finite-sample correction is applied:
+\code{(G/(G-1)) * ((N-1)/(N-p))}, where \code{G} is the number of clusters,
+\code{N} is the number of observations, and \code{p} is the number of free parameters.
 It is possible to use fits from other software with \code{robustDIF} functions, but the parameter estimates and their covariance matrices must be formatted identically to what is returned by \code{get_model_parms}. For details, see the documentation for the example dataset \code{\link[robustDIF]{rdif.eg}}.
 }
 \seealso{
