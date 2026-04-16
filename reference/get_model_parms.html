@@ -47,7 +47,7 @@ and formats the item parameter estimates and their covariance matrix for use in 
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">get_model_parms</span><span class="op">(</span><span class="va">object</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">get_model_parms</span><span class="op">(</span><span class="va">object</span>, cluster <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -56,6 +56,12 @@ and formats the item parameter estimates and their covariance matrix for use in 
 
 <dl><dt id="arg-object">object<a class="anchor" aria-label="anchor" href="#arg-object"></a></dt>
 <dd><p>model fit from a multigroup analysis or list of model fits for each group for a 1-factor model. See Details.</p></dd>
+
+
+<dt id="arg-cluster">cluster<a class="anchor" aria-label="anchor" href="#arg-cluster"></a></dt>
+<dd><p>optional clustering IDs used to compute a cluster-robust covariance matrix for mirt fits.
+For <code>MultipleGroupClass</code>, provide an atomic vector of length equal to the number of observations.
+For a list of <code>SingleGroupClass</code> fits, provide a list of cluster-ID vectors (one per model).</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -69,7 +75,11 @@ and formats the item parameter estimates and their covariance matrix for use in 
     <p>The function takes a fitted 1-factor multigroup model or list of fitted 1-factor single group models. The factor must be standardized (i.e., variance = 1) and the covariance matrix be asymptotically correct.
 Currently, the function accepts:</p><ul><li><p>a <code><a href="https://philchalmers.github.io/mirt/reference/mirt.html" class="external-link">mirt</a></code> object of class <code>SingleGroupClass</code> or <code>MultipleGroupClass</code> with <code>SE = TRUE</code> (to return covariance matrix) and <code>itemtype</code> of any combination of <code>"2PL", "graded", or "gpcm"</code>.</p></li>
 <li><p>a <code>lavaan</code> object estimated from <code><a href="https://rdrr.io/pkg/lavaan/man/cfa.html" class="external-link">cfa</a></code> with <code>std.lv = TRUE</code>.</p></li>
-</ul><p>It is possible to use fits from other software with <code>robustDIF</code> functions, but the parameter estimates and their covariance matrices must be formatted identically to what is returned by <code>get_model_parms</code>. For details, see the documentation for the example dataset <code><a href="rdif.eg.html">rdif.eg</a></code>.</p>
+</ul><p>When <code>cluster</code> is supplied for mirt fits, the covariance matrix is computed using a cluster-robust sandwich estimator with Oakes bread and cluster-summed empirical scores.
+A CR1 finite-sample correction is applied:
+<code>(G/(G-1)) * ((N-1)/(N-p))</code>, where <code>G</code> is the number of clusters,
+<code>N</code> is the number of observations, and <code>p</code> is the number of free parameters.
+It is possible to use fits from other software with <code>robustDIF</code> functions, but the parameter estimates and their covariance matrices must be formatted identically to what is returned by <code>get_model_parms</code>. For details, see the documentation for the example dataset <code><a href="rdif.eg.html">rdif.eg</a></code>.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

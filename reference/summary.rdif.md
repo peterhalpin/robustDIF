@@ -23,12 +23,3 @@ summary(object, ...)
 ## Value
 
 A printed summary of values
-
-## Examples
-
-``` r
-if (FALSE) { # \dontrun{
-mod <- rdif(rdif.eg)
-summary(mod)
-} # }
-```

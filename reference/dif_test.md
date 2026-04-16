@@ -36,9 +36,12 @@ parameter.
 ## Examples
 
 ``` r
-if (FALSE) { # \dontrun{
+# \donttest{
 mod <- rdif(mle = rdif.eg)
+#> Error: object 'rdif.eg' not found
 dif_test(object = rdif.eg, theta = mod$est)
+#> Error: object 'rdif.eg' not found
 dif_test(mod)
-} # }
+#> Error: object 'mod' not found
+# }
 ```

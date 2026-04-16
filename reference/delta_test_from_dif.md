@@ -29,13 +29,3 @@ delta_test_from_dif(mle, dif.items, fun = "d_fun3")
 ## Value
 
 A data.frame that contains the output of the test.
-
-## Examples
-
-``` r
-#
-if (FALSE) { # \dontrun{
-# Test for DTF omitting the first two items.
-delta_test_from_dif(mle = rdif.eg, dif.items = c(1, 2))
-} # }
-```

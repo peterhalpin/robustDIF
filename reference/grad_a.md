@@ -9,7 +9,7 @@ in the gradient computation.
 ## Usage
 
 ``` r
-grad_a(mle, theta = NULL, log = F)
+grad_a(mle, theta = NULL, log = FALSE)
 ```
 
 ## Arguments

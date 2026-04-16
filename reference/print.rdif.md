@@ -25,12 +25,3 @@ print(x, ...)
 ## Value
 
 The input object, returned invisibly.
-
-## Examples
-
-``` r
-if (FALSE) { # \dontrun{
-mod <- rdif(rdif.eg)
-print(mod)
-} # }
-```

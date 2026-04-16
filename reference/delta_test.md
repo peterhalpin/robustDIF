@@ -47,9 +47,12 @@ A data.frame that contains the output of the test.
 
 ``` r
 #
-if (FALSE) { # \dontrun{
+# \donttest{
 mod <- rdif(mle = rdif.eg)
+#> Error: object 'rdif.eg' not found
 delta_test(object = rdif.eg, theta = mod$est, k = mod$k)
+#> Error: object 'rdif.eg' not found
 delta_test(mod)
-} # }
+#> Error: object 'mod' not found
+# }
 ```

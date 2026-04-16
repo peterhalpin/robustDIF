@@ -6,7 +6,7 @@ Computes the scaling function `a2/a1` for item slopes (a) in groups g =
 ## Usage
 
 ``` r
-a_fun(mle, log = F)
+a_fun(mle, log = FALSE)
 ```
 
 ## Arguments

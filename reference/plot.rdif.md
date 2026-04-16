@@ -26,13 +26,3 @@ plot(x, ...)
 ## Value
 
 The input object, returned invisibly. Called for plotting side effects.
-
-## Examples
-
-``` r
-if (FALSE) { # \dontrun{
-# Assuming "rdif.eg" is a list of parameter values
-rho <- rdif(mle = rdif.eg, fun = "d_fun3")
-plot(rho)
-} # }
-```

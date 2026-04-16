@@ -14,9 +14,6 @@
 - [`delta_test()`](https://peterhalpin.github.io/robustDIF/reference/delta_test.md)
   : Wald test of differential test functioning.
 
-- [`delta_test_from_dif()`](https://peterhalpin.github.io/robustDIF/reference/delta_test_from_dif.md)
-  : Wald test of differential test functioning.
-
 - [`dif_test()`](https://peterhalpin.github.io/robustDIF/reference/dif_test.md)
   : Wald tests of differential item functioning (DIF).
 
@@ -64,14 +61,6 @@
 - [`lts()`](https://peterhalpin.github.io/robustDIF/reference/lts.md) :
   The least trimmed squares (LTS) estimate of location
 
-- [`plot(`*`<rdif>`*`)`](https://peterhalpin.github.io/robustDIF/reference/plot.rdif.md)
-  : S3 plot method for objects of class "rdif" Plots the rho function of
-  the output from rdif.
-
-- [`print(`*`<rdif>`*`)`](https://peterhalpin.github.io/robustDIF/reference/print.rdif.md)
-  : S3 print method for objects of class "rdif" Prints the estimated
-  scaling parameter from rdif. (to be added: SE)
-
 - [`psi()`](https://peterhalpin.github.io/robustDIF/reference/psi.md) :
   The bi-square psi function.
 
@@ -89,9 +78,6 @@
 
 - [`rho_grid()`](https://peterhalpin.github.io/robustDIF/reference/rho_grid.md)
   : Compute a grid of bi-square Rho values
-
-- [`summary(`*`<rdif>`*`)`](https://peterhalpin.github.io/robustDIF/reference/summary.rdif.md)
-  : S3 summary method for objects of class "rdif"
 
 - [`vcov_y()`](https://peterhalpin.github.io/robustDIF/reference/vcov_y.md)
   : The covariance matrix of IRT scaling functions.

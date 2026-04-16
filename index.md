@@ -29,8 +29,6 @@ Technical notes:
 
 - HTML:
   <https://htmlpreview.github.io/?https://github.com/peterhalpin/robustDIF/blob/master/technical-notes.html>
-- Source file:
-  [technical-notes.qmd](https://peterhalpin.github.io/robustDIF/technical-notes.qmd)
 
 # Installation
 

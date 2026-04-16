@@ -73,8 +73,10 @@ loss function. Also returns the bi-square weights for each item.
 
 ``` r
 # Item intercepts, using the built-in example dataset "rdif.eg"
-if (FALSE) rdif(mle = rdif.eg, fun = "d_fun3") # \dontrun{}
+rdif(mle = rdif.eg, fun = "d_fun3")
+#> Error: object 'rdif.eg' not found
 
 # Item slopes
-if (FALSE) rdif(mle = rdif.eg, fun = "a_fun1") # \dontrun{}
+rdif(mle = rdif.eg, fun = "a_fun1")
+#> Error: object 'rdif.eg' not found
 ```

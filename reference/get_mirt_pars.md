@@ -6,7 +6,7 @@ Extract item parameter estimates and their covariance matrix from
 ## Usage
 
 ``` r
-get_mirt_pars(mirt.object)
+get_mirt_pars(mirt.object, cluster = NULL)
 ```
 
 ## Arguments
@@ -17,6 +17,12 @@ get_mirt_pars(mirt.object)
   object of class `SingleGroupClass` or `MultipleGroupClass`. Expected
   to be a 1-factor model with `SE = TRUE` and `itemtype` of any
   combination of `"2PL", "graded", or "gpcm"`.
+
+- cluster:
+
+  optional cluster-ID vector used to compute a cluster-robust covariance
+  matrix using Oakes bread, empirical score outer products aggregated by
+  cluster, and a CR1 finite-sample correction.
 
 ## Value
 
