@@ -15,3 +15,6 @@ R\test.R
 ^scripts$
 ^docs$
 ^cran_submission_logs$
+^_pkgdown\.yml$
+^pkgdown$
+^\.github$
