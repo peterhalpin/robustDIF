@@ -1,5 +1,5 @@
 ---
-title: "Testing for impact"
+title: "Item level treatment effect heterogeneity"
 author: "Peter F Halpin & James Eagle"
 date: "`r Sys.Date()`"
 output:
@@ -7,7 +7,7 @@ output:
     number_sections: true
     toc: true
 vignette: >
-  %\VignetteIndexEntry{Testing for impact}
+  %\VignetteIndexEntry{Item level treatment effect heterogeneity}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -27,11 +27,34 @@ The following example demonstrates how to use `robustDIF` to investigate DIF and
 
 # Effect of an Adaptive Game-Based Math Learning App on Students' Learning
 
-In a recent block randomized control trial, Bang, Li, and Flynn (2022) investigated whether using My Math Academy, a personalized adaptive learning app, could improve math achievement and learning engagement in K-1 students (n=505 treatment, n=481 control). My Math Academy supplemented school curricula with game-based activities, performance dashboards for teachers, and offline additional learning activities. Between February and June 2019, 41 classrooms from 11 elementary schools participated. Treatment teachers were tasked with using My Math Academy for at least 60 minutes per week. Math achievement was measured using items selected from the Certica assessment item bank at both pre-test and post-test for both conditions. Findings indicated students using My Math Academy had greater math achievement gains than students who did not.
+In a recent block randomized control trial, Bang, Li, and Flynn (2022) investigated whether using My Math Academy, a personalized adaptive learning app, could improve math achievement and learning engagement in K-1 students (n=505 treatment, n=481 control). My Math Academy supplemented school curricula with game-based activities, performance dashboards for teachers, and offline additional learning activities. 
 
-All data were collected from the Item Response Warehouse (https://itemresponsewarehouse.org/).
+Blocking on school and grade, teachers were cluster randomized to treatment (21 classrooms) or control (20 classrooms). Treatment teachers were tasked with using My Math Academy for at least 60 minutes per week. Control teachers implemented whatever math curricula the district used. The intervention took place between February and June 2019. In total, 41 classrooms from 11 elementary schools participated.
 
-# Calculating multiple group 2PL model
+Math achievement was measured at pre-test and post-test using 31 multiple-choice items selected from the Certica assessment item bank. Items were selected if they aligned with Common Core State Standards for K-2 and targeted specific My Math Academy learning objectives. Students had 30-45 minutes to complete the assessment. Responses were coded as 0 (incorrect) or 1 (correct) for the analyses.
+
+An average treatment effect (ATE) can be computed by comparing the unweighted mean sum scores between conditions:
+
+$$ ATE = MeanSumScore_{treat} - MeanSumScore_{control} $$\ $$= 20.97 - 20.08 = 0.89 $$
+Dividing by the pooled standard deviation gives a measure of effect size (d):
+
+$$ d = \frac{ATE}{sd_p} = 0.11 $$
+
+
+These findings indicate students using My Math Academy had greater math achievement gains than students who did not, but the difference is small. The following analysis will examine whether this effect size is robust to item-level sources of variability that may not generalize to other measures of Math achievement (i.e., measures that use different items).
+
+# Step 1: Fit IRT model to data
+
+All data were collected from the Item Response Warehouse (https://itemresponsewarehouse.org/) using this code:
+
+``` {r eval=FALSE}
+library(irw) # You may need to first install the package with `devtools::install_github("itemresponsewarehouse/Rpkg")`
+
+# On first use, you will need to log in with a Redivis account (a platform for academic data sharing). 
+
+data <- irw_fetch("gilbert_meta_23") # Pull the selected dataset
+
+```
 
 The following code utilizes `mirt` to build 2PL IRT models for future testing of `robustDIF`:
 
@@ -45,6 +68,7 @@ mirt.dat <- multipleGroup(items,
                       group=data$treat,
                       itemtype = "2PL",
                       SE=TRUE)
+
 # Plot the IRFs
 plot(mirt.dat, type = "trace", facet = F)
 ```
@@ -53,9 +77,15 @@ plot(mirt.dat, type = "trace", facet = F)
 
 A useful first step is to investigate the IRFs of the multiple group 2PL model using `plot()`.
 
-# The Robust DIF procedure
+When fitting 2PL IRT models, the latent trait \theta (representing underlying "math ability") needs to be scaled (i.e., we restrain it to have a mean of zero and variance of one). This can be problematic when testing differences between groups (i.e., tests of DIF), because if we arbitrarily scale \theta in both groups, we give their \theta the same mean and variance. In other words, we end up removing any differences and will show zero impact. The `robustDIF` procedure tackles this problem by using robust statistics to estimate scaling parameters and flag items for DIF.
 
-The `get_model_parms()` function from `robustDIF` can now be used to extract the estimates from the `mirt` object. After, robust DIF can be investigated using the `rdif()` function. Users supply a significance level by setting `alpha` (here, `.05`) and testing for DIF on slope (discrimination), intercept (difficulty), or both with `fun`. Here, we choose `d_fun3` to test for DIF on both.
+A second issue here is the clustering of observations: students within the same classroom may have similar characteristics (e.g., have similar capabilities, backgrounds, etc.). This leads to partial dependencies in their scores which must be accounted for. The `robustDIF` package can handle this by specifying `cluster=TRUE` in the `get_model_parms()` function, which will be illustrated later.
+
+# Step 2: Is the overall treatment effect robust to item-level variability?
+
+The `get_model_parms()` function from `robustDIF` can now be used to extract the estimates from the `mirt` object. After, robust DIF can be investigated using the `rdif()` function. Users supply a significance level by setting `alpha` (here, `.05`) and testing for DIF on slope (discrimination), intercept (difficulty), or both with `fun`. 
+
+Here, we choose `d_fun1` to test whether the treatment effect computed using the un-weighted mean sum scores (above) and scaled to the control group is robust to item-level sources of variation.
 
 ```{r message=FALSE, warning=FALSE}
 # Save model parameters
