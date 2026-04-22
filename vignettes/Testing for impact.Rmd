@@ -110,7 +110,7 @@ Here, we choose `d_fun1` to test whether the treatment effect computed using the
 group_vars <- data$cluster_id
 
 # Save model parameters
-parms <- get_model_parms(mirt.dat, cluster=group_vars)
+parms <- get_model_parms(mirt.dat, cluster = group_vars)
 
 # Investigate DIF
 mod <- rdif(mle = parms, fun = "d_fun1", alpha = .05)
