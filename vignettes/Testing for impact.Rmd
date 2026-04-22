@@ -106,8 +106,6 @@ The `get_model_parms()` function from `robustDIF` can be used to extract item-le
 Here, we choose `d_fun1` to test whether the treatment effect computed using the un-weighted mean of items and scaled to the control group is robust to item-level sources of variation. 
 
 ```{r message=FALSE, warning=FALSE}
-library(dplyr) # You may need to install the package first using install.packages("dplyr")
-
 # Extract cluster indicator variables (classroom/teacher id)
 group_vars <- data$cluster_id
 
