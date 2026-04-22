@@ -50,8 +50,9 @@ itemplot(mirt, item = 1, type = "trace")
 itemplot(mirt, item = 5, type = "trace")
 ```
 
-Because each item in a GRM has multiple curves, we use `itemplot()` of
-`type="trace"` for each `item` to investigate the category response
+Because each item in a GRM has multiple curves, we use
+[`itemplot()`](https://philchalmers.github.io/mirt/reference/itemplot.html)
+of `type="trace"` for each `item` to investigate the category response
 functions (CRF). The CRF show how the probability of endorsing each
 response category changes as a function of the latent trait.
 

@@ -5,12 +5,12 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Testing for impact • robustDIF</title>
+<title>Item level treatment effect heterogeneity • robustDIF</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Testing for impact">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Item level treatment effect heterogeneity">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -35,7 +35,7 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/References.html">References</a></li>
     <li><a class="dropdown-item" href="../articles/technical-notes.html">robustDIF Technical Notes</a></li>
-    <li><a class="dropdown-item" href="../articles/Testing%20for%20impact.html">Testing for impact</a></li>
+    <li><a class="dropdown-item" href="../articles/Testing%20for%20impact.html">Item level treatment effect heterogeneity</a></li>
     <li><a class="dropdown-item" href="../articles/Tests%20of%20robustDIF%20with%20item-level%20information.html">Tests of robustDIF with item-level information</a></li>
   </ul>
 </li>
@@ -57,11 +57,11 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
-      <h1>Testing for impact</h1>
+      <h1>Item level treatment effect heterogeneity</h1>
                         <h4 data-toc-skip class="author">Peter F Halpin
 &amp; James Eagle</h4>
             
-            <h4 data-toc-skip class="date">2026-04-16</h4>
+            <h4 data-toc-skip class="date">2026-04-22</h4>
       
 
       <div class="d-none name"><code>Testing for impact.Rmd</code></div>
@@ -74,16 +74,16 @@
 </h2>
 <p>In the Item Response Theory (IRT) literature, Differential Item
 Functioning (DIF) is an approach to assessing situations where response
-values to an assessment differ as a function of an external covariate;
-for example, gender or treatment condition. In many contexts, the main
+values to an assessment differ as a function of an external covariate
+(for example, gender or treatment condition). In many contexts, the main
 goal of DIF analysis is to evaluate whether the items on an assessment
-are biased in regards to these external covariates. Traditional DIF
-methods require analysts pre-specify a set of anchor items (items
-assumed to not have DIF). In the robust DIF method, no such requirement
-is made. (See technical notes for more details)</p>
+are biased in regards to these external covariates. In treatment vs
+control studies, DIF/bias due to treatment condition can be problematic
+because it can lead to the over-inflation of the treatment effect and
+limit generalizability to other assessments.</p>
 <p>The following example demonstrates how to use <code>robustDIF</code>
-to investigate DIF and potential impact across treatment condition on a
-set of mathematical achievement items.</p>
+to investigate DIF and potential impact of treatment condition (the
+treatment effect) on a set of mathematical achievement items.</p>
 </div>
 <div class="section level2">
 <h2 id="effect-of-an-adaptive-game-based-math-learning-app-on-students-learning">Effect of an Adaptive Game-Based Math Learning App on Students’
@@ -95,158 +95,284 @@ adaptive learning app, could improve math achievement and learning
 engagement in K-1 students (n=505 treatment, n=481 control). My Math
 Academy supplemented school curricula with game-based activities,
 performance dashboards for teachers, and offline additional learning
-activities. Between February and June 2019, 41 classrooms from 11
-elementary schools participated. Treatment teachers were tasked with
-using My Math Academy for at least 60 minutes per week. Math achievement
-was measured using items selected from the Certica assessment item bank
-at both pre-test and post-test for both conditions. Findings indicated
-students using My Math Academy had greater math achievement gains than
-students who did not.</p>
-<p>All data were collected from the Item Response Warehouse (<a href="https://itemresponsewarehouse.org/" class="external-link uri">https://itemresponsewarehouse.org/</a>).</p>
+activities.</p>
+<p>Blocking on school and grade, teachers were cluster randomized to
+treatment (21 classrooms) or control (20 classrooms). Treatment teachers
+were tasked with using My Math Academy for at least 60 minutes per week.
+Control teachers implemented whatever math curricula the district used.
+The intervention took place between February and June 2019. In total, 41
+classrooms from 11 elementary schools participated.</p>
+<p>Math achievement was measured at pre-test and post-test using 38
+multiple-choice items selected from the Certica assessment item bank.
+Items were selected if they aligned with Common Core State Standards for
+K-2 and targeted specific My Math Academy learning objectives. Students
+had 30-45 minutes to complete the assessment. Responses were coded as 0
+(incorrect) or 1 (correct) for the analyses.</p>
+<p>Bang and colleagues (2022) estimated a simple treatment effect by
+computing the difference between mean un-weighted post-test total
+scores:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mi>r</mi><mi>e</mi><mi>a</mi><mi>t</mi><mi>m</mi><mi>e</mi><mi>n</mi><mi>t</mi><mi>E</mi><mi>f</mi><mi>f</mi><mi>e</mi><mi>c</mi><mi>t</mi><mo>=</mo><msub><mover><mtext mathvariant="normal">TotalScore</mtext><mo accent="true">¯</mo></mover><mtext mathvariant="normal">treat</mtext></msub><mo>−</mo><msub><mover><mtext mathvariant="normal">TotalScore</mtext><mo accent="true">¯</mo></mover><mtext mathvariant="normal">control</mtext></msub></mrow><annotation encoding="application/x-tex"> TreatmentEffect = \overline{\text{TotalScore}}_{\text{treat}} - \overline{\text{TotalScore}}_{\text{control}}</annotation></semantics></math><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>=</mo><mn>20.97</mn><mo>−</mo><mn>20.08</mn><mo>=</mo><mn>0.89</mn></mrow><annotation encoding="application/x-tex">= 20.97 - 20.08 = 0.89 </annotation></semantics></math>
+Dividing by the pooled standard deviation gives a measure of effect size
+(d):</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo>=</mo><mfrac><mrow><mi>T</mi><mi>E</mi></mrow><mrow><mi>s</mi><msub><mi>d</mi><mi>p</mi></msub></mrow></mfrac><mo>=</mo><mfrac><mn>0.89</mn><mn>8.09</mn></mfrac><mo>=</mo><mn>0.11</mn></mrow><annotation encoding="application/x-tex"> d = \frac{TE}{sd_p} = \frac{0.89}{8.09} = 0.11 </annotation></semantics></math></p>
+<p>These findings indicate students using My Math Academy had greater
+math achievement scores than students who did not, but the difference is
+relatively small. The following analysis will examine whether this
+effect size is robust to item-level sources of variability that may not
+generalize to other measures of Math achievement (i.e., tests that have
+different questions).</p>
 </div>
 <div class="section level2">
-<h2 id="calculating-multiple-group-2pl-model">Calculating multiple group 2PL model<a class="anchor" aria-label="anchor" href="#calculating-multiple-group-2pl-model"></a>
+<h2 id="step-1-fit-irt-model-to-data">Step 1: Fit IRT model to data<a class="anchor" aria-label="anchor" href="#step-1-fit-irt-model-to-data"></a>
 </h2>
+<p>To begin the procedure, we will need to fit an IRT model to the data.
+All data used in this example is available from the Item Response
+Warehouse (<a href="https://itemresponsewarehouse.org/" class="external-link uri">https://itemresponsewarehouse.org/</a>) and can be
+downloaded using the following code:</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">irw</span><span class="op">)</span> <span class="co"># You may need to first install the package with `devtools::install_github("itemresponsewarehouse/Rpkg")`</span></span>
+<span></span>
+<span><span class="co"># On first use, you will need to log in with a Redivis account (a platform for academic data sharing). See instructions for this on the IRW website.</span></span>
+<span></span>
+<span><span class="co"># Pull the selected data-set</span></span>
+<span><span class="va">irw.data</span> <span class="op">&lt;-</span> <span class="fu">irw_fetch</span><span class="op">(</span><span class="st">"gilbert_meta_23"</span><span class="op">)</span> </span>
+<span></span>
+<span><span class="co"># Pivot to wide format</span></span>
+<span><span class="va">wide</span> <span class="op">&lt;-</span> <span class="fu">irw_long2resp</span><span class="op">(</span><span class="va">irw.data</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Add cluster ID and treatment ID to wide data</span></span>
+<span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu">left_join</span><span class="op">(</span><span class="va">wide</span>, <span class="va">irw.data</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span>,<span class="fl">7</span><span class="op">)</span><span class="op">]</span>, by<span class="op">=</span><span class="st">"id"</span>,multiple<span class="op">=</span><span class="st">"first"</span><span class="op">)</span></span></code></pre></div>
 <p>The following code utilizes <code>mirt</code> to build 2PL IRT models
 for future testing of <code>robustDIF</code>:</p>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Subset data to just items</span></span>
-<span><span class="va">items</span> <span class="op">&lt;-</span> <span class="va">data</span><span class="op">[</span>,<span class="op">-</span><span class="fl">39</span><span class="op">]</span></span>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://philchalmers.github.io/mirt/" class="external-link">mirt</a></span><span class="op">)</span> <span class="co"># You may need to install the package first with install.packages("mirt")</span></span>
+<span></span>
+<span><span class="co"># Subset data to just test items</span></span>
+<span><span class="va">items</span> <span class="op">&lt;-</span> <span class="va">data</span><span class="op">[</span>,<span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">40</span>,<span class="fl">41</span><span class="op">)</span><span class="op">]</span></span>
 <span></span>
 <span><span class="co"># Calculate 1-factor 2PL models, using treatment to split groups and specifying SE=TRUE for the covariance matrix.</span></span>
-<span><span class="va">mirt.dat</span> <span class="op">&lt;-</span> <span class="fu">multipleGroup</span><span class="op">(</span><span class="va">items</span>,</span>
+<span><span class="va">mirt.dat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://philchalmers.github.io/mirt/reference/multipleGroup.html" class="external-link">multipleGroup</a></span><span class="op">(</span><span class="va">items</span>,</span>
 <span>                      model <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>                      group<span class="op">=</span><span class="va">data</span><span class="op">$</span><span class="va">treat</span>,</span>
+<span>                      group<span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">as.factor</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">treat</span><span class="op">)</span>,</span>
 <span>                      itemtype <span class="op">=</span> <span class="st">"2PL"</span>,</span>
 <span>                      SE<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
 <span><span class="co"># Plot the IRFs</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">mirt.dat</span>, type <span class="op">=</span> <span class="st">"trace"</span>, facet <span class="op">=</span> <span class="cn">F</span><span class="op">)</span></span></code></pre></div>
 <div class="float">
 <img src="figures/mirt_plot.png" alt="IRF"><div class="figcaption">IRF</div>
 </div>
-<p>A useful first step is to investigate the IRFs of the multiple group
-2PL model using <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code>.</p>
+<p>A useful first step is to investigate the item response functions
+(IRFs) of the multiple group 2PL model using <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code>.
+Essentially, we are looking for similarities and differences between
+response functions in the treatment (1) and control (0) groups. If the
+response functions look near identical, we may not expect to uncover any
+DIF.</p>
+<p>When fitting 2PL IRT models, the latent trait (representing
+children’s underlying “math ability”) needs to be scaled (i.e., we
+restrain it to have a mean of zero and variance of one). This can be
+problematic when testing differences between groups (tests of DIF),
+because if we arbitrarily scale in both groups, we give their the same
+mean and variance. In other words, we end up removing any differences
+and will show zero impact. The <code>robustDIF</code> procedure tackles
+this problem by instead using robust statistics to estimate scaling
+parameters and flag items for DIF.</p>
+<p>A second issue here is the clustering of observations: students
+within the same classroom may have similar characteristics (e.g., have
+similar capabilities, backgrounds, etc.). This leads to partial
+redundancies in their scores which should be accounted for. The
+<code>robustDIF</code> package can handle this by specifying a
+<code>cluster</code> variable (e.g., classroom id’s) in the
+<code><a href="../reference/get_model_parms.html">get_model_parms()</a></code> function.</p>
 </div>
 <div class="section level2">
-<h2 id="the-robust-dif-procedure">The Robust DIF procedure<a class="anchor" aria-label="anchor" href="#the-robust-dif-procedure"></a>
+<h2 id="step-2-is-the-overall-treatment-effect-robust-to-item-level-variability">Step 2: Is the overall treatment effect robust to item-level
+variability?<a class="anchor" aria-label="anchor" href="#step-2-is-the-overall-treatment-effect-robust-to-item-level-variability"></a>
 </h2>
+<p>Children using My Math Academy may be exposed to certain types of
+questions more frequently than those in the control group. For example,
+My Math Academy includes games that use base-ten blocks for addition and
+subtraction, whereas some control curricula may not. If the post-test
+assessment includes base-ten block items, then score differences between
+groups on those items could reflect differential exposure rather than
+true differences in underlying math ability.</p>
+<p>This issue is known as “construct-irrelevant item-level heterogenous
+treatment effects” (construct-irrelevant IL-HTE, or construct-irrelevant
+DIF) and would cast doubt on using total scores, which include base-ten
+block questions, as a way of demonstrating that the treatment improved
+math ability.</p>
+<p>Additionally, if IL-HTE is present, the generalizability of the
+treatment effect might be questioned. If the treatment effect is driven
+by only a subset of test questions, then tests with different questions
+may not show the same magnitude of effect.</p>
+<p>We will turn next to demonstrating how to test for IL-HTE.</p>
 <p>The <code><a href="../reference/get_model_parms.html">get_model_parms()</a></code> function from
-<code>robustDIF</code> can now be used to extract the estimates from the
-<code>mirt</code> object. After, robust DIF can be investigated using
-the <code><a href="../reference/rdif.html">rdif()</a></code> function. Users supply a significance level by
-setting <code>alpha</code> (here, <code>.05</code>) and testing for DIF
-on slope (discrimination), intercept (difficulty), or both with
-<code>fun</code>. Here, we choose <code>d_fun3</code> to test for DIF on
-both.</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Save model parameters</span></span>
-<span><span class="va">parms</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_model_parms.html">get_model_parms</a></span><span class="op">(</span><span class="va">mirt.dat</span><span class="op">)</span></span>
+<code>robustDIF</code> can be used to extract item-level estimates from
+the <code>mirt</code> object. After, robustness to item-level
+variability can be investigated using the <code><a href="../reference/rdif.html">rdif()</a></code> function.
+Users supply a significance level by setting <code>alpha</code> (here,
+<code>.05</code>) and testing for DIF on slope (discrimination),
+intercept (difficulty), or both with <code>fun</code>.</p>
+<p>Here, we choose <code>d_fun1</code> to test whether the treatment
+effect computed using the un-weighted mean of items and scaled to the
+control group is robust to item-level sources of variation.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Extract cluster indicator variables (classroom/teacher id)</span></span>
+<span><span class="va">group_vars</span> <span class="op">&lt;-</span> <span class="va">data</span><span class="op">$</span><span class="va">cluster_id</span></span>
+<span></span>
+<span><span class="co"># Save model parameters</span></span>
+<span><span class="va">parms</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_model_parms.html">get_model_parms</a></span><span class="op">(</span><span class="va">mirt.dat</span>, cluster <span class="op">=</span> <span class="va">group_vars</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Investigate DIF</span></span>
-<span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rdif.html">rdif</a></span><span class="op">(</span>mle <span class="op">=</span> <span class="va">parms</span>, fun <span class="op">=</span> <span class="st">"d_fun3"</span>, alpha <span class="op">=</span> <span class="fl">.05</span><span class="op">)</span></span>
+<span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rdif.html">rdif</a></span><span class="op">(</span>mle <span class="op">=</span> <span class="va">parms</span>, fun <span class="op">=</span> <span class="st">"d_fun1"</span>, alpha <span class="op">=</span> <span class="fl">.05</span><span class="op">)</span></span>
 <span><span class="co"># Print estimate</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Est: 0.1226934     SE: 0.07434124</span></span></code></pre>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<pre><code><span><span class="co">## Est: 0.1041982     SE: 0.2798387</span></span></code></pre>
+<p>The <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> function provides the robust treatment
+effect estimate (<code>0.10</code>) and standard error
+(<code>0.28</code>) estimated using iteratively reweighted least squares
+with Tukey’s bisquare.</p>
+<p>The <code><a href="../reference/delta_test.html">delta_test()</a></code> function provides both a naive effect
+estimate (one that aggregates over all test items) and a robust estimate
+that adjusts for item-level variation.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/delta_test.html">delta_test</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">##   naive.est naive.se  rdif.est   rdif.se     delta   delta.se z.test      p.val</span></span>
+<span><span class="co">## 1 0.2449639 0.307209 0.1041982 0.2798387 0.1407657 0.06516024 2.1603 0.03074946</span></span></code></pre>
+<p>The naive effect estimate is <code>0.24</code>,
+<code>SE = 0.30</code>. The robust effect estimate that adjusts for
+item-level variation is <code>0.10</code>, <code>SE = 0.28</code>. This
+significant difference (<code>p &lt; 0.05</code>) implies that the
+treatment effect on the total score was driven by only a subset of items
+with relatively large effects. These items will be investigated
+next.</p>
+</div>
+<div class="section level2">
+<h2 id="step-3-which-items-show-differential-treatment-effects">Step 3: Which items show differential treatment effects?<a class="anchor" aria-label="anchor" href="#step-3-which-items-show-differential-treatment-effects"></a>
+</h2>
+<p>Using <code>summary</code> will provide <code>deltas</code> (the
+estimated scaling parameter subtracted from the item-level scaling
+function value) and <code>p-values</code>for each item. Significant
+<code>p-values</code> indicate that, at the chosen <code>alpha</code>,
+the item was flagged for DIF. Those items are down-weighted to zero
+during estimation of the scaling parameter.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Print summary</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## Robust Scaling and Differential Item Functioning.</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Data: 38 items </span></span>
-<span><span class="co">## Estimation ended after  24  iterations</span></span>
+<span><span class="co">## Estimation ended after  13  iterations</span></span>
 <span><span class="co">## Single solution found</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Est: 0.123    SE: 0.0743 </span></span>
+<span><span class="co">## Est: 0.104    SE: 0.2798 </span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Results from Wald Tests of DIF:</span></span>
-<span><span class="co">##                 delta         se      z.test        p.val</span></span>
-<span><span class="co">## item1_d1   0.09285407 0.14521912  0.63940664 0.5225584296</span></span>
-<span><span class="co">## item2_d1  -0.09048042 0.12665285 -0.71439704 0.4749816995</span></span>
-<span><span class="co">## item3_d1  -0.20016615 0.11147067 -1.79568451 0.0725447062</span></span>
-<span><span class="co">## item4_d1  -0.01502962 0.15825763 -0.09496933 0.9243391874</span></span>
-<span><span class="co">## item5_d1   0.03525616 0.15834030  0.22266070 0.8237995932</span></span>
-<span><span class="co">## item6_d1  -0.04327801 0.18176764 -0.23809522 0.8118072386</span></span>
-<span><span class="co">## item7_d1  -0.10431595 0.10434728 -0.99969973 0.3174558425</span></span>
-<span><span class="co">## item8_d1   0.08815631 0.10604524  0.83130849 0.4057993780</span></span>
-<span><span class="co">## item9_d1  -0.03237231 0.13040411 -0.24824610 0.8039440015</span></span>
-<span><span class="co">## item10_d1 -0.31758571 0.09942323 -3.19428090 0.0014017965</span></span>
-<span><span class="co">## item11_d1 -0.08136337 0.19205515 -0.42364588 0.6718240927</span></span>
-<span><span class="co">## item12_d1  0.11811708 0.20383831  0.57946460 0.5622757258</span></span>
-<span><span class="co">## item13_d1 -0.11100245 0.07504851 -1.47907592 0.1391200265</span></span>
-<span><span class="co">## item14_d1 -0.04689359 0.06946288 -0.67508851 0.4996195344</span></span>
-<span><span class="co">## item15_d1  0.05314942 0.08707391  0.61039430 0.5416006462</span></span>
-<span><span class="co">## item16_d1 -0.18112391 0.11786067 -1.53676299 0.1243513585</span></span>
-<span><span class="co">## item17_d1 -0.22699593 0.13921062 -1.63059346 0.1029761310</span></span>
-<span><span class="co">## item18_d1  0.30608446 0.47382700  0.64598357 0.5182899966</span></span>
-<span><span class="co">## item19_d1  0.02570377 0.12260780  0.20964218 0.8339469553</span></span>
-<span><span class="co">## item20_d1 -0.03059457 0.11151030 -0.27436539 0.7838038410</span></span>
-<span><span class="co">## item21_d1  0.14305968 0.15488568  0.92364695 0.3556701595</span></span>
-<span><span class="co">## item22_d1  0.09457635 0.16317216  0.57961081 0.5621770997</span></span>
-<span><span class="co">## item23_d1  0.12233002 0.10121235  1.20864717 0.2267984274</span></span>
-<span><span class="co">## item24_d1 -0.10386980 0.26185639 -0.39666706 0.6916129940</span></span>
-<span><span class="co">## item25_d1  0.41146895 0.16919289  2.43195174 0.0150177081</span></span>
-<span><span class="co">## item26_d1  1.53923012 0.89267914  1.72428150 0.0846570371</span></span>
-<span><span class="co">## item27_d1  0.92867227 0.33442653  2.77690966 0.0054878430</span></span>
-<span><span class="co">## item28_d1  0.17229595 0.12093534  1.42469476 0.1542454552</span></span>
-<span><span class="co">## item29_d1  0.33277965 0.13656601  2.43676774 0.0148191945</span></span>
-<span><span class="co">## item30_d1  0.86082824 0.37496578  2.29575146 0.0216900964</span></span>
-<span><span class="co">## item31_d1  0.63261467 0.17002927  3.72062225 0.0001987325</span></span>
-<span><span class="co">## item32_d1 -0.33722912 0.14013518 -2.40645589 0.0161081491</span></span>
-<span><span class="co">## item33_d1  0.02591741 0.17939249  0.14447322 0.8851268003</span></span>
-<span><span class="co">## item34_d1  0.17575687 0.21062048  0.83447188 0.4040151275</span></span>
-<span><span class="co">## item35_d1  0.02202072 0.10209143  0.21569604 0.8292246868</span></span>
-<span><span class="co">## item36_d1 -0.18297001 0.16305709 -1.12212241 0.2618103975</span></span>
-<span><span class="co">## item37_d1  0.69401393 0.35140583  1.97496419 0.0482722122</span></span>
-<span><span class="co">## item38_d1 -0.36777386 0.15407353 -2.38700227 0.0169863866</span></span></code></pre>
-<p>The <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> function provides the scaling parameter
-(<code>0.12</code>) and standard error (<code>0.07</code>) estimated
-using iteratively reweighted least squares with Tukey’s bisquare, and
-<code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> provides additional information regarding Wald
-tests on each of the items. Significant p-values indicate that, at the
-chosen <code>alpha</code>, the item was flagged for DIF. Those items are
-downweighted to zero during estimation of the scaling parameter.
-<code>delta</code> is the estimated scaling parameter subtracted from
-the item-level scaling function value.</p>
-<p>The items that indicate DIF on both intercepts and slopes are: item
-10, item 25, item 27, item 29, item 30, item 31, item 32, item 37, and
-item 38 - almost a quarter (24%) of test items. This is a nontrivial
-amount of item-level bias, and can be considered a form of measurement
-noninvariance.</p>
+<span><span class="co">##                  delta         se      z.test       p.val</span></span>
+<span><span class="co">## item1_d1   0.115633003 0.19682025  0.58750563 0.556864172</span></span>
+<span><span class="co">## item2_d1  -0.066612378 0.18127570 -0.36746446 0.713272597</span></span>
+<span><span class="co">## item3_d1  -0.190324096 0.16870574 -1.12814241 0.259259781</span></span>
+<span><span class="co">## item4_d1   0.020063711 0.23962197  0.08373068 0.933270562</span></span>
+<span><span class="co">## item5_d1   0.055510667 0.16768000  0.33105121 0.740605807</span></span>
+<span><span class="co">## item6_d1  -0.021597174 0.21032340 -0.10268555 0.918212541</span></span>
+<span><span class="co">## item7_d1  -0.084641477 0.17648935 -0.47958405 0.631523192</span></span>
+<span><span class="co">## item8_d1   0.108560507 0.14782891  0.73436589 0.462725771</span></span>
+<span><span class="co">## item9_d1  -0.006712899 0.15449566 -0.04345041 0.965342495</span></span>
+<span><span class="co">## item10_d1 -0.275029789 0.11388624 -2.41495183 0.015737291</span></span>
+<span><span class="co">## item11_d1 -0.063338260 0.17209726 -0.36803758 0.712845211</span></span>
+<span><span class="co">## item12_d1  0.222371903 0.36177041  0.61467687 0.538768138</span></span>
+<span><span class="co">## item13_d1 -0.092438955 0.10352617 -0.89290427 0.371908439</span></span>
+<span><span class="co">## item14_d1 -0.032820851 0.08948296 -0.36678326 0.713780694</span></span>
+<span><span class="co">## item15_d1  0.092338815 0.13099809  0.70488672 0.480880735</span></span>
+<span><span class="co">## item16_d1 -0.159438851 0.12119595 -1.31554602 0.188326462</span></span>
+<span><span class="co">## item17_d1 -0.210254838 0.16900943 -1.24404204 0.213484089</span></span>
+<span><span class="co">## item18_d1  0.489239880 0.82998800  0.58945416 0.555556652</span></span>
+<span><span class="co">## item19_d1  0.055374051 0.17508307  0.31627302 0.751795291</span></span>
+<span><span class="co">## item20_d1 -0.009162725 0.13975430 -0.06556310 0.947725668</span></span>
+<span><span class="co">## item21_d1  0.192334938 0.31953693  0.60191771 0.547228913</span></span>
+<span><span class="co">## item22_d1  0.156423564 0.19457760  0.80391354 0.421446908</span></span>
+<span><span class="co">## item23_d1  0.165641941 0.13784953  1.20161411 0.229513074</span></span>
+<span><span class="co">## item24_d1 -0.084950693 0.30150778 -0.28175291 0.778132982</span></span>
+<span><span class="co">## item25_d1  0.465575917 0.28297684  1.64527926 0.099912235</span></span>
+<span><span class="co">## item26_d1  1.109023313 0.75694377  1.46513302 0.142884629</span></span>
+<span><span class="co">## item27_d1  0.678945204 0.28757927  2.36089760 0.018230764</span></span>
+<span><span class="co">## item28_d1  0.194769667 0.16581094  1.17464905 0.240135152</span></span>
+<span><span class="co">## item29_d1  0.303730038 0.12956905  2.34415578 0.019070204</span></span>
+<span><span class="co">## item30_d1  0.824750765 0.42354780  1.94724365 0.051505531</span></span>
+<span><span class="co">## item31_d1  0.578251407 0.19174741  3.01569344 0.002563923</span></span>
+<span><span class="co">## item32_d1 -0.288450618 0.17646126 -1.63463990 0.102124557</span></span>
+<span><span class="co">## item33_d1  0.047250317 0.35604143  0.13271016 0.894422604</span></span>
+<span><span class="co">## item34_d1  0.176916512 0.20866159  0.84786335 0.396514080</span></span>
+<span><span class="co">## item35_d1  0.053548904 0.14845794  0.36070085 0.718323092</span></span>
+<span><span class="co">## item36_d1 -0.168924579 0.25620832 -0.65932510 0.509687027</span></span>
+<span><span class="co">## item37_d1  1.329555051 0.83878924  1.58508835 0.112946263</span></span>
+<span><span class="co">## item38_d1 -0.332016808 0.17156521 -1.93522224 0.052963029</span></span></code></pre>
+<p>The direction and magnitude of the significant item-level effects
+reveal which items were increasing or decreasing the treatment effect.
+We can subset to significant (<code>p-value &lt; alpha</code>) items and
+plot their effects and 95% CI’s in relation to the robust estimate to
+visualize this.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Subset to significant items (set your own p-value if different from 0.05)</span></span>
+<span><span class="va">sig.items</span> <span class="op">&lt;-</span> <span class="va">mod</span><span class="op">[[</span><span class="st">"dif.test"</span><span class="op">]</span><span class="op">]</span><span class="op">[</span><span class="va">mod</span><span class="op">[[</span><span class="st">"dif.test"</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">p.val</span> <span class="op">&lt;</span> <span class="fl">0.05</span>, <span class="op">]</span></span>
+<span></span>
+<span><span class="co"># Save robust estimate</span></span>
+<span><span class="va">rob.est</span> <span class="op">&lt;-</span> <span class="va">mod</span><span class="op">[[</span><span class="st">"est"</span><span class="op">]</span><span class="op">]</span></span>
+<span></span>
+<span><span class="co"># Plot</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span> <span class="co"># You may need to install the package first with install.packages("ggplot2")</span></span>
+<span></span>
+<span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu">ggplot</span><span class="op">(</span>data <span class="op">=</span> <span class="va">sig.items</span>, <span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/row.names.html" class="external-link">row.names</a></span><span class="op">(</span><span class="va">sig.items</span><span class="op">)</span>, y <span class="op">=</span> <span class="va">delta</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">geom_point</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">geom_errorbar</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span>ymin <span class="op">=</span> <span class="va">delta</span> <span class="op">-</span> <span class="fl">1.96</span><span class="op">*</span><span class="va">se</span>, ymax <span class="op">=</span> <span class="va">delta</span> <span class="op">+</span> <span class="fl">1.96</span><span class="op">*</span><span class="va">se</span><span class="op">)</span>, width<span class="op">=</span><span class="fl">0.1</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">geom_hline</span><span class="op">(</span>yintercept<span class="op">=</span><span class="va">rob.est</span>, col<span class="op">=</span><span class="st">"red"</span>, lwd<span class="op">=</span><span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">labs</span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Item"</span>, y <span class="op">=</span> <span class="st">"Delta"</span>, title <span class="op">=</span> <span class="st">"Item-level Treatment Effects"</span><span class="op">)</span></span>
+<span><span class="va">p</span></span></code></pre></div>
+<div class="float">
+<img src="figures/itemtreateffects2.png" alt="Effects"><div class="figcaption">Effects</div>
+</div>
+<p>Items whose 95% CIs do not cross the red line had item-level effects
+significantly larger or smaller than the robust treatment effect
+estimate (and were downweighted to zero during estimation). These items
+were: Question 10: (“A group of circles is shown. Which of these groups
+represents the same number of circles?”) Question 33: (Using base-ten
+blocks: “What is 355 - 262?”) Question 38: (“98 - 36 =”)</p>
+<p>Items 10 and 33 had positive item-level effect deltas, biasing the
+treatment effect upward. Only item 38 had a negative item-level effect
+delta, biasing the treatment effect down. These results indicate that
+the upward bias of the naive treatment effect was being driven by only
+two items. If students using My Math Academy had more exposure to these
+two question types (using circles and base-ten blocks), then the
+construct validity of the naive treatment effect using total scores
+would be threatened. In other words, the total scores may not accurately
+capture math ability. Additionally, the naive effect may be smaller in
+studies using tests without these two items.</p>
 </div>
 <div class="section level2">
-<h2 id="the-rho-function">The Rho Function<a class="anchor" aria-label="anchor" href="#the-rho-function"></a>
+<h2 id="step-4-sensitivity-analysis">Step 4: Sensitivity analysis<a class="anchor" aria-label="anchor" href="#step-4-sensitivity-analysis"></a>
 </h2>
-<p>It is useful to use the <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> function to visually
-inspect the Rho Function for a clear global minimum before proceeding
-with analyses and making inferences about DIF.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<p>Before proceeding with the analysis and making inferences about
+DIF/IL-HTE, use <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> to visually inspect the Rho Function
+for a clear global minimum.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Plot Rho Function</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span></code></pre></div>
-<p><img src="Testing%20for%20impact_files/figure-html/unnamed-chunk-4-1.png" class="r-plt" alt="" width="700"></p>
-<p>Here, the Rho Function has a clear global minimum.</p>
+<p><img src="Testing%20for%20impact_files/figure-html/unnamed-chunk-8-1.png" class="r-plt" alt="" width="700"></p>
+<p>Here, the Rho Function has a clear global minimum, indicating there
+is a single solution for the scaling parameter. If the Rho function
+showed multiple local minima of similar values, there would potentially
+be multiple solutions, and the results would be sensitive to which
+minima was used during calculations.</p>
 </div>
 <div class="section level2">
-<h2 id="testing-for-impact">Testing for impact<a class="anchor" aria-label="anchor" href="#testing-for-impact"></a>
+<h2 id="step-5-conclusion">Step 5: Conclusion<a class="anchor" aria-label="anchor" href="#step-5-conclusion"></a>
 </h2>
-<p>Researchers may wish to know if any DIF present affects conclusions
-about impact, or how the groups differ on the latent trait. In
-<code>robustDIF</code>, the function <code><a href="../reference/delta_test.html">delta_test()</a></code>
-accomplishes this by comparing a naive estimate of impact (here, the
-unweighted mean of the item-level scaling functions) to the robust
-estimate above.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/delta_test.html">delta_test</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##   naive.est   naive.se  rdif.est    rdif.se     delta   delta.se   z.test</span></span>
-<span><span class="co">## 1 0.2385313 0.07744853 0.1226934 0.07434124 0.1158379 0.04237391 2.733709</span></span>
-<span><span class="co">##         p.val</span></span>
-<span><span class="co">## 1 0.006262537</span></span></code></pre>
-<p>In this output, <code>delta = naive.est - rdif.est</code>. The null
-hypothesis (that both estimators are consistent for the true scaling
-parameter) is rejected at <code>p=0.006</code>. There is evidence that
-DIF affects conclusions about impact: treatment condition impacts the
-distribution of the latent trait. Comparisons of total test scores
-between the two groups may not necessarily be accurate comparisons of
-mathematical achievement ability.</p>
+<p>In the absence of IL-HTE, the treatment effect based on the total
+test score and the treatment effect on underlying math ability is
+equivalent. When IL-HTE is present, as in this example, we can conclude
+the two are not equivalent: comparing mean total scores between groups
+is not an adequate representation of differences in underlying math
+ability.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

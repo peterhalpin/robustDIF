@@ -35,7 +35,7 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/References.html">References</a></li>
     <li><a class="dropdown-item" href="../articles/technical-notes.html">robustDIF Technical Notes</a></li>
-    <li><a class="dropdown-item" href="../articles/Testing%20for%20impact.html">Testing for impact</a></li>
+    <li><a class="dropdown-item" href="../articles/Testing%20for%20impact.html">Item level treatment effect heterogeneity</a></li>
     <li><a class="dropdown-item" href="../articles/Tests%20of%20robustDIF%20with%20item-level%20information.html">Tests of robustDIF with item-level information</a></li>
   </ul>
 </li>
@@ -61,7 +61,7 @@
                         <h4 data-toc-skip class="author">Peter F Halpin
 &amp; James Eagle</h4>
             
-            <h4 data-toc-skip class="date">2026-04-16</h4>
+            <h4 data-toc-skip class="date">2026-04-22</h4>
       
 
       <div class="d-none name"><code>Tests of robustDIF with item-level information.Rmd</code></div>
@@ -110,16 +110,16 @@ response IRT models for future testing of <code>robustDIF</code>:</p>
 <span><span class="va">items</span> <span class="op">&lt;-</span> <span class="va">eg_pits</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">6</span><span class="op">:</span><span class="fl">12</span><span class="op">)</span><span class="op">]</span></span>
 <span></span>
 <span><span class="co"># Calculate 1-factor 2PL models, using treatment to split groups and specifying SE=TRUE for the covariance matrix.</span></span>
-<span><span class="va">mirt</span> <span class="op">&lt;-</span> <span class="fu">multipleGroup</span><span class="op">(</span><span class="va">items</span>,</span>
+<span><span class="va">mirt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://philchalmers.github.io/mirt/reference/multipleGroup.html" class="external-link">multipleGroup</a></span><span class="op">(</span><span class="va">items</span>,</span>
 <span>                      model <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>                      group<span class="op">=</span><span class="va">eg_pits</span><span class="op">$</span><span class="va">gender</span>,</span>
 <span>                      itemtype <span class="op">=</span> <span class="st">"graded"</span>,</span>
 <span>                      SE<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co"># Plot the IRFs</span></span>
-<span><span class="fu">itemplot</span><span class="op">(</span><span class="va">mirt</span>, item <span class="op">=</span> <span class="fl">1</span>, type <span class="op">=</span> <span class="st">"trace"</span><span class="op">)</span></span>
-<span><span class="fu">itemplot</span><span class="op">(</span><span class="va">mirt</span>, item <span class="op">=</span> <span class="fl">5</span>, type <span class="op">=</span> <span class="st">"trace"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://philchalmers.github.io/mirt/reference/itemplot.html" class="external-link">itemplot</a></span><span class="op">(</span><span class="va">mirt</span>, item <span class="op">=</span> <span class="fl">1</span>, type <span class="op">=</span> <span class="st">"trace"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://philchalmers.github.io/mirt/reference/itemplot.html" class="external-link">itemplot</a></span><span class="op">(</span><span class="va">mirt</span>, item <span class="op">=</span> <span class="fl">5</span>, type <span class="op">=</span> <span class="st">"trace"</span><span class="op">)</span></span></code></pre></div>
 <p>Because each item in a GRM has multiple curves, we use
-<code>itemplot()</code> of <code>type="trace"</code> for each
+<code><a href="https://philchalmers.github.io/mirt/reference/itemplot.html" class="external-link">itemplot()</a></code> of <code>type="trace"</code> for each
 <code>item</code> to investigate the category response functions (CRF).
 The CRF show how the probability of endorsing each response category
 changes as a function of the latent trait.</p>
