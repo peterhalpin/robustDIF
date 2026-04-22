@@ -160,10 +160,11 @@ p
 
 ![Effects](figures/itemtreateffects2.png)
 
+
 Items whose 95% CIs do not cross the red line had item-level effects significantly larger or smaller than the robust treatment effect estimate (and were downweighted to zero during estimation). These items were:
-- Question 10 ("A group of circles is shown. Which of these groups represents the same number of circles?")
-- Question 33 (Using base-ten blocks: "What is 355 - 262?")
-- Question 38 ("98 - 36 = ")
+>  Question 10 ("A group of circles is shown. Which of these groups represents the same number of circles?")
+>  Question 33 (Using base-ten blocks: "What is 355 - 262?")
+>  Question 38 ("98 - 36 = ")
 
 Items 10 and 33 had positive item-level effect deltas, biasing the treatment effect upward. Only item 38 had a negative item-level effect delta, biasing the treatment effect down. These results indicate that the upward bias of the naive treatment effect was being driven by only two items. If students using My Math Academy had more exposure to these two question types (using circles and base-ten blocks), then the construct validity of the naive treatment effect using total scores would be threatened. In other words, the total scores may not accurately capture math ability. Additionally, the naive effect may be smaller in studies using tests without these two items.
 
