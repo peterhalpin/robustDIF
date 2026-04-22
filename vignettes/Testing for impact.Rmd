@@ -31,11 +31,12 @@ In a recent block randomized control trial, Bang, Li, and Flynn (2022) investiga
 
 Blocking on school and grade, teachers were cluster randomized to treatment (21 classrooms) or control (20 classrooms). Treatment teachers were tasked with using My Math Academy for at least 60 minutes per week. Control teachers implemented whatever math curricula the district used. The intervention took place between February and June 2019. In total, 41 classrooms from 11 elementary schools participated.
 
-Math achievement was measured at pre-test and post-test using 31 multiple-choice items selected from the Certica assessment item bank. Items were selected if they aligned with Common Core State Standards for K-2 and targeted specific My Math Academy learning objectives. Students had 30-45 minutes to complete the assessment. Responses were coded as 0 (incorrect) or 1 (correct) for the analyses.
+Math achievement was measured at pre-test and post-test using 38 multiple-choice items selected from the Certica assessment item bank. Items were selected if they aligned with Common Core State Standards for K-2 and targeted specific My Math Academy learning objectives. Students had 30-45 minutes to complete the assessment. Responses were coded as 0 (incorrect) or 1 (correct) for the analyses.
 
 An average treatment effect (ATE) can be computed by comparing the unweighted mean sum scores between conditions:
 
-$$ ATE = MeanSumScore_{treat} - MeanSumScore_{control} $$\ $$= 20.97 - 20.08 = 0.89 $$
+$$ ATE = MeanSumScore_{treat} - MeanSumScore_{control} $$ 
+$$= 20.97 - 20.08 = 0.89 $$
 Dividing by the pooled standard deviation gives a measure of effect size (d):
 
 $$ d = \frac{ATE}{sd_p} = 0.11 $$
@@ -77,33 +78,89 @@ plot(mirt.dat, type = "trace", facet = F)
 
 A useful first step is to investigate the IRFs of the multiple group 2PL model using `plot()`.
 
-When fitting 2PL IRT models, the latent trait \theta (representing underlying "math ability") needs to be scaled (i.e., we restrain it to have a mean of zero and variance of one). This can be problematic when testing differences between groups (i.e., tests of DIF), because if we arbitrarily scale \theta in both groups, we give their \theta the same mean and variance. In other words, we end up removing any differences and will show zero impact. The `robustDIF` procedure tackles this problem by using robust statistics to estimate scaling parameters and flag items for DIF.
+When fitting 2PL IRT models, the latent trait \theta (representing underlying "math achievement") needs to be scaled (i.e., we restrain it to have a mean of zero and variance of one). This can be problematic when testing differences between groups (i.e., tests of DIF), because if we arbitrarily scale \theta in both groups, we give their \theta the same mean and variance. In other words, we end up removing any differences and will show zero impact. The `robustDIF` procedure tackles this problem by using robust statistics to estimate scaling parameters and flag items for DIF.
 
-A second issue here is the clustering of observations: students within the same classroom may have similar characteristics (e.g., have similar capabilities, backgrounds, etc.). This leads to partial dependencies in their scores which must be accounted for. The `robustDIF` package can handle this by specifying `cluster=TRUE` in the `get_model_parms()` function, which will be illustrated later.
+A second issue here is the clustering of observations: students within the same classroom may have similar characteristics (e.g., have similar capabilities, backgrounds, etc.). This leads to partial dependencies in their scores which must be accounted for. The `robustDIF` package can handle this by specifying a `cluster` in the `get_model_parms()` function (WIP: Will be implemented in a future update).
 
 # Step 2: Is the overall treatment effect robust to item-level variability?
 
 The `get_model_parms()` function from `robustDIF` can now be used to extract the estimates from the `mirt` object. After, robust DIF can be investigated using the `rdif()` function. Users supply a significance level by setting `alpha` (here, `.05`) and testing for DIF on slope (discrimination), intercept (difficulty), or both with `fun`. 
 
-Here, we choose `d_fun1` to test whether the treatment effect computed using the un-weighted mean sum scores (above) and scaled to the control group is robust to item-level sources of variation.
+Here, we choose `d_fun1` to test whether the treatment effect computed using the un-weighted mean of items and scaled to the control group is robust to item-level sources of variation. 
+
+DISCUSS VALIDITY HERE
 
 ```{r message=FALSE, warning=FALSE}
+# Extract group indicator variables
+# group_vector <- as.factor(mirt.dat@Data$group)
+
 # Save model parameters
+# parms <- get_model_parms(mirt.dat, cluster=group_vector)
 parms <- get_model_parms(mirt.dat)
 
 # Investigate DIF
-mod <- rdif(mle = parms, fun = "d_fun3", alpha = .05)
+mod <- rdif(mle = parms, fun = "d_fun1", alpha = .05)
 # Print estimate
 print(mod)
+```
+
+The `print()` function provides the robust treatment effect estimate (`0.12`) and standard error (`0.07`) estimated using iteratively reweighted least squares with Tukey's bisquare.
+
+The `delta_test()` function provides the naive effect estimate and the estimate that adjusts for item-level variation.
+
+``` {r message = FALSE, warning = FALSE}
+delta_test(mod)
+```
+
+The naive effect estimate is `0.24`, `SE = 0.07`. The effect estimate that adjusts for item-level variation is `0.12`, `SE = 0.07`. This difference implies that the significant treatment effect on the total score was driven by only a subset of items with relatively large effects. These items will be investigated next.
+
+# Step 3: Which items show differential treatment effects?
+
+Using `summary` will provide `deltas` and `p-values`for each item. Significant p-values indicate that, at the chosen `alpha`, the item was flagged for DIF. Those items are downweighted to zero during estimation of the scaling parameter. `delta` is the estimated scaling parameter subtracted from the item-level scaling function value.
+
+``` {r}
 # Print summary
 summary(mod)
 ```
 
-The `print()` function provides the scaling parameter (`0.12`) and standard error (`0.07`) estimated using iteratively reweighted least squares with Tukey's bisquare, and `summary()` provides additional information regarding Wald tests on each of the items. Significant p-values indicate that, at the chosen `alpha`, the item was flagged for DIF. Those items are downweighted to zero during estimation of the scaling parameter. `delta` is the estimated scaling parameter subtracted from the item-level scaling function value.
+The direction and magnitude of the significant item-level effects reveal which items were increasing or decreasing the treatment effect. We can subset to significant (`p-value < alpha`) items and plot their effects and 95% CI's in relation to the robust estimate to visualize this.
 
-The items that indicate DIF on both intercepts and slopes are: item 10, item 25, item 27, item 29, item 30, item 31, item 32, item 37, and item 38 - almost a quarter (24%) of test items. This is a nontrivial amount of item-level bias, and can be considered a form of measurement noninvariance. 
+``` {r}
+# Subset to significant items (set your own p-value if different from 0.05)
+sig.items <- mod[["dif.test"]][mod[["dif.test"]]$p.val < 0.05, ]
 
-# The Rho Function
+# Save robust estimate
+rob.est <- mod[["est"]]
+
+# Plot
+library(ggplot2)
+
+ggplot(data = sig.items, aes(x = row.names(sig.items), y = delta)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = delta - 1.96*se, ymax = delta + 1.96*se), width=0.1) +
+  geom_hline(yintercept=rob.est, col="red", lwd=1) +
+  labs(x = "Item", y = "Delta", title = "Item-level Treatment Effects")
+
+```
+
+The items that had an effect on the treatment effect were: 
+- Question 10 ("A group of circles is shown. Which of these groups represents the same number of circles?")
+- Question 25 ("Count the circles, then fill in the missing numbers.")
+- Question 27 ("What is the sum of seven and eight?")
+- Question 29 ("Compare the following numbers: 23, 13)
+- Question 30 ("Which number has a seven in the tens place?")
+- Question 31 ("Which number is missing from the hundred chart?")
+- Question 32 ("Look at the number sentences. Which number sentence belongs with the set?")
+- Question 37 ("89 + 76 = ")
+- Question 38 ("98 - 36 = ")
+
+almost a quarter (24%) of test items; a non-trivial amount of item-level bias.
+
+Items 10, 32, and 38 had negative item-level effects, decreasing the treatment effect, and all the rest had positive effects, increasing the treatment effect.
+
+REFER BACK TO VALIDITY
+
+# Sensitivity analysis
 
 It is useful to use the `plot()` function to visually inspect the Rho Function for a clear global minimum before proceeding with analyses and making inferences about DIF.
 
@@ -112,14 +169,8 @@ It is useful to use the `plot()` function to visually inspect the Rho Function f
 plot(mod)
 ```
 
-Here, the Rho Function has a clear global minimum.
+Here, the Rho Function has a clear global minimum, so there is a single solution for estimating the scaling parameter. If the Rho function showed multiple local minima of similar values, there would potentially be multiple solutions.
 
-# Testing for impact
 
-Researchers may wish to know if any DIF present affects conclusions about impact, or how the groups differ on the latent trait. In `robustDIF`, the function `delta_test()` accomplishes this by comparing a naive estimate of impact (here, the unweighted mean of the item-level scaling functions) to the robust estimate above.
-``` {r message = FALSE, warning = FALSE}
-delta_test(mod)
-```
-In this output, `delta = naive.est - rdif.est`. The null hypothesis (that both estimators are consistent for the true scaling parameter) is rejected at `p=0.006`. There is evidence that DIF affects conclusions about impact: treatment condition impacts the distribution of the latent trait. Comparisons of total test scores between the two groups may not necessarily be accurate comparisons of mathematical achievement ability.
 
 
