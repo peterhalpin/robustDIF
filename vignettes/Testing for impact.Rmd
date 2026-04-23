@@ -36,7 +36,7 @@ Math achievement was measured at pre-test and post-test using 38 multiple-choice
 
 Bang and colleagues (2022) estimated a simple treatment effect by computing the difference between mean un-weighted post-test total scores:
 
-$$ TreatmentEffect = \overline{\text{TotalScore}}_{\text{treat}} - \overline{\text{TotalScore}}_{\text{control}}$$ 
+$$ TreatmentEffect = \overline{\text{TotalScore}}_{\text{treat}} - \overline{\text{TotalScore}}_{\text{control}}$$\n 
 $$= 20.97 - 20.08 = 0.89 $$
 Dividing by the pooled standard deviation gives a measure of effect size (d):
 
@@ -87,7 +87,7 @@ plot(mirt.dat, type = "trace", facet = F)
 
 A useful first step is to investigate the item response functions (IRFs) of the multiple group 2PL model using `plot()`. Essentially, we are looking for similarities and differences between response functions in the treatment (1) and control (0) groups. If the response functions look near identical, we may not expect to uncover any DIF.
 
-When fitting 2PL IRT models, the latent trait \theta (representing children's underlying "math ability") needs to be scaled (i.e., we restrain it to have a mean of zero and variance of one). This can be problematic when testing differences between groups (tests of DIF), because if we arbitrarily scale \theta in both groups, we give their \theta the same mean and variance. In other words, we end up removing any differences and will show zero impact. The `robustDIF` procedure tackles this problem by instead using robust statistics to estimate scaling parameters and flag items for DIF.
+When fitting 2PL IRT models, the latent trait $\theta$ (representing children's underlying "math ability") needs to be scaled (i.e., we restrain it to have a mean of zero and variance of one). This can be problematic when testing differences between groups (tests of DIF), because if we arbitrarily scale $\theta$ in both groups, we give their $\theta$ the same mean and variance. In other words, we end up removing any differences and will show zero impact. The `robustDIF` procedure tackles this problem by instead using robust statistics to estimate scaling parameters and flag items for DIF.
 
 A second issue here is the clustering of observations: students within the same classroom may have similar characteristics (e.g., have similar capabilities, backgrounds, etc.). This leads to partial redundancies in their scores which should be accounted for. The `robustDIF` package can handle this by specifying a `cluster` variable (e.g., classroom id's) in the `get_model_parms()` function.
 
@@ -126,7 +126,7 @@ The `delta_test()` function provides both a naive effect estimate (one that aggr
 delta_test(mod)
 ```
 
-The naive effect estimate is `0.24`, `SE = 0.30`. The robust effect estimate that adjusts for item-level variation is `0.10`, `SE = 0.28`. This significant difference (`p < 0.05`) implies that the treatment effect on the total score was driven by only a subset of items with relatively large effects. These items will be investigated next.
+The naive effect estimate is `0.24`, `SE = 0.31`. The robust effect estimate that adjusts for item-level variation is `0.10`, `SE = 0.28`. This significant difference (`p < 0.05`) implies that the treatment effect on the total score was driven by only a subset of items with relatively large effects. These items will be investigated next.
 
 # Step 3: Which items show differential treatment effects?
 
@@ -161,10 +161,14 @@ p
 ![Effects](figures/itemtreateffects2.png)
 
 
-Items whose 95% CIs do not cross the red line had item-level effects significantly larger or smaller than the robust treatment effect estimate (and were downweighted to zero during estimation). These items were: \n
-Question 10: ("A group of circles is shown. Which of these groups represents the same number of circles?") \n
-Question 33: (Using base-ten blocks: "What is 355 - 262?") \n
-Question 38: ("98 - 36 = ")\n
+Items whose 95% CIs do not cross the red line had item-level effects significantly larger or smaller than the robust treatment effect estimate. These items were:  
+
+Question 10: ("A group of circles is shown. Which of these groups represents the same number of circles?")  
+
+Question 33: (Using base-ten blocks: "What is 355 - 262?")  
+
+Question 38: ("98 - 36 = ")  
+
 
 Items 10 and 33 had positive item-level effect deltas, biasing the treatment effect upward. Only item 38 had a negative item-level effect delta, biasing the treatment effect down. These results indicate that the upward bias of the naive treatment effect was being driven by only two items. If students using My Math Academy had more exposure to these two question types (using circles and base-ten blocks), then the construct validity of the naive treatment effect using total scores would be threatened. In other words, the total scores may not accurately capture math ability. Additionally, the naive effect may be smaller in studies using tests without these two items.
 
@@ -181,7 +185,8 @@ Here, the Rho Function has a clear global minimum, indicating there is a single 
 
 # Step 5: Conclusion
 
-In the absence of IL-HTE, the treatment effect based on the total test score and the treatment effect on underlying math ability is equivalent. When IL-HTE is present, as in this example, we can conclude the two are not equivalent: comparing mean total scores between groups is not an adequate representation of differences in underlying math ability. 
+In the absence of IL-HTE, the treatment effect based on the total test score and the treatment effect on underlying math ability is equivalent. When IL-HTE is present, as in this example, we can conclude the two are not: comparing mean total scores between groups may not be an adequate representation of differences in underlying math ability. 
 
+Researchers in this situation have several options to address these concerns. The first would be to provide evidence that My Math Academy students did not have more exposure to these question types than control students. Assuming this is true, then researchers might caution readers that the results were largely driven by a few items, or conduct a sensitivity analysis by replacing biased assessment items on a follow-up sample and comparing effect magnitudes between tests.
 
 
