@@ -109,15 +109,15 @@ we are looking for similarities and differences between response
 functions in the treatment (1) and control (0) groups. If the response
 functions look near identical, we may not expect to uncover any DIF.
 
-When fitting 2PL IRT models, the latent trait (representing children’s
-underlying “math ability”) needs to be scaled (i.e., we restrain it to
-have a mean of zero and variance of one). This can be problematic when
-testing differences between groups (tests of DIF), because if we
-arbitrarily scale in both groups, we give their the same mean and
-variance. In other words, we end up removing any differences and will
-show zero impact. The `robustDIF` procedure tackles this problem by
-instead using robust statistics to estimate scaling parameters and flag
-items for DIF.
+When fitting 2PL IRT models, the latent trait $\theta$ (representing
+children’s underlying “math ability”) needs to be scaled (i.e., we
+restrain it to have a mean of zero and variance of one). This can be
+problematic when testing differences between groups (tests of DIF),
+because if we arbitrarily scale $\theta$ in both groups, we give their
+$\theta$ the same mean and variance. In other words, we end up removing
+any differences and will show zero impact. The `robustDIF` procedure
+tackles this problem by instead using robust statistics to estimate
+scaling parameters and flag items for DIF.
 
 A second issue here is the clustering of observations: students within
 the same classroom may have similar characteristics (e.g., have similar
@@ -198,7 +198,7 @@ delta_test(mod)
     ##   naive.est naive.se  rdif.est   rdif.se     delta   delta.se z.test      p.val
     ## 1 0.2449639 0.307209 0.1041982 0.2798387 0.1407657 0.06516024 2.1603 0.03074946
 
-The naive effect estimate is `0.24`, `SE = 0.30`. The robust effect
+The naive effect estimate is `0.24`, `SE = 0.31`. The robust effect
 estimate that adjusts for item-level variation is `0.10`, `SE = 0.28`.
 This significant difference (`p < 0.05`) implies that the treatment
 effect on the total score was driven by only a subset of items with
@@ -295,10 +295,14 @@ Effects
 
 Items whose 95% CIs do not cross the red line had item-level effects
 significantly larger or smaller than the robust treatment effect
-estimate (and were downweighted to zero during estimation). These items
-were: Question 10: (“A group of circles is shown. Which of these groups
-represents the same number of circles?”) Question 33: (Using base-ten
-blocks: “What is 355 - 262?”) Question 38: (“98 - 36 =”)
+estimate. These items were:
+
+Question 10: (“A group of circles is shown. Which of these groups
+represents the same number of circles?”)
+
+Question 33: (Using base-ten blocks: “What is 355 - 262?”)
+
+Question 38: (“98 - 36 =”)
 
 Items 10 and 33 had positive item-level effect deltas, biasing the
 treatment effect upward. Only item 38 had a negative item-level effect
@@ -335,5 +339,13 @@ was used during calculations.
 In the absence of IL-HTE, the treatment effect based on the total test
 score and the treatment effect on underlying math ability is equivalent.
 When IL-HTE is present, as in this example, we can conclude the two are
-not equivalent: comparing mean total scores between groups is not an
-adequate representation of differences in underlying math ability.
+not: comparing mean total scores between groups may not be an adequate
+representation of differences in underlying math ability.
+
+Researchers in this situation have several options to address these
+concerns. The first would be to provide evidence that My Math Academy
+students did not have more exposure to these question types than control
+students. Assuming this is true, then researchers might caution readers
+that the results were largely driven by a few items, or conduct a
+sensitivity analysis by replacing biased assessment items on a follow-up
+sample and comparing effect magnitudes between tests.
