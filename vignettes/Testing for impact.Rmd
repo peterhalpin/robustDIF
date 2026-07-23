@@ -56,7 +56,7 @@ tab <- data.frame(
   z.test = c(5.848172),
   p.val = c(4.980015e-09)
 )
-knitr::kable(tab, caption = "Table 1: Hypothetical diagnostic test results")
+print(tab)
 ```
 
 The naïve estimate was equal to 0.44, the robust estimate equal to 0.09, and the difference (0.34) was significant at z = 5.8, p < 0.001. Here, we would conclude that the treatment effect based on unweighted means is *not* a suitable proxy for impact. This means the naïve treatment effect would represent a threat to construct validity, insofar as the effect is specific to the scientific reasoning domain rather than biology expertise overall, as well as a threat to external validity, as the size of the effect may not generalize to assessments without those ten items.
