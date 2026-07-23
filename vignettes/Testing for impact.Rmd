@@ -45,7 +45,7 @@ Whether IL-HTE is construct-relevant or construct-irrelevant, when only a few it
 
 Finally, the strength and direction of the item-level effects will influence how they relate to the test-level treatment effect. Returning to our biology curriculum example, when each of the scientific reasoning items (Items 1 through 10) are significantly larger than the robust treatment effect, the naïve treatment effect would be upwardly biased. We can see the effect of this from a diagnostic test comparing a naïve, IRT-based test-level estimate (analogous to using the unweighted mean of test items) to a robust estimate that down-weights items that exhibit significant IL-HTE (Table 1).
 
-``` {r echo=FALSE}
+``` {r, echo=FALSE}
 tab <- data.frame(
   naive.est =  c(0.4404281),
   naive.se = c(0.1029667),
