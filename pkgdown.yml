@@ -1,5 +1,5 @@
-pandoc: 3.1.11
-pkgdown: 2.2.0
+pandoc: 3.8.3
+pkgdown: 2.2.1
 pkgdown_sha: ~
 articles:
   References: References.html
@@ -7,7 +7,7 @@ articles:
   Testing for impact: Testing for impact.html
   Tests of robustDIF with item-level information: Tests of robustDIF with item-level
     information.html
-last_built: 2026-04-23T17:07Z
+last_built: 2026-07-23T17:29Z
 urls:
   reference: https://peterhalpin.github.io/robustDIF/reference
   article: https://peterhalpin.github.io/robustDIF/articles

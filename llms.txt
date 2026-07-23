@@ -33,6 +33,7 @@ Technical notes:
 # Installation
 
 ``` r
+
 install.packages("remotes")
 remotes::install_github("peterhalpin/robustDIF")
 library(robustDIF)
@@ -64,18 +65,18 @@ Following estimation of the scaling parameter, Wald tests of DIF can be
 implemented.
 
 The type of DIF that is tested depends on the choice of scaling
-parameter. Let \$\theta_g \thicksim N(\mu_g, \sigma_g)\$ and $a_{ig}$
-and $d_{ig}$ denote the item slope and intercept/thresholds
+parameter. Let \$\theta_g \thicksim N(\mu_g, \sigma_g)\$ and $`a_{ig}`$
+and $`d_{ig}`$ denote the item slope and intercept/thresholds
 respectively. The choices of scaling parameters and corresponding
 item-level scaling functions are as follows.
 
-| Name     | Scaling parameter                                                                          | Item-level scaling function                                                      | Test for DIF on   |
-|----------|--------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|-------------------|
-| `a_fun1` | $\sigma_{2}/\sigma_{1}$                                                                    | $a_{2i}/a_{1i}$                                                                  | slope             |
-| `a_fun2` | $\log\left( \sigma_{2}/\sigma_{1} \right)$                                                 | $\log\left( a_{2i}/a_{1i} \right)$                                               | slope             |
-| `d_fun1` | $\left( \mu_{2} - \mu_{1} \right)/\sigma_{1}$                                              | $\left( d_{2i} - d_{1i} \right)/a_{1i}$                                          | intercept         |
-| `d_fun2` | $\left( \mu_{2} - \mu_{1} \right)/\sigma_{2}$                                              | $\left( d_{2i} - d_{1i} \right)/a_{2i}$                                          | intercept         |
-| `d_fun3` | $\left( \mu_{2} - \mu_{1} \right)/\sqrt{\left( \sigma_{1}^{2} + \sigma_{2}^{2} \right)/2}$ | $\left( d_{2i} - d_{1i} \right)/\sqrt{\left( a_{1i}^{2} + a_{2i}^{2} \right)/2}$ | slope + intercept |
+| Name | Scaling parameter | Item-level scaling function | Test for DIF on |
+|----|----|----|----|
+| `a_fun1` | $`\sigma_2 / \sigma_1`$ | $`a_{2i} / a_{1i}`$ | slope |
+| `a_fun2` | $`\log(\sigma_2 / \sigma_1)`$ | $`\log(a_{2i} / a_{1i})`$ | slope |
+| `d_fun1` | $`(\mu_2 - \mu_1) / \sigma_1`$ | $`(d_{2i} - d_{1i}) / a_{1i}`$ | intercept |
+| `d_fun2` | $`(\mu_2 - \mu_1) / \sigma_2`$ | $`(d_{2i} - d_{1i}) / a_{2i}`$ | intercept |
+| `d_fun3` | $`(\mu_2 - \mu_1) / \sqrt{(\sigma_1^2 + \sigma_2^2)/2}`$ | $`(d_{2i} - d_{1i}) / \sqrt{(a_{1i}^2 + a_{2i}^2)/2}`$ | slope + intercept |
 
 The illustration uses `d_fun3`. This function is more sensitive to
 intercept-DIF than slope-DIF.
@@ -88,6 +89,7 @@ parameter of the bisquare is set via the desired false positive rate for
 flagging items with DIF (`alpha`). See the technical notes for details.
 
 ``` r
+
 mod <- rdif(mle = rdif.eg, fun = "d_fun3", alpha = .05)
 summary(mod)
 ```
@@ -133,6 +135,7 @@ estimators are consistent for the “true” scaling parameter leads to the
 following test.
 
 ``` r
+
 delta_test(mod)
 ```
 
@@ -152,6 +155,7 @@ has a clear global minimum before proceeding to make inferences about
 DIF / Impact. The `plot` command produces the relevant diagnostic.
 
 ``` r
+
 plot(mod)
 ```
 

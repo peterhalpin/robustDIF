@@ -36,6 +36,7 @@ The following code utilizes `mirt` to build graded response IRT models
 for future testing of `robustDIF`:
 
 ``` r
+
 # Subset data to just items
 items <- eg_pits[,c(6:12)]
 
@@ -96,6 +97,7 @@ level of the latent trait, one group consistently endorses higher or
 lower categories.
 
 ``` r
+
 # Save model parameters
 parms <- get_model_parms(mirt)
 
@@ -108,6 +110,7 @@ print(mod)
     ## Est: -0.1481082     SE: 0.07820133
 
 ``` r
+
 # Print summary
 options(scipen=999)
 summary(mod)
@@ -173,6 +176,7 @@ visually inspect the Rho Function for a clear global minimum before
 proceeding with analyses and making inferences about DIF.
 
 ``` r
+
 # Plot Rho Function
 plot(mod)
 ```

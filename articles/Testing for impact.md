@@ -1,20 +1,120 @@
 # Item level treatment effect heterogeneity
 
-## Differential item functioning
+## What are Item-Level Heterogeneous Treatment Effects?
 
-In the Item Response Theory (IRT) literature, Differential Item
-Functioning (DIF) is an approach to assessing situations where response
-values to an assessment differ as a function of an external covariate
-(for example, gender or treatment condition). In many contexts, the main
-goal of DIF analysis is to evaluate whether the items on an assessment
-are biased in regards to these external covariates. In treatment vs
-control studies, DIF/bias due to treatment condition can be problematic
-because it can lead to the over-inflation of the treatment effect and
-limit generalizability to other assessments.
+When STEM education researchers test an educational intervention, they
+often ask, “Does a new curriculum work?” For example, does a new
+engineering curriculum improve students’ problem-solving skills, or a
+new biology curriculum improve factual recall?
 
-The following example demonstrates how to use `robustDIF` to investigate
-DIF and potential impact of treatment condition (the treatment effect)
-on a set of mathematical achievement items.
+Traditionally, researchers answer these questions by comparing total
+test scores or unweighted mean scores between students who received the
+new curriculum and those who did not. Under certain circumstances, such
+test-level treatment effect estimates are valid approximations of
+whether a curriculum improved the targeted skill (called impact).
+However, these estimands assume that every test item measures the effect
+of the curriculum in the same way, which is not always the case: some
+test items may be more sensitive to the curriculum than others, and some
+may show little or no effect at all. This difference is called
+Item-Level Heterogeneous Treatment Effects (IL-HTE). When IL-HTE is
+present, the validity of using aggregate test-level effects as proxies
+for impact is threatened and should be further evaluated (Halpin &
+Gilbert).
+
+Imagine a biology educator introduces a new inquiry-based laboratory
+curriculum. At the end of the semester, students complete a 30-item
+biology assessment. The average test scores may show that students in
+the new curriculum performed better than those in the previous. However,
+looking at the total scores obscures what happened within individual
+questions. Perhaps the new curriculum greatly improved performance on
+items requiring scientific reasoning, but had only a small effect on
+factual recall questions, and even reduced performance on questions
+requiring memorization of foundational biological pathways. In that
+case, the effect of the curriculum was not uniform across items: some
+items benefited substantially, bringing the average up, but others did
+not. IL-HTE describes this variation in the effect of the curriculum
+across individual items.
+
+Detecting IL-HTE is important because educational interventions are
+often designed to improve specific knowledge or skills, rather than
+every aspect of learning equally. If educators only look at total test
+scores, they may overlook the fact that improvements in mean outcomes
+were driven by only a handful of items while most of the test shows
+little change. Understanding which items responded most to the
+intervention helps educators determine how and why a curriculum worked,
+not simply whether it improved overall scores.
+
+Additionally, failing to detect IL-HTE can lead to misleading
+conclusions about the effectiveness of a curriculum. On one hand, a
+curriculum intervention may appear ineffective because the positive
+effects on some items were cancelled out by negative or negligible
+effects on others (Gilbert et al., 2023). In other cases, the
+effectiveness may be overestimated if a small subset of highly
+responsive items drives most of the improvement. Meta-analyses have
+regularly documented that effect sizes of educational interventions tend
+to be larger when curricula are evaluated using researcher-developed
+outcomes compared to independently developed outcomes (e.g.,
+standardized tests; see Halpin/Gilb, Cheung and Slavin, de Boer et al.).
+Several hypotheses for why this occurs have been developed (Wolf and
+Harbatkin), including that researcher-developed outcomes may be more
+closely aligned with treatment curricula (de Boer et al., 2014; Lipsey
+et al., 2012; Francis et al., 2022) or that participants in treatment
+conditions may be inadvertently pre-exposed to test items (Cheung and
+Slavin, 2016; Slavin, 2008). If only a few items drive most of the
+improvement on an outcome, any positive treatment effect may not carry
+over to assessments that utilize different items.
+
+– Transition – IL-HTE analysis and the `robustDIF` package are closely
+related to a similar concept from Item Response Theory, called
+Differential Item Functioning (DIF)
+
+The following example demonstrates how to use `robustDIF` to detect
+IL-HTE and distinguish situations where IL-HTE affects the conclusions
+of a curriculum intervention from when it does not??
+
+## Bridging from Differential Item Functioning
+
+Education researchers have long recognized a related issue in
+educational measurement called Differential Item Functioning (DIF). DIF
+occurs when students from different demographic groups (i.e., different
+genders or ethnicities) have the same underlying academic ability, but
+nevertheless have different probabilities of answering an item correctly
+due to the characteristics of the item itself.
+
+For example, imagine a mathematics assessment on fractions. If several
+of the assessment items are word problems, English-language-learning
+students may have more difficulty understanding and answering the items
+correctly, regardless of their ability to calculate fractions. When such
+item-specific effects are unrelated to the target construct being
+measured (i.e., mathematics ability), they are thought of as
+construct-irrelevant DIF, interpreted as measurement bias, and a seen as
+a threat to test fairness (Joint Committee for Educational and
+Psychological Testing, 2014).
+
+Conversely, DIF may be construct-relevant if the item-specific effects
+are related to some portion of the target construct.
+
+– Example –
+
+Construct-relevant DIF could be evidence that the target construct is
+multidimensional, and ignoring such variation would lead to
+underestimating ???
+
+IL-HTE analysis is conceptually similar, but instead of comparing
+demographic groups, it compares how specific items function between
+treatment and control groups. IL-HTE can also be construct-relevant or
+irrelevant, similar to DIF. As noted earlier, one potential source of
+IL-HTE is pre-exposure to test materials, constituting
+construct-irrelevant IL-HTE and a threat to internal validity. In
+contrast, if the source of item-level effects is scientifically
+interesting (e.g., due to item difficulty), documenting these sources is
+useful for refining educational theory (e.g., Gilbert et al., 2024b; Kim
+et al., 2023) and the main concern is the construct validity of
+reporting aggregate test-level effects as treatment effects.
+
+— Things about different patterns of IL-HTE and when it may be
+problematic/concerning and when it would not be — — Probably the graphs
+from the paper —
 
 ## Effect of an Adaptive Game-Based Math Learning App on Students’ Learning
 
@@ -43,11 +143,18 @@ Bang and colleagues (2022) estimated a simple treatment effect by
 computing the difference between mean un-weighted post-test total
 scores:
 
-$$TreatmentEffect = {\overline{\text{TotalScore}}}_{\text{treat}} - {\overline{\text{TotalScore}}}_{\text{control}}$$$$= 20.97 - 20.08 = 0.89$$
+``` math
+ TreatmentEffect = \overline{\text{TotalScore}}_{\text{treat}} - \overline{\text{TotalScore}}_{\text{control}}
+```
+``` math
+= 20.97 - 20.08 = 0.89 
+```
 Dividing by the pooled standard deviation gives a measure of effect size
 (d):
 
-$$d = \frac{TE}{sd_{p}} = \frac{0.89}{8.09} = 0.11$$
+``` math
+ d = \frac{TE}{sd_p} = \frac{0.89}{8.09} = 0.11 
+```
 
 These findings indicate students using My Math Academy had greater math
 achievement scores than students who did not, but the difference is
@@ -64,6 +171,7 @@ Warehouse (<https://itemresponsewarehouse.org/>) and can be downloaded
 using the following code:
 
 ``` r
+
 library(irw) # You may need to first install the package with `devtools::install_github("itemresponsewarehouse/Rpkg")`
 
 # On first use, you will need to log in with a Redivis account (a platform for academic data sharing). See instructions for this on the IRW website.
@@ -82,6 +190,7 @@ The following code utilizes `mirt` to build 2PL IRT models for future
 testing of `robustDIF`:
 
 ``` r
+
 library(mirt) # You may need to install the package first with install.packages("mirt")
 
 # Subset data to just test items
@@ -109,15 +218,15 @@ we are looking for similarities and differences between response
 functions in the treatment (1) and control (0) groups. If the response
 functions look near identical, we may not expect to uncover any DIF.
 
-When fitting 2PL IRT models, the latent trait $\theta$ (representing
+When fitting 2PL IRT models, the latent trait $`\theta`$ (representing
 children’s underlying “math ability”) needs to be scaled (i.e., we
 restrain it to have a mean of zero and variance of one). This can be
 problematic when testing differences between groups (tests of DIF),
-because if we arbitrarily scale $\theta$ in both groups, we give their
-$\theta$ the same mean and variance. In other words, we end up removing
-any differences and will show zero impact. The `robustDIF` procedure
-tackles this problem by instead using robust statistics to estimate
-scaling parameters and flag items for DIF.
+because if we arbitrarily scale $`\theta`$ in both groups, we give their
+$`\theta`$ the same mean and variance. In other words, we end up
+removing any differences and will show zero impact. The `robustDIF`
+procedure tackles this problem by instead using robust statistics to
+estimate scaling parameters and flag items for DIF.
 
 A second issue here is the clustering of observations: students within
 the same classroom may have similar characteristics (e.g., have similar
@@ -166,6 +275,7 @@ using the un-weighted mean of items and scaled to the control group is
 robust to item-level sources of variation.
 
 ``` r
+
 # Extract cluster indicator variables (classroom/teacher id)
 group_vars <- data$cluster_id
 
@@ -192,6 +302,7 @@ all test items) and a robust estimate that adjusts for item-level
 variation.
 
 ``` r
+
 delta_test(mod)
 ```
 
@@ -213,6 +324,7 @@ the item was flagged for DIF. Those items are down-weighted to zero
 during estimation of the scaling parameter.
 
 ``` r
+
 # Print summary
 summary(mod)
 ```
@@ -272,6 +384,7 @@ subset to significant (`p-value < alpha`) items and plot their effects
 and 95% CI’s in relation to the robust estimate to visualize this.
 
 ``` r
+
 # Subset to significant items (set your own p-value if different from 0.05)
 sig.items <- mod[["dif.test"]][mod[["dif.test"]]$p.val < 0.05, ]
 
@@ -322,6 +435,7 @@ DIF/IL-HTE, use [`plot()`](https://rdrr.io/r/graphics/plot.default.html)
 to visually inspect the Rho Function for a clear global minimum.
 
 ``` r
+
 # Plot Rho Function
 plot(mod)
 ```

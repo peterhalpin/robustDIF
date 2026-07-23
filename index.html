@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Differential Item Functioning Using Robust Scaling • robustDIF</title>
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Differential Item Functioning Using Robust Scaling">
 <meta name="description" content="Provides tools for testing differential item functioning (DIF) and differential test functioning (DTF) in two-group item response theory models. The package estimates robust scaling parameters via iteratively reweighted least squares with Tukeys bisquare loss, and supports Wald-type tests of item-level and test-level differences from robust scaling parameters. Inputs can be supplied directly from model parameter/covariance objects or extracted from fitted mirt and lavaan' models. Methods are described in Halpin (2022) &lt;doi:10.48550/arXiv.2207.04598&gt;.">
@@ -113,41 +113,41 @@
 <col width="25%">
 <col width="25%">
 </colgroup>
-<thead><tr class="header">
+<thead><tr>
 <th>Name</th>
 <th>Scaling parameter</th>
 <th>Item-level scaling function</th>
 <th>Test for DIF on</th>
 </tr></thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td><code>a_fun1</code></td>
 <td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>σ</mi><mn>2</mn></msub><mi>/</mi><msub><mi>σ</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">\sigma_2 / \sigma_1</annotation></semantics></math></td>
 <td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>a</mi><mrow><mn>2</mn><mi>i</mi></mrow></msub><mi>/</mi><msub><mi>a</mi><mrow><mn>1</mn><mi>i</mi></mrow></msub></mrow><annotation encoding="application/x-tex">a_{2i} / a_{1i}</annotation></semantics></math></td>
 <td>slope</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>a_fun2</code></td>
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>log</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>σ</mi><mn>2</mn></msub><mi>/</mi><msub><mi>σ</mi><mn>1</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\log(\sigma_2 / \sigma_1)</annotation></semantics></math></td>
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>log</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>a</mi><mrow><mn>2</mn><mi>i</mi></mrow></msub><mi>/</mi><msub><mi>a</mi><mrow><mn>1</mn><mi>i</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\log(a_{2i} / a_{1i})</annotation></semantics></math></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>σ</mi><mn>2</mn></msub><mi>/</mi><msub><mi>σ</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\log(\sigma_2 / \sigma_1)</annotation></semantics></math></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>a</mi><mrow><mn>2</mn><mi>i</mi></mrow></msub><mi>/</mi><msub><mi>a</mi><mrow><mn>1</mn><mi>i</mi></mrow></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\log(a_{2i} / a_{1i})</annotation></semantics></math></td>
 <td>slope</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>d_fun1</code></td>
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>μ</mi><mn>2</mn></msub><mo>−</mo><msub><mi>μ</mi><mn>1</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mi>/</mi><msub><mi>σ</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">(\mu_2 - \mu_1) / \sigma_1</annotation></semantics></math></td>
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>d</mi><mrow><mn>2</mn><mi>i</mi></mrow></msub><mo>−</mo><msub><mi>d</mi><mrow><mn>1</mn><mi>i</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mi>/</mi><msub><mi>a</mi><mrow><mn>1</mn><mi>i</mi></mrow></msub></mrow><annotation encoding="application/x-tex">(d_{2i} - d_{1i}) / a_{1i}</annotation></semantics></math></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>μ</mi><mn>2</mn></msub><mo>−</mo><msub><mi>μ</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">)</mo><mi>/</mi><msub><mi>σ</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">(\mu_2 - \mu_1) / \sigma_1</annotation></semantics></math></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>d</mi><mrow><mn>2</mn><mi>i</mi></mrow></msub><mo>−</mo><msub><mi>d</mi><mrow><mn>1</mn><mi>i</mi></mrow></msub><mo stretchy="false" form="postfix">)</mo><mi>/</mi><msub><mi>a</mi><mrow><mn>1</mn><mi>i</mi></mrow></msub></mrow><annotation encoding="application/x-tex">(d_{2i} - d_{1i}) / a_{1i}</annotation></semantics></math></td>
 <td>intercept</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>d_fun2</code></td>
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>μ</mi><mn>2</mn></msub><mo>−</mo><msub><mi>μ</mi><mn>1</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mi>/</mi><msub><mi>σ</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">(\mu_2 - \mu_1) / \sigma_2</annotation></semantics></math></td>
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>d</mi><mrow><mn>2</mn><mi>i</mi></mrow></msub><mo>−</mo><msub><mi>d</mi><mrow><mn>1</mn><mi>i</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mi>/</mi><msub><mi>a</mi><mrow><mn>2</mn><mi>i</mi></mrow></msub></mrow><annotation encoding="application/x-tex">(d_{2i} - d_{1i}) / a_{2i}</annotation></semantics></math></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>μ</mi><mn>2</mn></msub><mo>−</mo><msub><mi>μ</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">)</mo><mi>/</mi><msub><mi>σ</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">(\mu_2 - \mu_1) / \sigma_2</annotation></semantics></math></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>d</mi><mrow><mn>2</mn><mi>i</mi></mrow></msub><mo>−</mo><msub><mi>d</mi><mrow><mn>1</mn><mi>i</mi></mrow></msub><mo stretchy="false" form="postfix">)</mo><mi>/</mi><msub><mi>a</mi><mrow><mn>2</mn><mi>i</mi></mrow></msub></mrow><annotation encoding="application/x-tex">(d_{2i} - d_{1i}) / a_{2i}</annotation></semantics></math></td>
 <td>intercept</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>d_fun3</code></td>
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>μ</mi><mn>2</mn></msub><mo>−</mo><msub><mi>μ</mi><mn>1</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mi>/</mi><msqrt><mrow><mrow><mo stretchy="true" form="prefix">(</mo><msubsup><mi>σ</mi><mn>1</mn><mn>2</mn></msubsup><mo>+</mo><msubsup><mi>σ</mi><mn>2</mn><mn>2</mn></msubsup><mo stretchy="true" form="postfix">)</mo></mrow><mi>/</mi><mn>2</mn></mrow></msqrt></mrow><annotation encoding="application/x-tex">(\mu_2 - \mu_1) / \sqrt{(\sigma_1^2 + \sigma_2^2)/2}</annotation></semantics></math></td>
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>d</mi><mrow><mn>2</mn><mi>i</mi></mrow></msub><mo>−</mo><msub><mi>d</mi><mrow><mn>1</mn><mi>i</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mi>/</mi><msqrt><mrow><mrow><mo stretchy="true" form="prefix">(</mo><msubsup><mi>a</mi><mrow><mn>1</mn><mi>i</mi></mrow><mn>2</mn></msubsup><mo>+</mo><msubsup><mi>a</mi><mrow><mn>2</mn><mi>i</mi></mrow><mn>2</mn></msubsup><mo stretchy="true" form="postfix">)</mo></mrow><mi>/</mi><mn>2</mn></mrow></msqrt></mrow><annotation encoding="application/x-tex">(d_{2i} - d_{1i}) / \sqrt{(a_{1i}^2 + a_{2i}^2)/2}</annotation></semantics></math></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>μ</mi><mn>2</mn></msub><mo>−</mo><msub><mi>μ</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">)</mo><mi>/</mi><msqrt><mrow><mo stretchy="false" form="prefix">(</mo><msubsup><mi>σ</mi><mn>1</mn><mn>2</mn></msubsup><mo>+</mo><msubsup><mi>σ</mi><mn>2</mn><mn>2</mn></msubsup><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mn>2</mn></mrow></msqrt></mrow><annotation encoding="application/x-tex">(\mu_2 - \mu_1) / \sqrt{(\sigma_1^2 + \sigma_2^2)/2}</annotation></semantics></math></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>d</mi><mrow><mn>2</mn><mi>i</mi></mrow></msub><mo>−</mo><msub><mi>d</mi><mrow><mn>1</mn><mi>i</mi></mrow></msub><mo stretchy="false" form="postfix">)</mo><mi>/</mi><msqrt><mrow><mo stretchy="false" form="prefix">(</mo><msubsup><mi>a</mi><mrow><mn>1</mn><mi>i</mi></mrow><mn>2</mn></msubsup><mo>+</mo><msubsup><mi>a</mi><mrow><mn>2</mn><mi>i</mi></mrow><mn>2</mn></msubsup><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mn>2</mn></mrow></msqrt></mrow><annotation encoding="application/x-tex">(d_{2i} - d_{1i}) / \sqrt{(a_{1i}^2 + a_{2i}^2)/2}</annotation></semantics></math></td>
 <td>slope + intercept</td>
 </tr>
 </tbody>
@@ -244,7 +244,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

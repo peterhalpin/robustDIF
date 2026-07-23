@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Item level treatment effect heterogeneity • robustDIF</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Item level treatment effect heterogeneity">
 </head>
@@ -61,7 +61,7 @@
                         <h4 data-toc-skip class="author">Peter F Halpin
 &amp; James Eagle</h4>
             
-            <h4 data-toc-skip class="date">2026-04-23</h4>
+            <h4 data-toc-skip class="date">2026-07-23</h4>
       
 
       <div class="d-none name"><code>Testing for impact.Rmd</code></div>
@@ -70,20 +70,113 @@
     
     
 <div class="section level2">
-<h2 id="differential-item-functioning">Differential item functioning<a class="anchor" aria-label="anchor" href="#differential-item-functioning"></a>
+<h2 id="what-are-item-level-heterogeneous-treatment-effects">What are Item-Level Heterogeneous Treatment Effects?<a class="anchor" aria-label="anchor" href="#what-are-item-level-heterogeneous-treatment-effects"></a>
 </h2>
-<p>In the Item Response Theory (IRT) literature, Differential Item
-Functioning (DIF) is an approach to assessing situations where response
-values to an assessment differ as a function of an external covariate
-(for example, gender or treatment condition). In many contexts, the main
-goal of DIF analysis is to evaluate whether the items on an assessment
-are biased in regards to these external covariates. In treatment vs
-control studies, DIF/bias due to treatment condition can be problematic
-because it can lead to the over-inflation of the treatment effect and
-limit generalizability to other assessments.</p>
+<p>When STEM education researchers test an educational intervention,
+they often ask, “Does a new curriculum work?” For example, does a new
+engineering curriculum improve students’ problem-solving skills, or a
+new biology curriculum improve factual recall?</p>
+<p>Traditionally, researchers answer these questions by comparing total
+test scores or unweighted mean scores between students who received the
+new curriculum and those who did not. Under certain circumstances, such
+test-level treatment effect estimates are valid approximations of
+whether a curriculum improved the targeted skill (called impact).
+However, these estimands assume that every test item measures the effect
+of the curriculum in the same way, which is not always the case: some
+test items may be more sensitive to the curriculum than others, and some
+may show little or no effect at all. This difference is called
+Item-Level Heterogeneous Treatment Effects (IL-HTE). When IL-HTE is
+present, the validity of using aggregate test-level effects as proxies
+for impact is threatened and should be further evaluated (Halpin &amp;
+Gilbert).</p>
+<p>Imagine a biology educator introduces a new inquiry-based laboratory
+curriculum. At the end of the semester, students complete a 30-item
+biology assessment. The average test scores may show that students in
+the new curriculum performed better than those in the previous. However,
+looking at the total scores obscures what happened within individual
+questions. Perhaps the new curriculum greatly improved performance on
+items requiring scientific reasoning, but had only a small effect on
+factual recall questions, and even reduced performance on questions
+requiring memorization of foundational biological pathways. In that
+case, the effect of the curriculum was not uniform across items: some
+items benefited substantially, bringing the average up, but others did
+not. IL-HTE describes this variation in the effect of the curriculum
+across individual items.</p>
+<p>Detecting IL-HTE is important because educational interventions are
+often designed to improve specific knowledge or skills, rather than
+every aspect of learning equally. If educators only look at total test
+scores, they may overlook the fact that improvements in mean outcomes
+were driven by only a handful of items while most of the test shows
+little change. Understanding which items responded most to the
+intervention helps educators determine how and why a curriculum worked,
+not simply whether it improved overall scores.</p>
+<p>Additionally, failing to detect IL-HTE can lead to misleading
+conclusions about the effectiveness of a curriculum. On one hand, a
+curriculum intervention may appear ineffective because the positive
+effects on some items were cancelled out by negative or negligible
+effects on others (Gilbert et al., 2023). In other cases, the
+effectiveness may be overestimated if a small subset of highly
+responsive items drives most of the improvement. Meta-analyses have
+regularly documented that effect sizes of educational interventions tend
+to be larger when curricula are evaluated using researcher-developed
+outcomes compared to independently developed outcomes (e.g.,
+standardized tests; see Halpin/Gilb, Cheung and Slavin, de Boer et al.).
+Several hypotheses for why this occurs have been developed (Wolf and
+Harbatkin), including that researcher-developed outcomes may be more
+closely aligned with treatment curricula (de Boer et al., 2014; Lipsey
+et al., 2012; Francis et al., 2022) or that participants in treatment
+conditions may be inadvertently pre-exposed to test items (Cheung and
+Slavin, 2016; Slavin, 2008). If only a few items drive most of the
+improvement on an outcome, any positive treatment effect may not carry
+over to assessments that utilize different items.</p>
+<p>– Transition – IL-HTE analysis and the <code>robustDIF</code> package
+are closely related to a similar concept from Item Response Theory,
+called Differential Item Functioning (DIF)</p>
 <p>The following example demonstrates how to use <code>robustDIF</code>
-to investigate DIF and potential impact of treatment condition (the
-treatment effect) on a set of mathematical achievement items.</p>
+to detect IL-HTE and distinguish situations where IL-HTE affects the
+conclusions of a curriculum intervention from when it does not??</p>
+</div>
+<div class="section level2">
+<h2 id="bridging-from-differential-item-functioning">Bridging from Differential Item Functioning<a class="anchor" aria-label="anchor" href="#bridging-from-differential-item-functioning"></a>
+</h2>
+<p>Education researchers have long recognized a related issue in
+educational measurement called Differential Item Functioning (DIF). DIF
+occurs when students from different demographic groups (i.e., different
+genders or ethnicities) have the same underlying academic ability, but
+nevertheless have different probabilities of answering an item correctly
+due to the characteristics of the item itself.</p>
+<p>For example, imagine a mathematics assessment on fractions. If
+several of the assessment items are word problems,
+English-language-learning students may have more difficulty
+understanding and answering the items correctly, regardless of their
+ability to calculate fractions. When such item-specific effects are
+unrelated to the target construct being measured (i.e., mathematics
+ability), they are thought of as construct-irrelevant DIF, interpreted
+as measurement bias, and a seen as a threat to test fairness (Joint
+Committee for Educational and Psychological Testing, 2014).</p>
+<p>Conversely, DIF may be construct-relevant if the item-specific
+effects are related to some portion of the target construct.</p>
+<p>– Example –</p>
+<p>Construct-relevant DIF could be evidence that the target construct is
+multidimensional, and ignoring such variation would lead to
+underestimating ???</p>
+<p>IL-HTE analysis is conceptually similar, but instead of comparing
+demographic groups, it compares how specific items function between
+treatment and control groups. IL-HTE can also be construct-relevant or
+irrelevant, similar to DIF. As noted earlier, one potential source of
+IL-HTE is pre-exposure to test materials, constituting
+construct-irrelevant IL-HTE and a threat to internal validity. In
+contrast, if the source of item-level effects is scientifically
+interesting (e.g., due to item difficulty), documenting these sources is
+useful for refining educational theory (e.g., Gilbert et al., 2024b; Kim
+et al., 2023) and the main concern is the construct validity of
+reporting aggregate test-level effects as treatment effects.</p>
+<p>— Things about different patterns of IL-HTE and when it may be
+problematic/concerning and when it would not be — — Probably the graphs
+from the paper —</p>
+<!-- # Differential item functioning -->
+<!-- In the Item Response Theory (IRT) literature, Differential Item Functioning (DIF) is an approach to assessing situations where response values to an assessment differ as a function of an external covariate (for example, gender or treatment condition). In many contexts, the main goal of DIF analysis is to evaluate whether the items on an assessment are biased in regards to these external covariates. In treatment vs control studies, DIF/bias due to treatment condition can be problematic because it can lead to the over-inflation of the treatment effect and limit generalizability to other assessments. -->
+<!-- The following example demonstrates how to use `robustDIF` to investigate DIF and potential impact of treatment condition (the treatment effect) on a set of mathematical achievement items. -->
 </div>
 <div class="section level2">
 <h2 id="effect-of-an-adaptive-game-based-math-learning-app-on-students-learning">Effect of an Adaptive Game-Based Math Learning App on Students’
@@ -397,7 +490,7 @@ sample and comparing effect magnitudes between tests.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>
