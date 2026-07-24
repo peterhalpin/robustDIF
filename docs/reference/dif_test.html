@@ -72,11 +72,20 @@
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
 <span class="r-in"><span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="rdif.html">rdif</a></span><span class="op">(</span>mle <span class="op">=</span> <span class="va">rdif.eg</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'rdif.eg' not found</span>
 <span class="r-in"><span><span class="fu">dif_test</span><span class="op">(</span>object <span class="op">=</span> <span class="va">rdif.eg</span>, theta <span class="op">=</span> <span class="va">mod</span><span class="op">$</span><span class="va">est</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'rdif.eg' not found</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                 delta         se      z.test        p.val</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> item1_d1  0.351129635 0.09867331  3.55850682 0.0003729691</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> item2_d1  0.006566087 0.06654194  0.09867593 0.9213955818</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> item3_d1  0.017345461 0.10887831  0.15931052 0.8734242308</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> item4_d1 -0.006742385 0.20492283 -0.03290207 0.9737526822</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> item5_d1 -0.357290253 0.24134142 -1.48043486 0.1387572332</span>
 <span class="r-in"><span><span class="fu">dif_test</span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'mod' not found</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                 delta         se      z.test        p.val</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> item1_d1  0.351129635 0.09867331  3.55850682 0.0003729691</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> item2_d1  0.006566087 0.06654194  0.09867593 0.9213955818</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> item3_d1  0.017345461 0.10887831  0.15931052 0.8734242308</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> item4_d1 -0.006742385 0.20492283 -0.03290207 0.9737526822</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> item5_d1 -0.357290253 0.24134142 -1.48043486 0.1387572332</span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
