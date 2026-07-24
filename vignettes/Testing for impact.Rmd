@@ -1,5 +1,5 @@
 ---
-title: "Part 1: Intro to Item-Level Treatment Effect Heterogeneity"
+title: "Intro to Item-Level Treatment Effect Heterogeneity"
 author: "Peter F Halpin & James Eagle"
 date: "`r Sys.Date()`"
 output:
@@ -7,7 +7,7 @@ output:
     number_sections: true
     toc: true
 vignette: >
-  %\VignetteIndexEntry{Part 1: Intro to Item-Level Treatment Effect Heterogeneity}
+  %\VignetteIndexEntry{Intro to Item-Level Treatment Effect Heterogeneity}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -30,8 +30,6 @@ Imagine a biology educator introduces a new inquiry-based laboratory curriculum.
 
 IL-HTE analysis of the 30-item biology assessment may produce a plot like Figure 1. In the plot, the individual points and error bars show the item-level effects of the curriculum for each question on the assessment. The horizontal dashed line represents an overall estimate of the treatment effect that is robust to these item-level differences (the “robust treatment effect”), which reduces the influence of items whose treatment effects differ significantly from the majority of the assessment.  Items requiring scientific reasoning are highlighted in red, and we can see that each of them has item-level effects significantly higher than the robust treatment effect (i.e., they are above the dashed line and their error bars do not cross over the line).
 
-![IL-HTE](figures/fake_ex_fig1.png)
-
 In the following, we will describe how to use the `robustDIF` package to assess the degree of IL-HTE present in an educational intervention study, whether it affects conclusions about the effectiveness of the curriculum being studied, and what the potential issues are when IL-HTE is ignored.
 
 # Importance of IL-HTE in Education-based Research
@@ -45,7 +43,7 @@ Whether IL-HTE is construct-relevant or construct-irrelevant, when only a few it
 
 Finally, the strength and direction of the item-level effects will influence how they relate to the test-level treatment effect. Returning to our biology curriculum example, when each of the scientific reasoning items (Items 1 through 10) are significantly larger than the robust treatment effect, the naïve treatment effect would be upwardly biased. We can see the effect of this from a diagnostic test comparing a naïve, IRT-based test-level estimate (analogous to using the unweighted mean of test items) to a robust estimate that down-weights items that exhibit significant IL-HTE (Table 1).
 
-``` {r, echo=FALSE}
+``` {r, echo=FALSE, eval=FALSE}
 tab <- data.frame(
   naive.est =  c(0.4404281),
   naive.se = c(0.1029667),
@@ -59,7 +57,7 @@ tab <- data.frame(
 print(tab)
 ```
 
-The naïve estimate was equal to 0.44, the robust estimate equal to 0.09, and the difference (0.34) was significant at z = 5.8, p < 0.001. Here, we would conclude that the treatment effect based on unweighted means is *not* a suitable proxy for impact. This means the naïve treatment effect would represent a threat to construct validity, insofar as the effect is specific to the scientific reasoning domain rather than biology expertise overall, as well as a threat to external validity, as the size of the effect may not generalize to assessments without those ten items.
+The naïve estimate was equal to 0.44, the robust estimate equal to 0.09, and the difference (0.34) was significant at z = 5.8, p < 0.001. Here, we would conclude that the treatment effect based on unweighted means is not a suitable proxy for impact. This means the naïve treatment effect would represent a threat to construct validity, insofar as the effect is specific to the scientific reasoning domain rather than biology expertise overall, as well as a threat to external validity, as the size of the effect may not generalize to assessments without those ten items.
 
 However, if the pattern of IL-HTE follows that in Figure 2, where the item-level effects are more balanced (i.e., some positive and some negative), then their effects average out. From the diagnostic test on such items, we would see a non-significant Wald test, indicating the naïve treatment effect estimate based on unweighted means is a suitable proxy for impact.
 
