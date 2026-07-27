@@ -49,10 +49,15 @@ A data.frame that contains the output of the test.
 #
 # \donttest{
 mod <- rdif(mle = rdif.eg)
-#> Error: object 'rdif.eg' not found
 delta_test(object = rdif.eg, theta = mod$est, k = mod$k)
-#> Error: object 'rdif.eg' not found
+#>   naive.est   naive.se  rdif.est    rdif.se       delta   delta.se    z.test
+#> 1 0.3783724 0.09673559 0.3761707 0.09282802 0.002201709 0.06256331 0.0351917
+#>       p.val
+#> 1 0.9719269
 delta_test(mod)
-#> Error: object 'mod' not found
+#>   naive.est   naive.se  rdif.est    rdif.se       delta   delta.se    z.test
+#> 1 0.3783724 0.09673559 0.3761707 0.09282802 0.002201709 0.06256331 0.0351917
+#>       p.val
+#> 1 0.9719269
 # }
 ```

@@ -259,6 +259,6 @@ the value reported above by `rdif`.
 - [robustDIF Technical
   Notes](https://peterhalpin.github.io/robustDIF/articles/technical-notes.md):
 - [Item level treatment effect
-  heterogeneity](https://peterhalpin.github.io/robustDIF/articles/Testing%20for%20impact.md):
+  heterogeneity](https://peterhalpin.github.io/robustDIF/articles/testing-for-impact.md):
 - [Tests of robustDIF with item-level
-  information](https://peterhalpin.github.io/robustDIF/articles/Tests%20of%20robustDIF%20with%20item-level%20information.md):
+  information](https://peterhalpin.github.io/robustDIF/articles/tests-of-robustDIF-with-item-level-information.md):

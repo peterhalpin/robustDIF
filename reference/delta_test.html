@@ -20,8 +20,8 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/References.html">References</a></li>
     <li><a class="dropdown-item" href="../articles/technical-notes.html">robustDIF Technical Notes</a></li>
-    <li><a class="dropdown-item" href="../articles/Testing%20for%20impact.html">Item level treatment effect heterogeneity</a></li>
-    <li><a class="dropdown-item" href="../articles/Tests%20of%20robustDIF%20with%20item-level%20information.html">Tests of robustDIF with item-level information</a></li>
+    <li><a class="dropdown-item" href="../articles/testing-for-impact.html">Item level treatment effect heterogeneity</a></li>
+    <li><a class="dropdown-item" href="../articles/tests-of-robustDIF-with-item-level-information.html">Tests of robustDIF with item-level information</a></li>
   </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -77,11 +77,16 @@
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co">#</span></span></span>
 <span class="r-in"><span><span class="co"># \donttest{</span></span></span>
 <span class="r-in"><span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="rdif.html">rdif</a></span><span class="op">(</span>mle <span class="op">=</span> <span class="va">rdif.eg</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'rdif.eg' not found</span>
 <span class="r-in"><span><span class="fu">delta_test</span><span class="op">(</span>object <span class="op">=</span> <span class="va">rdif.eg</span>, theta <span class="op">=</span> <span class="va">mod</span><span class="op">$</span><span class="va">est</span>, k <span class="op">=</span> <span class="va">mod</span><span class="op">$</span><span class="va">k</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'rdif.eg' not found</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   naive.est   naive.se  rdif.est    rdif.se       delta   delta.se    z.test</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 0.3783724 0.09673559 0.3761707 0.09282802 0.002201709 0.06256331 0.0351917</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       p.val</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 0.9719269</span>
 <span class="r-in"><span><span class="fu">delta_test</span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'mod' not found</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   naive.est   naive.se  rdif.est    rdif.se       delta   delta.se    z.test</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 0.3783724 0.09673559 0.3761707 0.09282802 0.002201709 0.06256331 0.0351917</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       p.val</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 0.9719269</span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>

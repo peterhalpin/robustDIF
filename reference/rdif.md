@@ -74,9 +74,9 @@ loss function. Also returns the bi-square weights for each item.
 ``` r
 # Item intercepts, using the built-in example dataset "rdif.eg"
 rdif(mle = rdif.eg, fun = "d_fun3")
-#> Error: object 'rdif.eg' not found
+#> Est: 0.3761707     SE: 0.09282802 
 
 # Item slopes
 rdif(mle = rdif.eg, fun = "a_fun1")
-#> Error: object 'rdif.eg' not found
+#> Est: 0.8569993     SE: 0.1340685 
 ```
