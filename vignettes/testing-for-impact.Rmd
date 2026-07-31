@@ -26,24 +26,38 @@ When STEM education researchers test an educational intervention, they often ask
 
 Traditionally, researchers compare total test scores or unweighted mean scores between treatment and control groups. Under certain assumptions, these test-level treatment effects provide a reasonable proxy of whether the curriculum impacted the underlying ability or construct the assessment is intended to measure (referred to as impact; see Halpin, P. F., & Gilbert, J. B., n.d.). However, this assumes that differences among assessment items reflect differences in how they measure the same underlying ability, rather than item-specific effects of the curriculum itself. Some items may be more sensitive to the curriculum, while others may show little effect, or even effects in the opposite direction. These differences are called Item-Level Heterogeneous Treatment Effects (IL-HTE). When IL-HTE is present, the validity of using aggregate test-level effects (hereafter, “naïve treatment effects”) as proxies for impact is threatened and should be further evaluated (Halpin, P. F., & Gilbert, J. B., n.d.). This will be discussed in more detail later on.
 
-Imagine a biology educator introduces a new inquiry-based laboratory curriculum. At the end of the semester, students complete a 30-item biology assessment. The average test scores may show that students in the new curriculum performed better than those in the previous. However, looking at the total scores obscures what happened within individual questions. Perhaps the new curriculum greatly improved performance on items requiring scientific reasoning, but had only a small effect on factual recall questions, and even lower performance on questions requiring memorization of foundational biological pathways. In that case, the effect of the curriculum was not uniform across items: some items benefited substantially, bringing the average up, but others did not. IL-HTE describes this variation in the effect of the curriculum across individual items.
+Imagine a biology educator introduces a new inquiry-based laboratory curriculum. At the end of the semester, students complete a 20-item biology assessment. The average test scores may show that students in the new curriculum performed better than those in the previous. However, looking at the total scores obscures what happened within individual questions. Perhaps the new curriculum greatly improved performance on items requiring scientific reasoning, but had only a small effect on factual recall questions, and even lower performance on questions requiring memorization of foundational biological pathways. In that case, the effect of the curriculum was not uniform across items: some items benefited substantially, bringing the average up, but others did not. IL-HTE describes this variation in the effect of the curriculum across individual items.
 
-IL-HTE analysis of the 30-item biology assessment may produce a plot like Figure 1. In the plot, the individual points and error bars show the item-level effects of the curriculum for each question on the assessment. The horizontal dashed line represents an overall estimate of the treatment effect that is robust to these item-level differences (the “robust treatment effect”), which reduces the influence of items whose treatment effects differ significantly from the majority of the assessment.  Items requiring scientific reasoning are highlighted in red, and we can see that each of them has item-level effects significantly higher than the robust treatment effect (i.e., they are above the dashed line and their error bars do not cross over the line).
+IL-HTE analysis of the 20-item biology assessment may produce a plot like Figure 1. In the plot, the individual points and error bars show the item-level effects of the curriculum for each question on the assessment. The horizontal dashed line represents an overall estimate of the treatment effect that is robust to these item-level differences (the “robust treatment effect”), which reduces the influence of items whose treatment effects differ significantly from the majority of the assessment.  Items requiring scientific reasoning are highlighted in red, and we can see that each of them has item-level effects significantly higher than the robust treatment effect (i.e., they are above the dashed line and their error bars do not cross over the line).
+
+![ILHTE](figures/fake_nonig_ilhte.png)
 
 In the following, we will describe how to use the `robustDIF` package to assess the degree of IL-HTE present in an educational intervention study, whether it affects conclusions about the effectiveness of the curriculum being studied, and what the potential issues are when IL-HTE is ignored.
 
+<details>
+
+<summary><strong>Technical details: Isn't this just DIF?</strong></summary>
+
+Education researchers have long recognized a related issue in educational measurement called Differential Item Functioning (DIF). DIF occurs when students from different demographic groups (i.e., different genders or ethnicities) have the same underlying academic ability, but nevertheless have different probabilities of answering an item correctly due to the characteristics of the item itself.
+
+For example, imagine a mathematics assessment on fractions. If several of the assessment items are word problems, English-language-learning students may have more difficulty understanding and answering the items correctly, regardless of their ability to calculate fractions. When such item-specific effects are unrelated to the target construct being measured (i.e., mathematics ability), they are thought of as construct-irrelevant DIF, interpreted as measurement bias, and a seen as a threat to test fairness (Joint Committee for Educational and Psychological Testing, 2014). 
+
+IL-HTE analysis is conceptually similar, but instead of comparing demographic groups, it compares how specific items function between treatment and control groups. Additionally, many of the same considerations for analyzing DIF carry over to IL-HTE analysis, such as the distinction between construct-relevant and construct-irrelevant DIF (Markus and Borsboom, 2025, chap. 3).
+
+</details>
+
 # Importance of IL-HTE in Education-based Research
 
-Detecting IL-HTE is important to determine how well treatment effects measured using unweighted means of assessment items reflect improvements in underlying ability. If educators only look at total test scores, they may overlook the fact that improvements in mean outcomes were driven by only a handful of items, while most of the test shows little change. Understanding which items responded most to the intervention helps educators determine how and why a curriculum worked, not simply whether it improved overall scores.
+Detecting IL-HTE is important to determine how well treatment effects measured using unweighted means of assessment items reflect improvements in underlying ability. If educators only look at total test scores, they may overlook the fact that improvements in mean outcomes were driven by only a handful of items while most of the test shows little change. Understanding which items responded most to the intervention helps educators determine how and why a curriculum worked, not simply whether it improved overall scores.
 
 Before continuing, it is important to explain there are different types of IL-HTE. Some IL-HTE is construct-relevant, which means the variation in item-level effects may be scientifically interesting in themselves. In our hypothetical biology assessment example, suppose questions regarding scientific reasoning consistently showed larger treatment effects compared to factual recall or memorization. This might reveal that the assessment is multidimensional (i.e., is capturing separate facets of biological expertise), constituting a source of construct-relevant IL-HTE. Documenting sources of construct-relevant IL-HTE is useful for refining educational theory (Gilbert et al., 2024b; Kim et al., 2023), and neglecting to report this type of IL-HTE would constitute a threat to construct validity because it may indicate that the curriculum changed how students respond to certain questions.
 
 IL-HTE may be construct-irrelevant if the source of variation in item-level effects is not due to something meaningful to the treatment. For example, if the new biology curriculum included lab work with questions identical to the scientific reasoning items on the assessment, whereas the old curriculum did not, then students in the treatment group had prior exposure to exam materials. This would constitute construct-irrelevant IL-HTE and a threat to internal validity. 
 Whether IL-HTE is construct-relevant or construct-irrelevant, when only a few items with strong positive effects drive the test-level treatment effect, then the treatment may not generalize to assessments without those items. This is particularly concerning because improvements to underlying ability (i.e., impact) must generalize to other assessments measuring the same underlying ability. 
 
-Finally, the strength and direction of the item-level effects will influence how they relate to the test-level treatment effect. Returning to our biology curriculum example, when each of the scientific reasoning items (Items 1 through 10) are significantly larger than the robust treatment effect, the naïve treatment effect would be upwardly biased. We can see the effect of this from a diagnostic test comparing a naïve, IRT-based test-level estimate (analogous to using the unweighted mean of test items) to a robust estimate that down-weights items that exhibit significant IL-HTE (Table 1).
+Finally, the strength and direction of the item-level effects will influence how they relate to the test-level treatment effect. Returning to our biology curriculum example, when each of the scientific reasoning items (Items 1 through 5) are significantly larger than the robust treatment effect (as in Figure 1), the naive treatment effect would be upwardly biased. We can see the effect of this from a diagnostic test comparing a naive, IRT-based test-level estimate (analogous to using the unweighted mean of test items) to a robust estimate that down-weights items that exhibit significant IL-HTE (Table 1).
 
-``` {r, echo=FALSE, eval=FALSE}
+``` {r, echo=FALSE}
 tab <- data.frame(
   naive.est =  c(0.4404281),
   naive.se = c(0.1029667),
@@ -54,13 +68,36 @@ tab <- data.frame(
   z.test = c(5.848172),
   p.val = c(4.980015e-09)
 )
+
+cat("Table 1: Non-ignorable IL-HTE")
 print(tab)
 ```
 
-The naïve estimate was equal to 0.44, the robust estimate equal to 0.09, and the difference (0.34) was significant at z = 5.8, p < 0.001. Here, we would conclude that the treatment effect based on unweighted means is not a suitable proxy for impact. This means the naïve treatment effect would represent a threat to construct validity, insofar as the effect is specific to the scientific reasoning domain rather than biology expertise overall, as well as a threat to external validity, as the size of the effect may not generalize to assessments without those ten items.
+The naive estimate was equal to 0.44, the robust estimate equal to 0.09, and the difference (0.34) was significant at z = 5.8, p < 0.001. Here, we would conclude that the treatment effect based on unweighted means is not a suitable proxy for impact. This means the naive treatment effect would represent a threat to construct validity, insofar as the effect is specific to the scientific reasoning domain rather than biology expertise overall, as well as a threat to external validity, as the size of the effect may not generalize to assessments without those five items.
 
-However, if the pattern of IL-HTE follows that in Figure 2, where the item-level effects are more balanced (i.e., some positive and some negative), then their effects average out. From the diagnostic test on such items, we would see a non-significant Wald test, indicating the naïve treatment effect estimate based on unweighted means is a suitable proxy for impact.
+However, if the pattern of IL-HTE follows that in Figure 2, where the item-level effects are more balanced (i.e., some positive and some negative), then their effects average out. From this plot, we can see Item 1 is significantly higher than the robust estimate, but Item 3 is significantly lower and Items 2, 4 and 5 do not significantly differ (i.e., their error bars cross the red line). From the diagnostic test on such items, we would see a non-significant Wald test, indicating the naive treatment effect estimate based on unweighted means is a suitable proxy for impact (Table 2).
 
+![ILHTE2](figures/fake_ignor_ilhte.png)
+``` {r echo=FALSE}
+tab2 <- data.frame(
+  naive.est =  c(0.1027919),
+  naive.se = c(0.1037291),
+  rdif.est = c(0.07641707),
+  rdif.se = c(0.1079588),
+  delta = c(0.02637488),
+  delta.se = c(0.04765341),
+  z.test = c(0.5534731),
+  p.val = c(0.5799395)  
+)
+
+cat("Table 2: Ignorable IL-HTE")
+print(tab2)
+```
+
+Naturally, there may not be any significant item-level effects, producing a plot like Figure 3. From this plot, we can see that while there is some variation item-by-item, none of the items significantly differ from the robust treatment effect. In this scenario, the naive treatment effect is equivalent to impact, and a diagnostic test on such items would result in a non-significant Wald test.
+
+![ILHTE3](figures/fake_null_ilhte.png)
+We will next turn to an applied analysis example using real data from a math curriculum intervention. The following will demonstrate how to use the `robustDIF` package to identify if IL-HTE is present and determine whether it affects conclusions drawn from using naive test-level treatment effects.
 
 # Effect of an Adaptive Game-Based Math Learning App on Students' Learning
 
@@ -72,7 +109,7 @@ Math achievement was measured at pre-test and post-test using 38 multiple-choice
 
 Bang and colleagues (2022) estimated a simple treatment effect by computing the difference between mean un-weighted post-test total scores:
 
-$$ TreatmentEffect = \overline{\text{TotalScore}}_{\text{treat}} - \overline{\text{TotalScore}}_{\text{control}}$$\n 
+$$ TreatmentEffect = \overline{\text{TotalScore}}_{\text{treat}} - \overline{\text{TotalScore}}_{\text{control}}$$\n\n 
 $$= 20.97 - 20.08 = 0.89 $$
 Dividing by the pooled standard deviation gives a measure of effect size (d):
 
@@ -81,9 +118,9 @@ $$ d = \frac{TE}{sd_p} = \frac{0.89}{8.09} = 0.11 $$
 
 These findings indicate students using My Math Academy had greater math achievement scores than students who did not, but the difference is relatively small. The following analysis will examine whether this effect size is robust to item-level sources of variability that may not generalize to other measures of Math achievement (i.e., tests that have different questions).
 
-# Step 1: Fit IRT model to data
+## Step 1: Fit IRT model to data
 
-To begin the procedure, we will need to fit an IRT model to the data. All data used in this example is available from the Item Response Warehouse (https://itemresponsewarehouse.org/) and can be downloaded using the following code:
+To begin the procedure, we will need to fit an IRT model to the data. The `robustDIF` package can handle several models, and so the exact choice of models is left up to the researcher and guided by theory. This example uses a 2PL model. All data used in this example is available from the Item Response Warehouse (https://itemresponsewarehouse.org/) and can be downloaded using the following code:
 
 ``` {r eval=FALSE}
 library(irw) # You may need to first install the package with `devtools::install_github("itemresponsewarehouse/Rpkg")`
@@ -100,7 +137,7 @@ wide <- irw_long2resp(irw.data)
 data <- left_join(wide, irw.data[,c(1,2,7)], by="id",multiple="first")
 ```
 
-The following code utilizes `mirt` to build 2PL IRT models for future testing of `robustDIF`:
+After retrieving the data, the following code utilizes `mirt` to fit a one-factor, multiple-group (treatment vs control) 2PL model to the data. We need to specify `SE=TRUE` within the function so that `robustDIF` can access the parameter covariance matrix later.
 
 ``` {r eval=FALSE}
 library(mirt) # You may need to install the package first with install.packages("mirt")
@@ -108,30 +145,41 @@ library(mirt) # You may need to install the package first with install.packages(
 # Subset data to just test items
 items <- data[,-c(1,40,41)]
 
-# Calculate 1-factor 2PL models, using treatment to split groups and specifying SE=TRUE for the covariance matrix.
+# Calculate 1-factor 2-PL models, using treatment to split groups and specifying SE=TRUE for the covariance matrix.
 mirt.dat <- multipleGroup(items,
                       model = 1,
                       group= as.factor(data$treat),
                       itemtype = "2PL",
                       SE=TRUE)
+```
 
+
+<details>
+
+<summary><strong>Technical details: What is a 2PL IRT model?</strong></summary>
+
+A "Two-Parameter Logistic" (2PL) model is an item response theory model that estimates both how challenging an item is (item difficulty) and how well an item distinguishes between individuals with different levels of underlying ability (item discrimination). It can be used when item responses are binary (e.g., correct/incorrect) and when researchers have reason to believe items differ in both difficulty and discrimination. You can get a sense of these two parameters by investigating the item response functions (IRFs) of the model using `plot()`:
+
+``` {r eval=FALSE}
 # Plot the IRFs
 plot(mirt.dat, type = "trace", facet = F)
 ```
 
 ![IRF](figures/mirt_plot.png)
 
-A useful first step is to investigate the item response functions (IRFs) of the multiple group 2PL model using `plot()`. Essentially, we are looking for similarities and differences between response functions in the treatment (1) and control (0) groups. If the response functions look near identical, we may not expect to uncover any DIF.
+Each curve on the plot represents how the probability of a particular response to an item changes as a person's level of underlying ability increases. The x-axis is level of latent ability $\theta$ and the y-axis is the probability of answering an item correctly. The horizontal position of each s-shaped curve reflects how difficult an item is: curves further to the right represent more difficult items, where individuals need higher levels of $\theta$ to have a high probability of answering correctly.
 
-When fitting 2PL IRT models, the latent trait $\theta$ (representing children's underlying "math ability") needs to be scaled (i.e., we restrain it to have a mean of zero and variance of one). This can be problematic when testing differences between groups (tests of DIF), because if we arbitrarily scale $\theta$ in both groups, we give their $\theta$ the same mean and variance. In other words, we end up removing any differences and will show zero impact. The `robustDIF` procedure tackles this problem by instead using robust statistics to estimate scaling parameters and flag items for DIF.
+The steepness of the curve represents the item's discrimination: items with steeper curves more effectively distinguish between individuals with slightly lower and slightly higher levels of $\theta$, whereas flatter curves provide less information about the differences between individuals.
 
-A second issue here is the clustering of observations: students within the same classroom may have similar characteristics (e.g., have similar capabilities, backgrounds, etc.). This leads to partial redundancies in their scores which should be accounted for. The `robustDIF` package can handle this by specifying a `cluster` variable (e.g., classroom id's) in the `get_model_parms()` function.
+When comparing between groups, we are essentially looking for similarities and differences between the response functions in the treatment (1) and control (0) groups. If the response functions look near identical, we may not expect much IL-HTE. 
 
-# Step 2: Is the overall treatment effect robust to item-level variability?
+</details>
+
+## Step 2: Is the overall treatment effect robust to item-level variability?
 
 Children using My Math Academy may be exposed to certain types of questions more frequently than those in the control group. For example, My Math Academy includes games that use base-ten blocks for addition and subtraction, whereas some control curricula may not. If the post-test assessment includes base-ten block items, then score differences between groups on those items could reflect differential exposure rather than true differences in underlying math ability.
 
-This issue is known as "construct-irrelevant item-level heterogenous treatment effects" (construct-irrelevant IL-HTE, or construct-irrelevant DIF) and would cast doubt on using total scores, which include base-ten block questions, as a way of demonstrating that the treatment improved math ability.
+Differential exposure would constitute construct-irrelevant IL-HTE and would cast doubt on using total scores, which include base-ten block questions, as a way of demonstrating that the treatment improved math ability.
 
 Additionally, if IL-HTE is present, the generalizability of the treatment effect might be questioned. If the treatment effect is driven by only a subset of test questions, then tests with different questions may not show the same magnitude of effect.
 
@@ -163,6 +211,16 @@ delta_test(mod)
 ```
 
 The naive effect estimate is `0.24`, `SE = 0.31`. The robust effect estimate that adjusts for item-level variation is `0.10`, `SE = 0.28`. This significant difference (`p < 0.05`) implies that the treatment effect on the total score was driven by only a subset of items with relatively large effects. These items will be investigated next.
+
+<details>
+
+<summary><strong>Technical details: How does robustDIF approach scaling and clustering?</strong></summary>
+
+When fitting 2PL IRT models, the latent trait $\theta$ (representing children's underlying "math ability") needs to be scaled (i.e., we restrain it to have a mean of zero and variance of one). This can be problematic when testing differences between groups (tests of DIF), because if we arbitrarily scale $\theta$ in both groups, we give their $\theta$ the same mean and variance. In other words, we end up removing any differences and will show zero impact. The `robustDIF` procedure tackles this problem by instead using robust statistics to estimate scaling parameters and flag items for DIF.
+
+A second issue here is the clustering of observations: students within the same classroom may have similar characteristics (e.g., have similar capabilities, backgrounds, etc.). This leads to partial redundancies in their scores which should be accounted for. The `robustDIF` package can handle this by specifying a `cluster` variable (e.g., classroom id's) in the `get_model_parms()` function.
+
+</details>
 
 # Step 3: Which items show differential treatment effects?
 
@@ -221,8 +279,10 @@ Here, the Rho Function has a clear global minimum, indicating there is a single 
 
 # Step 5: Conclusion
 
-In the absence of IL-HTE, the treatment effect based on the total test score and the treatment effect on underlying math ability is equivalent. When IL-HTE is present, as in this example, we can conclude the two are not: comparing mean total scores between groups may not be an adequate representation of differences in underlying math ability. 
+In the absence of IL-HTE, the treatment effect based on the total test score and the treatment effect on underlying math ability is equivalent. When IL-HTE is present, as in this example, we can conclude the two are not: comparing mean total scores between groups may not be an adequate representation of differences in underlying math ability.
 
-Researchers in this situation have several options to address these concerns. The first would be to provide evidence that My Math Academy students did not have more exposure to these question types than control students. Assuming this is true, then researchers might caution readers that the results were largely driven by a few items, or conduct a sensitivity analysis by replacing biased assessment items on a follow-up sample and comparing effect magnitudes between tests.
+However, it is important to note that a significant diagnostic test should be taken simply as a warning of a salient threat to the validity of the study - it does not mean researchers need to abandon the naive treatment effect estimate or adopt the robust alternative. Like all threats to validity, researchers can evaluate the details of the study to determine the next course of action.
+
+For example, researchers in this situation have several options to address these concerns. The first would be to provide evidence that My Math Academy students did not have more exposure to these question types than control students. Assuming this is true, then researchers might caution readers that the results were largely driven by a few items, or conduct a sensitivity analysis by replacing biased assessment items on a follow-up sample and comparing effect magnitudes between tests.
 
 
