@@ -61,7 +61,7 @@
                         <h4 data-toc-skip class="author">Peter F Halpin
 &amp; James Eagle</h4>
             
-            <h4 data-toc-skip class="date">2026-07-27</h4>
+            <h4 data-toc-skip class="date">2026-07-31</h4>
       
 
       <div class="d-none name"><code>testing-for-impact.Rmd</code></div>
@@ -93,7 +93,7 @@ treatment effects”) as proxies for impact is threatened and should be
 further evaluated (Halpin, P. F., &amp; Gilbert, J. B., n.d.). This will
 be discussed in more detail later on.</p>
 <p>Imagine a biology educator introduces a new inquiry-based laboratory
-curriculum. At the end of the semester, students complete a 30-item
+curriculum. At the end of the semester, students complete a 20-item
 biology assessment. The average test scores may show that students in
 the new curriculum performed better than those in the previous. However,
 looking at the total scores obscures what happened within individual
@@ -105,7 +105,7 @@ case, the effect of the curriculum was not uniform across items: some
 items benefited substantially, bringing the average up, but others did
 not. IL-HTE describes this variation in the effect of the curriculum
 across individual items.</p>
-<p>IL-HTE analysis of the 30-item biology assessment may produce a plot
+<p>IL-HTE analysis of the 20-item biology assessment may produce a plot
 like Figure 1. In the plot, the individual points and error bars show
 the item-level effects of the curriculum for each question on the
 assessment. The horizontal dashed line represents an overall estimate of
@@ -116,11 +116,37 @@ assessment. Items requiring scientific reasoning are highlighted in red,
 and we can see that each of them has item-level effects significantly
 higher than the robust treatment effect (i.e., they are above the dashed
 line and their error bars do not cross over the line).</p>
+<div class="float">
+<img src="figures/fake_nonig_ilhte.png" alt="ILHTE"><div class="figcaption">ILHTE</div>
+</div>
 <p>In the following, we will describe how to use the
 <code>robustDIF</code> package to assess the degree of IL-HTE present in
 an educational intervention study, whether it affects conclusions about
 the effectiveness of the curriculum being studied, and what the
 potential issues are when IL-HTE is ignored.</p>
+<details><summary><strong>Technical details: Isn’t this just DIF?</strong>
+</summary><p>Education researchers have long recognized a related issue in
+educational measurement called Differential Item Functioning (DIF). DIF
+occurs when students from different demographic groups (i.e., different
+genders or ethnicities) have the same underlying academic ability, but
+nevertheless have different probabilities of answering an item correctly
+due to the characteristics of the item itself.</p>
+<p>For example, imagine a mathematics assessment on fractions. If
+several of the assessment items are word problems,
+English-language-learning students may have more difficulty
+understanding and answering the items correctly, regardless of their
+ability to calculate fractions. When such item-specific effects are
+unrelated to the target construct being measured (i.e., mathematics
+ability), they are thought of as construct-irrelevant DIF, interpreted
+as measurement bias, and a seen as a threat to test fairness (Joint
+Committee for Educational and Psychological Testing, 2014).</p>
+<p>IL-HTE analysis is conceptually similar, but instead of comparing
+demographic groups, it compares how specific items function between
+treatment and control groups. Additionally, many of the same
+considerations for analyzing DIF carry over to IL-HTE analysis, such as
+the distinction between construct-relevant and construct-irrelevant DIF
+(Markus and Borsboom, 2025, chap. 3).</p>
+</details>
 </div>
 <div class="section level2">
 <h2 id="importance-of-il-hte-in-education-based-research">Importance of IL-HTE in Education-based Research<a class="anchor" aria-label="anchor" href="#importance-of-il-hte-in-education-based-research"></a>
@@ -129,7 +155,7 @@ potential issues are when IL-HTE is ignored.</p>
 measured using unweighted means of assessment items reflect improvements
 in underlying ability. If educators only look at total test scores, they
 may overlook the fact that improvements in mean outcomes were driven by
-only a handful of items, while most of the test shows little change.
+only a handful of items while most of the test shows little change.
 Understanding which items responded most to the intervention helps
 educators determine how and why a curriculum worked, not simply whether
 it improved overall scores.</p>
@@ -162,27 +188,55 @@ measuring the same underlying ability.</p>
 <p>Finally, the strength and direction of the item-level effects will
 influence how they relate to the test-level treatment effect. Returning
 to our biology curriculum example, when each of the scientific reasoning
-items (Items 1 through 10) are significantly larger than the robust
-treatment effect, the naïve treatment effect would be upwardly biased.
-We can see the effect of this from a diagnostic test comparing a naïve,
-IRT-based test-level estimate (analogous to using the unweighted mean of
-test items) to a robust estimate that down-weights items that exhibit
-significant IL-HTE (Table 1).</p>
-<p>The naïve estimate was equal to 0.44, the robust estimate equal to
+items (Items 1 through 5) are significantly larger than the robust
+treatment effect (as in Figure 1), the naive treatment effect would be
+upwardly biased. We can see the effect of this from a diagnostic test
+comparing a naive, IRT-based test-level estimate (analogous to using the
+unweighted mean of test items) to a robust estimate that down-weights
+items that exhibit significant IL-HTE (Table 1).</p>
+<pre><code><span><span class="co">## Table 1: Non-ignorable IL-HTE</span></span></code></pre>
+<pre><code><span><span class="co">##   naive.est  naive.se   rdif.est  rdif.se    delta   delta.se   z.test</span></span>
+<span><span class="co">## 1 0.4404281 0.1029667 0.09289712 0.106527 0.347531 0.05942556 5.848172</span></span>
+<span><span class="co">##          p.val</span></span>
+<span><span class="co">## 1 4.980015e-09</span></span></code></pre>
+<p>The naive estimate was equal to 0.44, the robust estimate equal to
 0.09, and the difference (0.34) was significant at z = 5.8, p &lt;
 0.001. Here, we would conclude that the treatment effect based on
 unweighted means is not a suitable proxy for impact. This means the
-naïve treatment effect would represent a threat to construct validity,
+naive treatment effect would represent a threat to construct validity,
 insofar as the effect is specific to the scientific reasoning domain
 rather than biology expertise overall, as well as a threat to external
 validity, as the size of the effect may not generalize to assessments
-without those ten items.</p>
+without those five items.</p>
 <p>However, if the pattern of IL-HTE follows that in Figure 2, where the
 item-level effects are more balanced (i.e., some positive and some
-negative), then their effects average out. From the diagnostic test on
+negative), then their effects average out. From this plot, we can see
+Item 1 is significantly higher than the robust estimate, but Item 3 is
+significantly lower and Items 2, 4 and 5 do not significantly differ
+(i.e., their error bars cross the red line). From the diagnostic test on
 such items, we would see a non-significant Wald test, indicating the
-naïve treatment effect estimate based on unweighted means is a suitable
-proxy for impact.</p>
+naive treatment effect estimate based on unweighted means is a suitable
+proxy for impact (Table 2).</p>
+<div class="float">
+<img src="figures/fake_ignor_ilhte.png" alt="ILHTE2"><div class="figcaption">ILHTE2</div>
+</div>
+<pre><code><span><span class="co">## Table 2: Ignorable IL-HTE</span></span></code></pre>
+<pre><code><span><span class="co">##   naive.est  naive.se   rdif.est   rdif.se      delta   delta.se    z.test</span></span>
+<span><span class="co">## 1 0.1027919 0.1037291 0.07641707 0.1079588 0.02637488 0.04765341 0.5534731</span></span>
+<span><span class="co">##       p.val</span></span>
+<span><span class="co">## 1 0.5799395</span></span></code></pre>
+<p>Naturally, there may not be any significant item-level effects,
+producing a plot like Figure 3. From this plot, we can see that while
+there is some variation item-by-item, none of the items significantly
+differ from the robust treatment effect. In this scenario, the naive
+treatment effect is equivalent to impact, and a diagnostic test on such
+items would result in a non-significant Wald test.</p>
+<p><img src="figures/fake_null_ilhte.png" alt="ILHTE3"> We will next
+turn to an applied analysis example using real data from a math
+curriculum intervention. The following will demonstrate how to use the
+<code>robustDIF</code> package to identify if IL-HTE is present and
+determine whether it affects conclusions drawn from using naive
+test-level treatment effects.</p>
 </div>
 <div class="section level2">
 <h2 id="effect-of-an-adaptive-game-based-math-learning-app-on-students-learning">Effect of an Adaptive Game-Based Math Learning App on Students’
@@ -220,15 +274,16 @@ relatively small. The following analysis will examine whether this
 effect size is robust to item-level sources of variability that may not
 generalize to other measures of Math achievement (i.e., tests that have
 different questions).</p>
-</div>
-<div class="section level2">
-<h2 id="step-1-fit-irt-model-to-data">Step 1: Fit IRT model to data<a class="anchor" aria-label="anchor" href="#step-1-fit-irt-model-to-data"></a>
-</h2>
+<div class="section level3">
+<h3 id="step-1-fit-irt-model-to-data">Step 1: Fit IRT model to data<a class="anchor" aria-label="anchor" href="#step-1-fit-irt-model-to-data"></a>
+</h3>
 <p>To begin the procedure, we will need to fit an IRT model to the data.
-All data used in this example is available from the Item Response
-Warehouse (<a href="https://itemresponsewarehouse.org/" class="external-link uri">https://itemresponsewarehouse.org/</a>) and can be
+The <code>robustDIF</code> package can handle several models, and so the
+exact choice of models is left up to the researcher and guided by
+theory. This example uses a 2PL model. All data used in this example is
+available from the Item Response Warehouse (<a href="https://itemresponsewarehouse.org/" class="external-link uri">https://itemresponsewarehouse.org/</a>) and can be
 downloaded using the following code:</p>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">irw</span><span class="op">)</span> <span class="co"># You may need to first install the package with `devtools::install_github("itemresponsewarehouse/Rpkg")`</span></span>
 <span></span>
 <span><span class="co"># On first use, you will need to log in with a Redivis account (a platform for academic data sharing). See instructions for this on the IRW website.</span></span>
@@ -241,33 +296,124 @@ downloaded using the following code:</p>
 <span></span>
 <span><span class="co"># Add cluster ID and treatment ID to wide data</span></span>
 <span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu">left_join</span><span class="op">(</span><span class="va">wide</span>, <span class="va">irw.data</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span>,<span class="fl">7</span><span class="op">)</span><span class="op">]</span>, by<span class="op">=</span><span class="st">"id"</span>,multiple<span class="op">=</span><span class="st">"first"</span><span class="op">)</span></span></code></pre></div>
-<p>The following code utilizes <code>mirt</code> to build 2PL IRT models
-for future testing of <code>robustDIF</code>:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<p>After retrieving the data, the following code utilizes
+<code>mirt</code> to fit a one-factor, multiple-group (treatment vs
+control) 2PL model to the data. We need to specify <code>SE=TRUE</code>
+within the function so that <code>robustDIF</code> can access the
+parameter covariance matrix later.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://philchalmers.github.io/mirt/" class="external-link">mirt</a></span><span class="op">)</span> <span class="co"># You may need to install the package first with install.packages("mirt")</span></span>
 <span></span>
 <span><span class="co"># Subset data to just test items</span></span>
 <span><span class="va">items</span> <span class="op">&lt;-</span> <span class="va">data</span><span class="op">[</span>,<span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">40</span>,<span class="fl">41</span><span class="op">)</span><span class="op">]</span></span>
 <span></span>
-<span><span class="co"># Calculate 1-factor 2PL models, using treatment to split groups and specifying SE=TRUE for the covariance matrix.</span></span>
+<span><span class="co"># Calculate 1-factor 2-PL models, using treatment to split groups and specifying SE=TRUE for the covariance matrix.</span></span>
 <span><span class="va">mirt.dat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://philchalmers.github.io/mirt/reference/multipleGroup.html" class="external-link">multipleGroup</a></span><span class="op">(</span><span class="va">items</span>,</span>
 <span>                      model <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>                      group<span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">as.factor</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">treat</span><span class="op">)</span>,</span>
 <span>                      itemtype <span class="op">=</span> <span class="st">"2PL"</span>,</span>
-<span>                      SE<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Plot the IRFs</span></span>
+<span>                      SE<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<details><summary><strong>Technical details: What is a 2PL IRT model?</strong>
+</summary><p>A “Two-Parameter Logistic” (2PL) model is an item response theory
+model that estimates both how challenging an item is (item difficulty)
+and how well an item distinguishes between individuals with different
+levels of underlying ability (item discrimination). It can be used when
+item responses are binary (e.g., correct/incorrect) and when researchers
+have reason to believe items differ in both difficulty and
+discrimination. You can get a sense of these two parameters by
+investigating the item response functions (IRFs) of the model using
+<code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code>:</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Plot the IRFs</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">mirt.dat</span>, type <span class="op">=</span> <span class="st">"trace"</span>, facet <span class="op">=</span> <span class="cn">F</span><span class="op">)</span></span></code></pre></div>
 <div class="float">
 <img src="figures/mirt_plot.png" alt="IRF"><div class="figcaption">IRF</div>
 </div>
-<p>A useful first step is to investigate the item response functions
-(IRFs) of the multiple group 2PL model using <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code>.
-Essentially, we are looking for similarities and differences between
-response functions in the treatment (1) and control (0) groups. If the
-response functions look near identical, we may not expect to uncover any
-DIF.</p>
-<p>When fitting 2PL IRT models, the latent trait
+<p>Each curve on the plot represents how the probability of a particular
+response to an item changes as a person’s level of underlying ability
+increases. The x-axis is level of latent ability
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>
+and the y-axis is the probability of answering an item correctly. The
+horizontal position of each s-shaped curve reflects how difficult an
+item is: curves further to the right represent more difficult items,
+where individuals need higher levels of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>
+to have a high probability of answering correctly.</p>
+<p>The steepness of the curve represents the item’s discrimination:
+items with steeper curves more effectively distinguish between
+individuals with slightly lower and slightly higher levels of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>,
+whereas flatter curves provide less information about the differences
+between individuals.</p>
+<p>When comparing between groups, we are essentially looking for
+similarities and differences between the response functions in the
+treatment (1) and control (0) groups. If the response functions look
+near identical, we may not expect much IL-HTE.</p>
+</details>
+</div>
+<div class="section level3">
+<h3 id="step-2-is-the-overall-treatment-effect-robust-to-item-level-variability">Step 2: Is the overall treatment effect robust to item-level
+variability?<a class="anchor" aria-label="anchor" href="#step-2-is-the-overall-treatment-effect-robust-to-item-level-variability"></a>
+</h3>
+<p>Children using My Math Academy may be exposed to certain types of
+questions more frequently than those in the control group. For example,
+My Math Academy includes games that use base-ten blocks for addition and
+subtraction, whereas some control curricula may not. If the post-test
+assessment includes base-ten block items, then score differences between
+groups on those items could reflect differential exposure rather than
+true differences in underlying math ability.</p>
+<p>Differential exposure would constitute construct-irrelevant IL-HTE
+and would cast doubt on using total scores, which include base-ten block
+questions, as a way of demonstrating that the treatment improved math
+ability.</p>
+<p>Additionally, if IL-HTE is present, the generalizability of the
+treatment effect might be questioned. If the treatment effect is driven
+by only a subset of test questions, then tests with different questions
+may not show the same magnitude of effect.</p>
+<p>We will turn next to demonstrating how to test for IL-HTE.</p>
+<p>The <code><a href="../reference/get_model_parms.html">get_model_parms()</a></code> function from
+<code>robustDIF</code> can be used to extract item-level estimates from
+the <code>mirt</code> object. After, robustness to item-level
+variability can be investigated using the <code><a href="../reference/rdif.html">rdif()</a></code> function.
+Users supply a significance level by setting <code>alpha</code> (here,
+<code>.05</code>) and testing for DIF on slope (discrimination),
+intercept (difficulty), or both with <code>fun</code>.</p>
+<p>Here, we choose <code>d_fun1</code> to test whether the treatment
+effect computed using the un-weighted mean of items and scaled to the
+control group is robust to item-level sources of variation.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Extract cluster indicator variables (classroom/teacher id)</span></span>
+<span><span class="va">group_vars</span> <span class="op">&lt;-</span> <span class="va">data</span><span class="op">$</span><span class="va">cluster_id</span></span>
+<span></span>
+<span><span class="co"># Save model parameters</span></span>
+<span><span class="va">parms</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_model_parms.html">get_model_parms</a></span><span class="op">(</span><span class="va">mirt.dat</span>, cluster <span class="op">=</span> <span class="va">group_vars</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Investigate DIF</span></span>
+<span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rdif.html">rdif</a></span><span class="op">(</span>mle <span class="op">=</span> <span class="va">parms</span>, fun <span class="op">=</span> <span class="st">"d_fun1"</span>, alpha <span class="op">=</span> <span class="fl">.05</span><span class="op">)</span></span>
+<span><span class="co"># Print estimate</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## Est: 0.1041982     SE: 0.2798387</span></span></code></pre>
+<p>The <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> function provides the robust treatment
+effect estimate (<code>0.10</code>) and standard error
+(<code>0.28</code>) estimated using iteratively reweighted least squares
+with Tukey’s bisquare.</p>
+<p>The <code><a href="../reference/delta_test.html">delta_test()</a></code> function provides both a naive effect
+estimate (one that aggregates over all test items) and a robust estimate
+that adjusts for item-level variation.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/delta_test.html">delta_test</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">##   naive.est naive.se  rdif.est   rdif.se     delta   delta.se z.test      p.val</span></span>
+<span><span class="co">## 1 0.2449639 0.307209 0.1041982 0.2798387 0.1407657 0.06516024 2.1603 0.03074946</span></span></code></pre>
+<p>The naive effect estimate is <code>0.24</code>,
+<code>SE = 0.31</code>. The robust effect estimate that adjusts for
+item-level variation is <code>0.10</code>, <code>SE = 0.28</code>. This
+significant difference (<code>p &lt; 0.05</code>) implies that the
+treatment effect on the total score was driven by only a subset of items
+with relatively large effects. These items will be investigated
+next.</p>
+<details><summary><strong>Technical details: How does robustDIF approach scaling and
+clustering?</strong>
+</summary><p>When fitting 2PL IRT models, the latent trait
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>
 (representing children’s underlying “math ability”) needs to be scaled
 (i.e., we restrain it to have a mean of zero and variance of one). This
@@ -287,68 +433,8 @@ redundancies in their scores which should be accounted for. The
 <code>robustDIF</code> package can handle this by specifying a
 <code>cluster</code> variable (e.g., classroom id’s) in the
 <code><a href="../reference/get_model_parms.html">get_model_parms()</a></code> function.</p>
+</details>
 </div>
-<div class="section level2">
-<h2 id="step-2-is-the-overall-treatment-effect-robust-to-item-level-variability">Step 2: Is the overall treatment effect robust to item-level
-variability?<a class="anchor" aria-label="anchor" href="#step-2-is-the-overall-treatment-effect-robust-to-item-level-variability"></a>
-</h2>
-<p>Children using My Math Academy may be exposed to certain types of
-questions more frequently than those in the control group. For example,
-My Math Academy includes games that use base-ten blocks for addition and
-subtraction, whereas some control curricula may not. If the post-test
-assessment includes base-ten block items, then score differences between
-groups on those items could reflect differential exposure rather than
-true differences in underlying math ability.</p>
-<p>This issue is known as “construct-irrelevant item-level heterogenous
-treatment effects” (construct-irrelevant IL-HTE, or construct-irrelevant
-DIF) and would cast doubt on using total scores, which include base-ten
-block questions, as a way of demonstrating that the treatment improved
-math ability.</p>
-<p>Additionally, if IL-HTE is present, the generalizability of the
-treatment effect might be questioned. If the treatment effect is driven
-by only a subset of test questions, then tests with different questions
-may not show the same magnitude of effect.</p>
-<p>We will turn next to demonstrating how to test for IL-HTE.</p>
-<p>The <code><a href="../reference/get_model_parms.html">get_model_parms()</a></code> function from
-<code>robustDIF</code> can be used to extract item-level estimates from
-the <code>mirt</code> object. After, robustness to item-level
-variability can be investigated using the <code><a href="../reference/rdif.html">rdif()</a></code> function.
-Users supply a significance level by setting <code>alpha</code> (here,
-<code>.05</code>) and testing for DIF on slope (discrimination),
-intercept (difficulty), or both with <code>fun</code>.</p>
-<p>Here, we choose <code>d_fun1</code> to test whether the treatment
-effect computed using the un-weighted mean of items and scaled to the
-control group is robust to item-level sources of variation.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Extract cluster indicator variables (classroom/teacher id)</span></span>
-<span><span class="va">group_vars</span> <span class="op">&lt;-</span> <span class="va">data</span><span class="op">$</span><span class="va">cluster_id</span></span>
-<span></span>
-<span><span class="co"># Save model parameters</span></span>
-<span><span class="va">parms</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_model_parms.html">get_model_parms</a></span><span class="op">(</span><span class="va">mirt.dat</span>, cluster <span class="op">=</span> <span class="va">group_vars</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Investigate DIF</span></span>
-<span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rdif.html">rdif</a></span><span class="op">(</span>mle <span class="op">=</span> <span class="va">parms</span>, fun <span class="op">=</span> <span class="st">"d_fun1"</span>, alpha <span class="op">=</span> <span class="fl">.05</span><span class="op">)</span></span>
-<span><span class="co"># Print estimate</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Est: 0.1041982     SE: 0.2798387</span></span></code></pre>
-<p>The <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> function provides the robust treatment
-effect estimate (<code>0.10</code>) and standard error
-(<code>0.28</code>) estimated using iteratively reweighted least squares
-with Tukey’s bisquare.</p>
-<p>The <code><a href="../reference/delta_test.html">delta_test()</a></code> function provides both a naive effect
-estimate (one that aggregates over all test items) and a robust estimate
-that adjusts for item-level variation.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/delta_test.html">delta_test</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##   naive.est naive.se  rdif.est   rdif.se     delta   delta.se z.test      p.val</span></span>
-<span><span class="co">## 1 0.2449639 0.307209 0.1041982 0.2798387 0.1407657 0.06516024 2.1603 0.03074946</span></span></code></pre>
-<p>The naive effect estimate is <code>0.24</code>,
-<code>SE = 0.31</code>. The robust effect estimate that adjusts for
-item-level variation is <code>0.10</code>, <code>SE = 0.28</code>. This
-significant difference (<code>p &lt; 0.05</code>) implies that the
-treatment effect on the total score was driven by only a subset of items
-with relatively large effects. These items will be investigated
-next.</p>
 </div>
 <div class="section level2">
 <h2 id="step-3-which-items-show-differential-treatment-effects">Step 3: Which items show differential treatment effects?<a class="anchor" aria-label="anchor" href="#step-3-which-items-show-differential-treatment-effects"></a>
@@ -359,7 +445,7 @@ function value) and <code>p-values</code>for each item. Significant
 <code>p-values</code> indicate that, at the chosen <code>alpha</code>,
 the item was flagged for DIF. Those items are down-weighted to zero
 during estimation of the scaling parameter.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Print summary</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## Robust Scaling and Differential Item Functioning.</span></span>
@@ -415,7 +501,7 @@ reveal which items were increasing or decreasing the treatment effect.
 We can subset to significant (<code>p-value &lt; alpha</code>) items and
 plot their effects and 95% CI’s in relation to the robust estimate to
 visualize this.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Subset to significant items (set your own p-value if different from 0.05)</span></span>
 <span><span class="va">sig.items</span> <span class="op">&lt;-</span> <span class="va">mod</span><span class="op">[[</span><span class="st">"dif.test"</span><span class="op">]</span><span class="op">]</span><span class="op">[</span><span class="va">mod</span><span class="op">[[</span><span class="st">"dif.test"</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">p.val</span> <span class="op">&lt;</span> <span class="fl">0.05</span>, <span class="op">]</span></span>
 <span></span>
@@ -458,10 +544,10 @@ studies using tests without these two items.</p>
 <p>Before proceeding with the analysis and making inferences about
 DIF/IL-HTE, use <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> to visually inspect the Rho Function
 for a clear global minimum.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Plot Rho Function</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span></code></pre></div>
-<p><img src="testing-for-impact_files/figure-html/unnamed-chunk-9-1.png" class="r-plt" alt="" width="700"></p>
+<p><img src="testing-for-impact_files/figure-html/unnamed-chunk-11-1.png" class="r-plt" alt="" width="700"></p>
 <p>Here, the Rho Function has a clear global minimum, indicating there
 is a single solution for the scaling parameter. If the Rho function
 showed multiple local minima of similar values, there would potentially
@@ -477,13 +563,19 @@ equivalent. When IL-HTE is present, as in this example, we can conclude
 the two are not: comparing mean total scores between groups may not be
 an adequate representation of differences in underlying math
 ability.</p>
-<p>Researchers in this situation have several options to address these
-concerns. The first would be to provide evidence that My Math Academy
-students did not have more exposure to these question types than control
-students. Assuming this is true, then researchers might caution readers
-that the results were largely driven by a few items, or conduct a
-sensitivity analysis by replacing biased assessment items on a follow-up
-sample and comparing effect magnitudes between tests.</p>
+<p>However, it is important to note that a significant diagnostic test
+should be taken simply as a warning of a salient threat to the validity
+of the study - it does not mean researchers need to abandon the naive
+treatment effect estimate or adopt the robust alternative. Like all
+threats to validity, researchers can evaluate the details of the study
+to determine the next course of action.</p>
+<p>For example, researchers in this situation have several options to
+address these concerns. The first would be to provide evidence that My
+Math Academy students did not have more exposure to these question types
+than control students. Assuming this is true, then researchers might
+caution readers that the results were largely driven by a few items, or
+conduct a sensitivity analysis by replacing biased assessment items on a
+follow-up sample and comparing effect magnitudes between tests.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
