@@ -1,0 +1,413 @@
+---
+title: "DTF via Robust Scaling: Replication Code for Simulation 1"
+author: Blinded
+date: today
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    embed-resources: true
+execute:
+  warning: false
+  message: false
+---
+
+# Initialization
+
+```{r}
+library(robustDIF)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(see)
+
+check_archive_robustDIF <- function(version = "0.2.0.20260708",
+                                    archive.name = "review-archive") {
+  installed_version <- as.character(utils::packageVersion("robustDIF"))
+  if (installed_version != version) {
+    stop(
+      "This report expects robustDIF ", version,
+      ", but found robustDIF ", installed_version,
+      ". Install robustDIF from the archive branch.",
+      call. = FALSE)
+  }
+
+  desc <- utils::packageDescription("robustDIF")
+  installed_archive <- desc[["Config/robustDIF/archive-name"]]
+  if (!identical(installed_archive, archive.name)) {
+    stop(
+      "This report expects robustDIF archive '", archive.name,
+      "', but found archive label '", installed_archive,
+      "'. Install robustDIF from the archive branch.",
+      call. = FALSE)
+  }
+  invisible(installed_version)
+}
+
+check_archive_robustDIF()
+
+find_results_dir <- function(candidates, pattern, min_files) {
+  candidates <- unique(candidates)
+  n_files <- vapply(
+    candidates,
+    function(path) {
+      if (!dir.exists(path)) return(0L)
+      length(list.files(path, pattern = pattern, full.names = TRUE))
+    },
+    integer(1))
+
+  if (!any(n_files >= min_files)) {
+    stop(
+      "Could not find the Simulation 1 result files. Expected at least ",
+      min_files, " files matching ", pattern, " in one of: ",
+      paste(candidates, collapse = ", "),
+      call. = FALSE)
+  }
+
+  normalizePath(candidates[which(n_files >= min_files)[1]], mustWork = TRUE)
+}
+
+sim1_pattern <- "^sim1_n[0-9]+_ndif[0-9]+[.]rds$"
+results_dir <- find_results_dir(
+  c(
+    "../results/sim1",
+    "results/sim1",
+    "../../paper/results/sim1",
+    "../../../paper/results/sim1",
+    "paper/results/sim1"),
+  pattern = sim1_pattern,
+  min_files = 33L)
+
+method_levels <- c("LRT", "RDIF", "True")
+
+method_cols <- c(
+  "LRT" = "#254A73",
+  "RDIF" = "#7BAFD4",
+  "True" = "grey50")
+
+delta_method_map <- c(
+  "LRT-unit" = "LRT",
+  "RDIF-BH-start" = "RDIF",
+  "Oracle-unit" = "True")
+
+item_method_map <- c(
+  "LRT" = "LRT",
+  "RDIF-BH-start" = "RDIF")
+
+theme_set(theme_bw(base_size = 14))
+```
+
+# Run Sims
+
+The production run was carried out condition-by-condition. Each
+condition was saved separately as an `.rds`.
+
+```{bash, echo=TRUE, eval=FALSE}
+SIM1_REPS=500 SIM1_CORES=10 SIM1_LRT_TOL=1e-3 \
+  Rscript run_sim1.R
+```
+
+Simulation 1 uses 500 replications in each cell of a
+`3 x 11` grid:
+
+- sample size per group: `200`, `350`, `500`;
+- number of DIF items: `0, 1, ..., 10`;
+- total number of items: `20`;
+- per-item DIF magnitude: `0.5` on the difficulty scale used in
+  `data_sim1()`;
+- reference latent mean and variance fixed at `0` and `1`;
+- comparison latent mean sampled from `U(-0.25, 0.25)`;
+- comparison latent variance sampled from `U(0.5, 1.5)`.
+
+The LRT screening step uses joint slope/intercept item tests with
+`TOL = 1e-3`; this was done to improve run time and piloting showed it had a neglible effect on convergence. The separate single-group `mirt(..., SE = TRUE)` fits
+used by RDIF are left at the `mirt` defaults.
+
+# Load Results
+
+```{r}
+sim_files <- list.files(
+  results_dir,
+  pattern = sim1_pattern,
+  full.names = TRUE)
+
+sim_list <- lapply(sim_files, readRDS)
+sim_delta_all <- bind_rows(lapply(sim_list, `[[`, "delta")) |>
+  mutate(
+    raw_method = as.character(method),
+    n_persons = n_persons_1,
+    n_dif = as.integer(n_dif))
+
+sim_delta <- sim_delta_all |>
+  filter(raw_method %in% names(delta_method_map)) |>
+  mutate(
+    method = factor(unname(delta_method_map[raw_method]), levels = method_levels))
+
+sim_items_all <- bind_rows(lapply(sim_list, `[[`, "items")) |>
+  mutate(
+    raw_method = as.character(method),
+    n_persons = n_persons_1,
+    n_dif = as.integer(n_dif))
+
+sim_items <- sim_items_all |>
+  filter(raw_method %in% names(item_method_map)) |>
+  mutate(
+    method = factor(unname(item_method_map[raw_method]),
+                    levels = c("LRT", "RDIF")))
+
+run_info <- bind_rows(lapply(sim_list, function(x) {
+  data.frame(
+    n.reps = x$run$n.reps,
+    n.cores = x$run$n.cores,
+    base.seed = x$run$base.seed,
+    condition.seed = x$run$condition.seed,
+    lrt.TOL = x$run$lrt.TOL,
+    save.mle = x$run$save.mle,
+    completed = x$run$completed)
+}))
+
+status_file <- file.path(results_dir, "sim1_status.csv")
+sim_status <- if (file.exists(status_file)) read.csv(status_file) else NULL
+
+n_reps <- length(unique(sim_delta$rep))
+n_items <- unique(sim_delta$n_items)
+alpha <- 0.05
+```
+
+# Item-Level Diagnostics
+
+```{r}
+item_diag <- sim_items |>
+  summarize(
+    flagged_rate = mean(flagged, na.rm = TRUE),
+    mean_p = mean(p_value, na.rm = TRUE),
+    mean_p_adjusted = mean(p_adjusted, na.rm = TRUE),
+    .by = c(method, n_persons, n_dif, true_dif)) |>
+  mutate(
+    diagnostic = ifelse(true_dif, "True positive rate", "False positive rate"))
+
+knitr::kable(item_diag, digits = 3)
+```
+
+```{r}
+ggplot(
+  item_diag,
+  aes(x = n_dif, y = flagged_rate, color = method, group = method)) +
+  geom_hline(yintercept = alpha, linetype = 3, color = "grey50") +
+  geom_point(size = 2.2) +
+  geom_line(linewidth = 0.8) +
+  scale_x_continuous(breaks = 0:10) +
+  scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.25)) +
+  facet_grid(
+    diagnostic ~ n_persons,
+    labeller = labeller(n_persons = function(x) paste0("N = ", x))) +
+  labs(
+    x = "Number of Items with DIF",
+    y = "Item Flagging Rate",
+    color = "Item Test")
+```
+
+# Bias and Precision
+
+## Scaling Function Bias
+
+Figure 2 from the paper. `Naive` is the mean of all
+item-level scaling functions. The other methods use the method-specific
+estimate of the common-item scaling function.
+
+```{r}
+scale_bias <- bind_rows(
+  sim_delta |>
+    filter(method == "RDIF") |>
+    transmute(
+      Method = "Naive",
+      n_persons,
+      n_dif,
+      Bias = naive_est - delta_0),
+  sim_delta |>
+    transmute(
+      Method = as.character(method),
+      n_persons,
+      n_dif,
+      Bias = scale_est - delta_0)) |>
+  mutate(
+    Method = factor(
+      Method,
+      levels = c("Naive", method_levels),
+      ordered = TRUE))
+
+scale_cols <- c("Naive" = "grey80", method_cols)
+
+ggplot(scale_bias, aes(x = n_dif, y = Bias, fill = Method)) +
+  geom_hline(yintercept = 0, linetype = 3, linewidth = 0.9, color = "grey40") +
+  see::geom_violinhalf(
+    aes(group = interaction(n_dif, Method)),
+    position = position_dodge(width = 0.85),
+    trim = TRUE,
+    width = 2,
+    linewidth = 0.25,
+    alpha = 0.85) +
+  stat_summary(
+    aes(group = interaction(n_dif, Method)),
+    fun = median,
+    geom = "point",
+    position = position_dodge(width = 0.85),
+    size = 0.9,
+    color = "black") +
+  scale_x_continuous(
+    breaks = 0:10,
+    sec.axis = sec_axis(
+      ~ . * 0.5 / 20,
+      breaks = (0:10) * 0.5 / 20,
+      labels = sprintf("%.2f", (0:10) * 0.5 / 20),
+      name = "True Delta")) +
+  scale_fill_manual(values = scale_cols) +
+  facet_wrap(
+    ~ n_persons,
+    nrow = 3,
+    scales = "free_y",
+    labeller = labeller(n_persons = function(x) paste0("Sample Size = ", x))) +
+  labs(
+    x = "Number of Items with DIF",
+    y = "Scaling Estimate - True Scaling Value",
+    fill = "Method") +
+  theme(panel.grid.minor = element_blank())
+```
+
+```{r}
+scale_bias_table <- scale_bias |>
+  summarize(
+    bias = mean(Bias, na.rm = TRUE),
+    .by = c(Method, n_persons, n_dif)) |>
+  mutate(Method = as.character(Method)) |>
+  arrange(n_persons, n_dif, Method) |>
+  pivot_wider(names_from = Method, values_from = bias)
+
+knitr::kable(scale_bias_table, digits = 3)
+```
+
+## DTF Effect Bias
+
+```{r}
+delta_bias <- sim_delta |>
+  mutate(Bias = delta_hat - true_Delta) |>
+  summarize(
+    bias = mean(Bias, na.rm = TRUE),
+    .by = c(method, n_persons, n_dif))
+
+ggplot(delta_bias, aes(x = n_dif, y = bias, color = method, group = method)) +
+  geom_hline(yintercept = 0, linetype = 3, color = "grey50") +
+  geom_point(size = 2.4) +
+  geom_line(linewidth = 0.8) +
+  scale_x_continuous(
+    breaks = 0:10,
+    sec.axis = sec_axis(
+      ~ . * 0.5 / 20,
+      breaks = (0:10) * 0.5 / 20,
+      labels = sprintf("%.2f", (0:10) * 0.5 / 20),
+      name = "True Delta")) +
+  scale_color_manual(values = method_cols) +
+  facet_wrap(
+    ~ n_persons,
+    nrow = 3,
+    labeller = labeller(n_persons = function(x) paste0("Sample Size = ", x))) +
+  labs(
+    x = "Number of Items with DIF",
+    y = "DTF Estimate - True DTF",
+    color = "Method")
+```
+
+```{r}
+delta_bias_wide <- delta_bias |>
+  mutate(method = as.character(method)) |>
+  arrange(n_persons, n_dif, method) |>
+  select(method, n_persons, n_dif, bias) |>
+  pivot_wider(names_from = method, values_from = bias)
+
+knitr::kable(delta_bias_wide, digits = 3)
+```
+
+# Rejection Rates
+
+```{r}
+sim_power <- sim_delta |>
+  summarize(
+    rejection_rate = mean(rejected, na.rm = TRUE),
+    .by = c(method, n_persons, n_dif)) |>
+  mutate(
+    rejection_rate = ifelse(
+      method == "True" & n_dif == 0,
+      NA_real_,
+      rejection_rate))
+
+ggplot(sim_power, aes(x = n_dif, y = rejection_rate, color = method, group = method)) +
+  geom_hline(yintercept = 0.05, linetype = 3, linewidth = 0.9, color = "grey40") +
+  geom_hline(yintercept = 0.80, linetype = 3, linewidth = 0.9, color = "grey40") +
+  geom_point(size = 2.4, na.rm = TRUE) +
+  geom_line(linewidth = 0.8, na.rm = TRUE) +
+  scale_x_continuous(
+    breaks = 0:10,
+    sec.axis = sec_axis(
+      ~ . * 0.5 / 20,
+      breaks = (0:10) * 0.5 / 20,
+      labels = sprintf("%.2f", (0:10) * 0.5 / 20),
+      name = "True Delta")) +
+  scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, .25)) +
+  scale_color_manual(values = method_cols) +
+  facet_wrap(
+    ~ n_persons,
+    nrow = 3,
+    labeller = labeller(n_persons = function(x) paste0("Sample Size = ", x))) +
+  labs(
+    x = "Number of Items with DIF",
+    y = "Rejection Rate",
+    color = "Method")
+```
+
+```{r}
+sim_power_wide <- sim_power |>
+  pivot_wider(names_from = method, values_from = rejection_rate)
+
+knitr::kable(sim_power_wide, digits = 3)
+```
+
+# Coverage
+
+```{r}
+sim_coverage <- sim_delta |>
+  summarize(
+    coverage = mean(covered, na.rm = TRUE),
+    mean_width = mean(2 * qnorm(.975) * delta_se, na.rm = TRUE),
+    mean_se = mean(delta_se, na.rm = TRUE),
+    .by = c(method, n_persons, n_dif))
+
+ggplot(sim_coverage, aes(x = n_dif, y = coverage, color = method, group = method)) +
+  geom_hline(yintercept = 0.95, linetype = 3, linewidth = 0.9, color = "grey40") +
+  geom_point(size = 2.4) +
+  geom_line(linewidth = 0.8) +
+  scale_x_continuous(
+    breaks = 0:10,
+    sec.axis = sec_axis(
+      ~ . * 0.5 / 20,
+      breaks = (0:10) * 0.5 / 20,
+      labels = sprintf("%.2f", (0:10) * 0.5 / 20),
+      name = "True Delta")) +
+  scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, .25)) +
+  scale_color_manual(values = method_cols) +
+  facet_wrap(
+    ~ n_persons,
+    nrow = 3,
+    labeller = labeller(n_persons = function(x) paste0("Sample Size = ", x))) +
+  labs(
+    x = "Number of Items with DIF",
+    y = "Coverage",
+    color = "Method")
+```
+
+```{r}
+sim_coverage_wide <- sim_coverage |>
+  select(method, n_persons, n_dif, coverage) |>
+  pivot_wider(names_from = method, values_from = coverage)
+
+knitr::kable(sim_coverage_wide, digits = 3)
+```

@@ -1,0 +1,811 @@
+---
+title: "DTF via Robust Scaling: Replication Code for Simulation 2"
+author: Blinded
+date: today
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    embed-resources: true
+execute:
+  warning: false
+  message: false
+---
+
+# Initialization
+
+```{r}
+library(robustDIF)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(see)
+library(mirt)
+
+knitr::opts_chunk$set(fig.width = 11.5, fig.height = 5.4)
+
+check_archive_robustDIF <- function(version = "0.2.0.20260708",
+                                    archive.name = "review-archive") {
+  installed_version <- as.character(utils::packageVersion("robustDIF"))
+  if (installed_version != version) {
+    stop(
+      "This report expects robustDIF ", version,
+      ", but found robustDIF ", installed_version,
+      ". Install robustDIF from the archive branch.",
+      call. = FALSE)
+  }
+
+  desc <- utils::packageDescription("robustDIF")
+  installed_archive <- desc[["Config/robustDIF/archive-name"]]
+  if (!identical(installed_archive, archive.name)) {
+    stop(
+      "This report expects robustDIF archive '", archive.name,
+      "', but found archive label '", installed_archive,
+      "'. Install robustDIF from the archive branch.",
+      call. = FALSE)
+  }
+  invisible(installed_version)
+}
+
+check_archive_robustDIF()
+
+find_results_dir <- function(candidates, pattern, min_files, label) {
+  candidates <- unique(candidates)
+  n_files <- vapply(
+    candidates,
+    function(path) {
+      if (!dir.exists(path)) return(0L)
+      length(list.files(path, pattern = pattern, full.names = TRUE))
+    },
+    integer(1))
+
+  if (!any(n_files >= min_files)) {
+    stop(
+      "Could not find the ", label, " result files. Expected at least ",
+      min_files, " files matching ", pattern, " in one of: ",
+      paste(candidates, collapse = ", "),
+      call. = FALSE)
+  }
+
+  normalizePath(candidates[which(n_files >= min_files)[1]], mustWork = TRUE)
+}
+
+sim2_pattern <- "^sim2_target_A.*_Di.*_ndif[0-9]+[.]rds$"
+results_dir <- find_results_dir(
+  c(
+    "../results/sim2_target_delta",
+    "results/sim2_target_delta",
+    "../../paper/results/sim2_target_delta",
+    "../../../paper/results/sim2_target_delta",
+    "paper/results/sim2_target_delta"),
+  pattern = sim2_pattern,
+  min_files = 66L,
+  label = "Simulation 2")
+
+archive_root_candidates <- c("..", "replication")
+archive_root <- archive_root_candidates[
+  dir.exists(file.path(archive_root_candidates, "qmd")) &
+    file.exists(file.path(archive_root_candidates, "README.md"))][1]
+if (is.na(archive_root)) archive_root <- ".."
+
+figure_dir <- file.path(archive_root, "figures/sim2_target_delta")
+dir.create(figure_dir, recursive = TRUE, showWarnings = FALSE)
+
+method_levels <- c("RDIF", "True")
+
+method_cols <- c(
+  "RDIF" = "#7BAFD4",
+  "True" = "grey50")
+
+alpha <- 0.05
+ndif_levels <- seq(0, 20, by = 2)
+p_dif_breaks <- seq(0, 1, by = 0.2)
+target_levels <- c(0.25, 0.5)
+slope_levels <- c(0.5, 1, 1.5)
+
+mean_or_na <- function(x) {
+  if (all(is.na(x))) NA_real_ else mean(x, na.rm = TRUE)
+}
+
+sd_or_na <- function(x) {
+  if (sum(!is.na(x)) < 2) NA_real_ else sd(x, na.rm = TRUE)
+}
+
+breakdown_band <- function(data) {
+  data |>
+    distinct(target_Delta_i_public, slope_cell_public, target_Delta_i_num) |>
+    mutate(
+      xmin = 0.5 * n_items,
+      xmax = Inf,
+      ymin = -Inf,
+      ymax = Inf)
+}
+
+ndif_x_scale <- function(data) {
+  item_effect <- unique(data$target_Delta_i_num)
+  if (length(item_effect) != 1L || is.na(item_effect)) {
+    stop("Expected a single item-level effect size.", call. = FALSE)
+  }
+
+  n_dif_breaks <- seq(0, n_items, by = 4)
+  true_delta_breaks <- n_dif_breaks * item_effect / n_items
+
+  scale_x_continuous(
+    breaks = n_dif_breaks,
+    labels = n_dif_breaks,
+    expand = expansion(add = c(0.8, 0.8)),
+    sec.axis = sec_axis(
+      ~ . * item_effect / n_items,
+      breaks = true_delta_breaks,
+      labels = sprintf("%.2f", true_delta_breaks),
+      name = "True Delta"))
+}
+
+sim2_public_facets <- function(free_y = FALSE) {
+  facet_wrap(
+    vars(slope_cell_public),
+    ncol = 3,
+    scales = if (free_y) "free" else "free_x",
+    axes = "all_x",
+    axis.labels = "all_x")
+}
+
+plot_by_effect <- function(data, plot_fun, file_prefix = NULL,
+                           width = 10, height = 4.8, dpi = 200) {
+  effects <- levels(droplevels(data$target_Delta_i_public))
+  plots <- vector("list", length(effects))
+  names(plots) <- effects
+
+  for (effect in effects) {
+    plot_data <- data |>
+      filter(target_Delta_i_public == effect) |>
+      droplevels()
+
+    plot <- plot_fun(plot_data) +
+      labs(title = effect)
+
+    print(plot)
+    plots[[effect]] <- plot
+
+    if (!is.null(file_prefix)) {
+      file_effect <- gsub("[^A-Za-z0-9]+", "_", effect)
+      file_effect <- gsub("^_|_$", "", file_effect)
+      ggsave(
+        file.path(figure_dir, paste0(file_prefix, "_", file_effect, ".png")),
+        plot,
+        width = width,
+        height = height,
+        dpi = dpi)
+    }
+  }
+
+  invisible(plots)
+}
+
+public_plot_theme <- theme(
+  panel.grid.minor = element_blank(),
+  panel.spacing.x = grid::unit(1.2, "lines"),
+  plot.margin = margin(t = 12, r = 8, b = 8, l = 8))
+
+theme_set(theme_bw(base_size = 14))
+```
+
+# Run Sims
+
+The production run was carried out condition-by-condition. Each
+condition was saved separately as an `.rds` file under
+`results/sim2_target_delta`, so the simulation can be restarted without
+overwriting completed conditions.
+
+```{bash, echo=TRUE, eval=FALSE}
+SIM2_TARGET_REPS=500 SIM2_TARGET_CORES=10 SIM2_TARGET_SEED=20260724 \
+SIM2_TARGET_OVERWRITE=TRUE SIM2_TARGET_RUN_LABEL=production \
+  Rscript run_sim2.R
+```
+
+The initial production run used `n.dif = 5` to include exactly 25 percent
+DIF items. We subsequently ran the missing `n.dif = 6` cells and use the
+even-count grid below for reporting.
+
+```{bash, echo=TRUE, eval=FALSE}
+SIM2_TARGET_REPS=500 SIM2_TARGET_CORES=10 SIM2_TARGET_SEED=20260724 \
+SIM2_TARGET_OVERWRITE=FALSE SIM2_TARGET_RUN_LABEL=add_ndif6 \
+  Rscript run_sim2.R
+```
+
+Simulation 2 uses 500 replications in each reported cell of a
+`3 x 2 x 11` grid:
+
+- slope multiplier for true DIF items: `0.5`, `1`, `1.5`;
+- target item-level effect size for true DIF items: `Delta_i = 0.25`, `0.50`;
+- number of DIF items: `0`, `2`, `4`, ..., `20`;
+- total number of items: `20`;
+- sample size per group: `500`;
+- reference latent mean and variance fixed at `0` and `1`;
+- comparison latent mean sampled from `U(-0.25, 0.25)`;
+- comparison latent variance sampled from `U(0.5, 1.5)`.
+
+For `n.dif > 0`, the group-2 slope is multiplied by the slope factor and
+the group-2 intercept is solved item-by-item so the true DIF items have
+the requested `Delta_i` on the `d_fun3` scale. For `n.dif = 0`, there
+are no DIF items; these cells provide the Type I error baseline.
+
+The reported methods are `RDIF` and `True`, shown in alphabetical order.
+Here `RDIF` denotes the BH-start version of RDIF, and `True` denotes the
+oracle unit-weighted procedure using the known DIF pattern. The LRT and
+post-RDIF unit-weight procedures are omitted from this larger grid.
+
+# Load Results
+
+```{r}
+sim_files <- list.files(
+  results_dir,
+  pattern = sim2_pattern,
+  full.names = TRUE)
+
+sim_list <- lapply(sim_files, readRDS)
+
+sim_delta_all <- bind_rows(lapply(sim_list, `[[`, "delta")) |>
+  mutate(
+    method = factor(as.character(method), levels = method_levels),
+    n_dif = as.integer(n_dif),
+    n_items = as.integer(n_items),
+    p_dif = n_dif / n_items,
+    target_Delta_i_num = as.numeric(target_Delta_i),
+    target_Delta_i = factor(
+      target_Delta_i_num,
+      levels = target_levels,
+      labels = c("Delta_i = .25", "Delta_i = .50")),
+    target_Delta_i_public = factor(
+      target_Delta_i_num,
+      levels = target_levels,
+      labels = c("Item-Level Effect = 0.25", "Item-Level Effect = 0.50")),
+    slope_multiplier = as.numeric(slope_multiplier),
+    slope_cell = factor(
+      paste0("A = ", slope_multiplier),
+      levels = paste0("A = ", slope_levels)),
+    slope_cell_public = factor(
+      paste0("Slope Multiplier = ", slope_multiplier),
+      levels = paste0("Slope Multiplier = ", slope_levels)),
+    breakdown = p_dif >= 0.5)
+
+sim_delta <- sim_delta_all |>
+  filter(n_dif %in% ndif_levels)
+
+sim_items_all <- bind_rows(lapply(sim_list, `[[`, "items")) |>
+  mutate(
+    method = factor(as.character(method), levels = method_levels),
+    n_dif = as.integer(n_dif),
+    n_items = as.integer(n_items),
+    p_dif = n_dif / n_items,
+    target_Delta_i_num = as.numeric(target_Delta_i),
+    target_Delta_i = factor(
+      target_Delta_i_num,
+      levels = target_levels,
+      labels = c("Delta_i = .25", "Delta_i = .50")),
+    target_Delta_i_public = factor(
+      target_Delta_i_num,
+      levels = target_levels,
+      labels = c("Item-Level Effect = 0.25", "Item-Level Effect = 0.50")),
+    slope_multiplier = as.numeric(slope_multiplier),
+    slope_cell = factor(
+      paste0("A = ", slope_multiplier),
+      levels = paste0("A = ", slope_levels)),
+    slope_cell_public = factor(
+      paste0("Slope Multiplier = ", slope_multiplier),
+      levels = paste0("Slope Multiplier = ", slope_levels)),
+    breakdown = p_dif >= 0.5)
+
+sim_items <- sim_items_all |>
+  filter(n_dif %in% ndif_levels)
+
+run_info <- bind_rows(lapply(sim_list, function(x) {
+  data.frame(
+    n.reps = x$run$n.reps,
+    n.cores = x$run$n.cores,
+    base.seed = x$run$base.seed,
+    condition.seed = x$run$condition.seed,
+    save.mle = x$run$save.mle,
+    save.fits = x$run$save.fits,
+    completed = x$run$completed)
+}))
+
+status_files <- file.path(
+  results_dir,
+  c(
+    "sim2_target_delta_status_production.csv",
+    "sim2_target_delta_status_add_ndif6.csv"))
+sim_status <- bind_rows(lapply(status_files[file.exists(status_files)], read.csv))
+
+n_reps <- unique(sim_delta |>
+  count(slope_multiplier, target_Delta_i, n_dif, method, name = "n") |>
+  pull(n))
+n_items <- unique(sim_delta$n_items)
+
+stopifnot(nrow(distinct(sim_delta, slope_multiplier, target_Delta_i, n_dif)) == 66L)
+```
+
+# Item-Level Diagnostics
+
+```{r}
+item_diag <- sim_items |>
+  mutate(flagged_bh = p_adjusted <= alpha) |>
+  summarize(
+    flagged_rate = mean(flagged_bh, na.rm = TRUE),
+    mean_p = mean_or_na(p_value),
+    mean_p_adjusted = mean_or_na(p_adjusted),
+    mean_weight = mean_or_na(rdif_weight),
+    mean_k = mean_or_na(k_i),
+    true_Delta = mean_or_na(true_Delta),
+    .by = c(
+      slope_multiplier, slope_cell, slope_cell_public,
+      target_Delta_i, target_Delta_i_num, target_Delta_i_public,
+      n_dif, p_dif, true_dif)) |>
+  mutate(
+    diagnostic = ifelse(true_dif, "True positive rate", "False positive rate"))
+
+knitr::kable(
+  item_diag |>
+    select(
+      -target_Delta_i_num,
+      -target_Delta_i_public,
+      -slope_cell_public,
+      -true_Delta),
+  digits = 3)
+```
+
+```{r}
+item_diag_plots <- plot_by_effect(item_diag, function(plot_data) {
+  ggplot(
+    plot_data,
+    aes(x = n_dif, y = flagged_rate, color = diagnostic, group = diagnostic,
+        shape = p_dif >= 0.5)) +
+    geom_rect(
+      data = breakdown_band(plot_data),
+      aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
+      inherit.aes = FALSE,
+      fill = "#B85C38",
+      alpha = 0.08) +
+    geom_hline(yintercept = alpha, linetype = 3, color = "grey50") +
+    geom_point(size = 2.1, na.rm = TRUE) +
+    geom_line(linewidth = 0.75, na.rm = TRUE) +
+    scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.25)) +
+    scale_color_manual(
+      values = c("False positive rate" = "grey50",
+                 "True positive rate" = "#7BAFD4")) +
+    scale_shape_manual(
+      values = c("FALSE" = 16, "TRUE" = 2),
+      guide = "none") +
+    ndif_x_scale(plot_data) +
+    coord_cartesian(clip = "off") +
+    sim2_public_facets() +
+    labs(
+      x = "Number of Items with DIF",
+      y = "Item Flagging Rate",
+      color = "Item Diagnostic") +
+    public_plot_theme
+})
+```
+
+```{r}
+item_weight_summary <- item_diag |>
+  select(
+    slope_multiplier, target_Delta_i, n_dif, true_dif,
+    mean_weight, mean_k) |>
+  mutate(item_type = ifelse(true_dif, "True DIF", "True Anchor"))
+
+knitr::kable(item_weight_summary, digits = 3)
+```
+
+# Supplementary Analysis of Item-Level Variances
+
+This diagnostic isolates the relationship between item discrimination and
+the standard error of the item-level scaling function. There is no DIF in
+this supplementary setup: the target item has the same discrimination and
+intercept in both groups, and the latent distributions are identical. The
+target item's discrimination is varied from `a = 0.5` to `a = 2.0` in
+both groups.
+
+```{r}
+item_variance_diag_file <- file.path(
+  results_dir,
+  "sim2_item_level_variance_diagnostic.rds")
+
+run_item_level_variance_diagnostic <- function(
+  a.grid = seq(0.5, 2, by = 0.1),
+  n.reps = 100,
+  n.persons = 500,
+  n.items = 20,
+  focal.item = 1,
+  fun = "d_fun3",
+  seed = 20260728,
+  n.cores = NULL) {
+
+  stopifnot(focal.item >= 1, focal.item <= n.items)
+  check_archive_robustDIF()
+  if (is.null(n.cores) || is.na(n.cores)) {
+    detected.cores <- parallel::detectCores()
+    n.cores <- if (is.na(detected.cores)) 1 else max(1, min(10, detected.cores - 2))
+  }
+
+  tasks <- expand.grid(
+    focal_a = a.grid,
+    rep = seq_len(n.reps),
+    KEEP.OUT.ATTRS = FALSE)
+  tasks$row_id <- seq_len(nrow(tasks))
+
+  base.a <- seq(0.75, 1.75, length.out = n.items)
+  base.b <- seq(-1.8, 1.8, length.out = n.items)
+  base.b[focal.item] <- 0
+
+  run_task <- function(i) {
+    set.seed(seed + tasks$row_id[i])
+
+    a <- base.a
+    a[focal.item] <- tasks$focal_a[i]
+    d <- -base.b * a
+
+    theta0 <- rnorm(n.persons)
+    theta1 <- rnorm(n.persons)
+    dat0 <- simdata(a, d, n.persons, "2PL", Theta = matrix(theta0))
+    dat1 <- simdata(a, d, n.persons, "2PL", Theta = matrix(theta1))
+
+    out <- tryCatch({
+      fit0 <- mirt(dat0, 1, SE = TRUE, verbose = FALSE)
+      fit1 <- mirt(dat1, 1, SE = TRUE, verbose = FALSE)
+      mle <- robustDIF::get_model_parms(list(fit0, fit1))
+      y <- robustDIF::y_fun(mle, fun)
+      y.se <- sqrt(Matrix::diag(robustDIF::vcov_y(mle, fun = fun)))
+
+      data.frame(
+        focal_a = tasks$focal_a[i],
+        rep = tasks$rep[i],
+        item = focal.item,
+        y_hat = y[focal.item],
+        y_se = y.se[focal.item],
+        converged_0 = isTRUE(fit0@OptimInfo$converged),
+        converged_1 = isTRUE(fit1@OptimInfo$converged),
+        error = NA_character_)
+    }, error = function(e) {
+      data.frame(
+        focal_a = tasks$focal_a[i],
+        rep = tasks$rep[i],
+        item = focal.item,
+        y_hat = NA_real_,
+        y_se = NA_real_,
+        converged_0 = FALSE,
+        converged_1 = FALSE,
+        error = conditionMessage(e))
+    })
+
+    out
+  }
+
+  diag_rows <- parallel::mclapply(
+    seq_len(nrow(tasks)),
+    run_task,
+    mc.cores = n.cores,
+    mc.set.seed = FALSE)
+
+  bind_rows(diag_rows)
+}
+
+if (file.exists(item_variance_diag_file)) {
+  item_variance_diag <- readRDS(item_variance_diag_file)
+} else {
+  item_variance_diag <- run_item_level_variance_diagnostic()
+  saveRDS(item_variance_diag, item_variance_diag_file)
+}
+
+item_variance_diag_summary <- item_variance_diag |>
+  summarize(
+    mean_y = mean_or_na(y_hat),
+    empirical_sd_y = sd_or_na(y_hat),
+    mean_se_y = mean_or_na(y_se),
+    q10_se_y = quantile(y_se, 0.10, na.rm = TRUE),
+    q90_se_y = quantile(y_se, 0.90, na.rm = TRUE),
+    failure_rate = mean(is.na(y_se) | !converged_0 | !converged_1),
+    .by = focal_a)
+
+knitr::kable(item_variance_diag_summary, digits = 3)
+```
+
+```{r}
+item_variance_plot <- ggplot(
+  item_variance_diag_summary,
+  aes(x = focal_a, y = mean_se_y)) +
+  geom_ribbon(
+    aes(ymin = q10_se_y, ymax = q90_se_y),
+    fill = "#7BAFD4",
+    alpha = 0.20) +
+  geom_point(
+    data = item_variance_diag,
+    aes(x = focal_a, y = y_se),
+    inherit.aes = FALSE,
+    color = "grey60",
+    alpha = 0.16,
+    size = 0.8,
+    na.rm = TRUE) +
+  geom_line(color = "#7BAFD4", linewidth = 1) +
+  geom_point(color = "#7BAFD4", size = 2.2) +
+  scale_x_continuous(breaks = seq(0.5, 2, by = 0.25)) +
+  labs(
+    x = "Target Item Slope in Both Groups",
+    y = "Estimated SE of\nItem-Level Scaling Function") +
+  theme_bw(base_size = 18) +
+  theme(plot.margin = margin(t = 12, r = 12, b = 12, l = 80))
+
+item_variance_plot
+
+ggsave(
+  file.path(figure_dir, "item_level_variance_by_discrimination.png"),
+  item_variance_plot,
+  width = 8.5,
+  height = 5.0,
+  dpi = 200)
+```
+
+# Bias and Precision
+
+## Scaling Function Bias
+
+This figure parallels the scaling-function bias plot in Simulation 1.
+`Naive` is the mean of all item-level scaling functions. `RDIF` is the
+robust estimate of the common-item scaling function, and `True` is the
+oracle unit-weighted estimate using the known anchor set.
+
+```{r}
+scale_bias <- bind_rows(
+  sim_delta |>
+    filter(method == "RDIF") |>
+    transmute(
+      Method = "Naive",
+      slope_multiplier,
+      slope_cell,
+      slope_cell_public,
+      target_Delta_i,
+      target_Delta_i_num,
+      target_Delta_i_public,
+      n_dif,
+      p_dif,
+      true_Delta,
+      Bias = naive_est - delta_0),
+  sim_delta |>
+    transmute(
+      Method = as.character(method),
+      slope_multiplier,
+      slope_cell,
+      slope_cell_public,
+      target_Delta_i,
+      target_Delta_i_num,
+      target_Delta_i_public,
+      n_dif,
+      p_dif,
+      true_Delta,
+      Bias = scale_est - delta_0)) |>
+  mutate(
+    Method = factor(
+      Method,
+      levels = c("Naive", method_levels),
+      ordered = TRUE),
+    breakdown = p_dif >= 0.5)
+
+scale_cols <- c("Naive" = "grey80", method_cols)
+
+scale_bias_plots <- plot_by_effect(scale_bias, function(plot_data) {
+  ggplot(plot_data, aes(x = n_dif, y = Bias, fill = Method)) +
+    geom_rect(
+      data = breakdown_band(plot_data),
+      aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
+      inherit.aes = FALSE,
+      fill = "#B85C38",
+      alpha = 0.08) +
+    geom_hline(yintercept = 0, linetype = 3, linewidth = 0.9, color = "grey40") +
+    see::geom_violinhalf(
+      aes(group = interaction(n_dif, Method)),
+      position = position_dodge(width = 0.85),
+      trim = TRUE,
+      width = 2,
+      linewidth = 0.25,
+      alpha = 0.85) +
+    stat_summary(
+      aes(group = interaction(n_dif, Method)),
+      fun = median,
+      geom = "point",
+      position = position_dodge(width = 0.85),
+      size = 0.8,
+      color = "black") +
+    scale_fill_manual(values = scale_cols) +
+    ndif_x_scale(plot_data) +
+    coord_cartesian(clip = "off") +
+    sim2_public_facets(free_y = TRUE) +
+    labs(
+      x = "Number of Items with DIF",
+      y = "Scaling Estimate - True Scaling Value",
+      fill = "Method") +
+    public_plot_theme
+})
+```
+
+```{r}
+scale_bias_table <- scale_bias |>
+  summarize(
+    bias = mean_or_na(Bias),
+    .by = c(Method, slope_multiplier, target_Delta_i, n_dif)) |>
+  mutate(Method = as.character(Method)) |>
+  arrange(slope_multiplier, target_Delta_i, n_dif, Method) |>
+  pivot_wider(names_from = Method, values_from = bias)
+
+knitr::kable(scale_bias_table, digits = 3)
+```
+
+## DTF Effect Bias
+
+```{r}
+delta_bias <- sim_delta |>
+  mutate(Bias = delta_hat - true_Delta) |>
+  summarize(
+    bias = mean_or_na(Bias),
+    true_Delta = mean_or_na(true_Delta),
+    .by = c(
+      method, slope_multiplier, slope_cell, slope_cell_public,
+      target_Delta_i, target_Delta_i_num, target_Delta_i_public, n_dif, p_dif))
+
+delta_bias_plots <- plot_by_effect(delta_bias, function(plot_data) {
+  ggplot(plot_data, aes(x = n_dif, y = bias, color = method, group = method,
+                        shape = p_dif >= 0.5)) +
+    geom_rect(
+      data = breakdown_band(plot_data),
+      aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
+      inherit.aes = FALSE,
+      fill = "#B85C38",
+      alpha = 0.08) +
+    geom_hline(yintercept = 0, linetype = 3, color = "grey50") +
+    geom_point(size = 2.4, na.rm = TRUE) +
+    geom_line(linewidth = 0.8, na.rm = TRUE) +
+    scale_color_manual(values = method_cols, drop = FALSE) +
+    scale_shape_manual(
+      values = c("FALSE" = 16, "TRUE" = 2),
+      guide = "none") +
+    ndif_x_scale(plot_data) +
+    coord_cartesian(clip = "off") +
+    sim2_public_facets(free_y = TRUE) +
+    labs(
+      x = "Number of Items with DIF",
+      y = "DTF Estimate - True DTF",
+      color = "Method") +
+    public_plot_theme
+})
+```
+
+```{r}
+delta_bias_wide <- delta_bias |>
+  mutate(method = as.character(method)) |>
+  arrange(slope_multiplier, target_Delta_i, n_dif, method) |>
+  select(method, slope_multiplier, target_Delta_i, n_dif, bias) |>
+  pivot_wider(names_from = method, values_from = bias)
+
+knitr::kable(delta_bias_wide, digits = 3)
+```
+
+# Rejection Rates
+
+```{r}
+sim_power <- sim_delta |>
+  summarize(
+    rejection_rate = mean_or_na(as.numeric(rejected)),
+    true_Delta = mean_or_na(true_Delta),
+    .by = c(
+      method, slope_multiplier, slope_cell, slope_cell_public,
+      target_Delta_i, target_Delta_i_num, target_Delta_i_public,
+      n_dif, p_dif, n_items)) |>
+  mutate(
+    rejection_rate = ifelse(
+      method == "True" & n_dif == n_items,
+      NA_real_,
+      rejection_rate))
+```
+
+```{r}
+rejection_plots <- plot_by_effect(
+  sim_power,
+  function(plot_data) {
+    ggplot(
+      plot_data,
+      aes(x = n_dif, y = rejection_rate, color = method, group = method,
+          shape = p_dif >= 0.5)) +
+      geom_rect(
+        data = breakdown_band(plot_data),
+        aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
+        inherit.aes = FALSE,
+        fill = "#B85C38",
+        alpha = 0.08) +
+      geom_hline(yintercept = alpha, linetype = 3, linewidth = 0.9, color = "grey40") +
+      geom_hline(yintercept = 0.80, linetype = 3, linewidth = 0.9, color = "grey40") +
+      geom_point(size = 2.4, na.rm = TRUE) +
+      geom_line(linewidth = 0.8, na.rm = TRUE) +
+      scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, .25)) +
+      scale_color_manual(values = method_cols, drop = FALSE) +
+      scale_shape_manual(
+        values = c("FALSE" = 16, "TRUE" = 2),
+        guide = "none") +
+      ndif_x_scale(plot_data) +
+      coord_cartesian(clip = "off") +
+      sim2_public_facets() +
+      labs(
+        x = "Number of Items with DIF",
+        y = "Empirical Rejection Rate",
+        color = "Method") +
+      public_plot_theme
+  },
+  file_prefix = "rejection_rates_by_true_delta")
+```
+
+```{r}
+sim_power_wide <- sim_power |>
+  select(method, slope_multiplier, target_Delta_i, n_dif, true_Delta,
+         rejection_rate) |>
+  pivot_wider(names_from = method, values_from = rejection_rate)
+
+knitr::kable(sim_power_wide, digits = 3)
+```
+
+# Coverage
+
+Coverage is based on the stored indicator from `data_sim2_target_delta()`,
+which checks whether the nominal 95% Wald interval for `delta_hat`
+contains the true DTF value, `true_Delta`.
+
+```{r}
+sim_coverage <- sim_delta |>
+  summarize(
+    coverage = mean_or_na(as.numeric(covered)),
+    mean_width = mean_or_na(2 * qnorm(.975) * delta_se),
+    mean_se = mean_or_na(delta_se),
+    true_Delta = mean_or_na(true_Delta),
+    .by = c(
+      method, slope_multiplier, slope_cell, slope_cell_public,
+      target_Delta_i, target_Delta_i_num, target_Delta_i_public, n_dif, p_dif))
+```
+
+```{r}
+coverage_plots <- plot_by_effect(
+  sim_coverage,
+  function(plot_data) {
+    ggplot(
+      plot_data,
+      aes(x = n_dif, y = coverage, color = method, group = method,
+          shape = p_dif >= 0.5)) +
+      geom_rect(
+        data = breakdown_band(plot_data),
+        aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
+        inherit.aes = FALSE,
+        fill = "#B85C38",
+        alpha = 0.08) +
+      geom_hline(yintercept = 0.95, linetype = 3, linewidth = 0.9, color = "grey40") +
+      geom_point(size = 2.4, na.rm = TRUE) +
+      geom_line(linewidth = 0.8, na.rm = TRUE) +
+      scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, .25)) +
+      scale_color_manual(values = method_cols, drop = FALSE) +
+      scale_shape_manual(
+        values = c("FALSE" = 16, "TRUE" = 2),
+        guide = "none") +
+      ndif_x_scale(plot_data) +
+      coord_cartesian(clip = "off") +
+      sim2_public_facets() +
+      labs(
+        x = "Number of Items with DIF",
+        y = "Coverage",
+        color = "Method") +
+      public_plot_theme
+  },
+  file_prefix = "coverage_by_true_delta")
+```
+
+```{r}
+sim_coverage_wide <- sim_coverage |>
+  select(method, slope_multiplier, target_Delta_i, n_dif, coverage) |>
+  pivot_wider(names_from = method, values_from = coverage)
+
+knitr::kable(sim_coverage_wide, digits = 3)
+```

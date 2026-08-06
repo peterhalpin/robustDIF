@@ -5,3 +5,13 @@
 .DS_Store
 tests/
 test.R
+..Rcheck/
+*.Rcheck/
+*.tar.gz
+Rplots.pdf
+.rlib/
+paper/
+Halpin2024_R/
+*.RData
+*.rds
+*.Rapp.history

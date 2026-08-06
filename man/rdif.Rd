@@ -8,6 +8,8 @@ rdif(
   mle,
   fun = "d_fun3",
   alpha = 0.05,
+  alpha.adjust = c("none", "BH"),
+  simulation.diagnostics = NULL,
   starting.value = "all",
   tol = 1e-07,
   maxit = 100,
@@ -21,6 +23,10 @@ rdif(
 
 \item{alpha}{the desired false positive rate for flagging items with DIF.}
 
+\item{alpha.adjust}{adjustment used to convert \code{alpha} into the bi-square tuning parameter. \code{"none"} uses the scalar cutoff \code{qnorm(1-alpha/2)}. \code{"BH"} uses starting-value item tests to create item-specific BH-rank cutoffs.}
+
+\item{simulation.diagnostics}{optional list used only by the Halpin2024 JEBS simulation code. If supplied, simulation-only known-mode diagnostics are added to the output.}
+
 \item{starting.value}{one of \code{c("med", "lts", "min_rho", "all")} or a numerical value to be used as the starting value. See description for details.}
 
 \item{tol}{convergence criterion for comparing subsequent values of estimate}
@@ -30,7 +36,7 @@ rdif(
 \item{method}{one of \code{c("irls", "newton")}. Currently, only IRLS is implemented.}
 }
 \value{
-A named list containing the estimate of the IRT scale parameter, the bi-square weights, the number of iterations performed, and the value of the convergence criterion (difference of  estimate between subsequent iterations). If multiple solutions were found, the one with the lowest value of the bi-square objective function is returned and the other solutions are appended to the list as \code{other.solutions}.
+A named list containing the estimate of the IRT scale parameter, the bi-square weights, the number of iterations performed, the value of the convergence criterion, item-level \code{dif.test}, and overall \code{delta.test}. If multiple solutions were found, the one with the lowest value of the bi-square objective function is returned and the other solutions are appended to the list as \code{other.solutions}.
 }
 \description{
 Estimation can be performed using iteratively re-weighted least squares (IRLS) or Newton-Raphson (NR). Currently, only IRLS is implemented. If \code{starting.value = "all"}, three starting values are computed: the median of \code{\link[robustDIF]{y_fun}}, the least trimmed squares estimate of location for \code{\link[robustDIF]{y_fun}} with 50-percent trim rate, and the minimum of \code{\link[robustDIF]{rho_grid}}. The estimate is computed from each starting value, and the solution with the lowest value of the bi-square objective function is returned. If there are multiple solutions, the other solutions are appended to the output list as \code{other.solutions}.

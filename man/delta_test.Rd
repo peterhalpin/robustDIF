@@ -4,10 +4,14 @@
 \alias{delta_test}
 \title{Wald tests of overall DIF in IRT scale parameters.}
 \usage{
-delta_test(mle, fun = "d_fun3", alpha = 0.05)
+delta_test(mle, theta = NULL, k = NULL, fun = "d_fun3", alpha = 0.05)
 }
 \arguments{
 \item{mle}{the output of \code{\link[robustDIF]{get_model_parms}}}
+
+\item{theta}{Optional RDIF scale estimate. If \code{NULL}, \code{\link[robustDIF]{rdif}} is run internally.}
+
+\item{k}{Optional bi-square tuning parameter. May be a scalar or a vector with one value for each item-level scaling function.}
 
 \item{fun}{one of \code{c("a_fun1", "a_fun2", "d_fun1", "d_fun2", "d_fun3")}. See description for details.}
 

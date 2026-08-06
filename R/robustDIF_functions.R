@@ -341,18 +341,97 @@ bsq_weight <- function(u, k = 1.96) {
   out
 }
 
+check_k <- function(k, n, alpha = 0.05) {
+  if (is.null(k)) {
+    k <- qnorm(1 - alpha/2, 0, 1)
+  }
+  if (!is.numeric(k) || !length(k) %in% c(1, n) ||
+      any(!is.finite(k)) || any(k <= 0)) {
+    stop(
+      "k must be a positive finite numeric scalar or have one value per item-level scaling function.",
+      call. = FALSE)
+  }
+  k
+}
+
+rdif_k_from_alpha <- function(mle, theta, fun = "d_fun3", alpha = 0.05,
+                              alpha.adjust = c("none", "BH")) {
+  alpha.adjust <- match.arg(alpha.adjust)
+  y <- y_fun(mle, fun)
+  n <- length(y)
+
+  if (identical(alpha.adjust, "none")) {
+    return(list(
+      k = check_k(qnorm(1 - alpha/2, 0, 1), n = n, alpha = alpha),
+      alpha.i = rep(alpha, n),
+      p.val = rep(NA_real_, n),
+      n.flag = NA_integer_))
+  }
+
+  se.y <- sqrt(Matrix::diag(vcov_y(mle, theta = NULL, fun)))
+  z <- (y - theta) / se.y
+  p <- 2 * pnorm(-abs(z))
+  valid <- is.finite(p)
+  alpha.i <- rep(NA_real_, length(p))
+
+  if (any(valid)) {
+    rank.i <- integer(sum(valid))
+    rank.i[order(p[valid])] <- seq_len(sum(valid))
+    alpha.i[valid] <- rank.i * alpha / sum(valid)
+  }
+  alpha.i[!valid] <- alpha
+
+  list(
+    k = check_k(qnorm(1 - alpha.i / 2), n = n, alpha = alpha),
+    alpha.i = alpha.i,
+    p.val = p,
+    n.flag = sum(p <= alpha.i, na.rm = TRUE))
+}
+
+rdif_simulation_diagnostics <- function(est, simulation.diagnostics = NULL) {
+  if (is.null(simulation.diagnostics)) {
+    return(NULL)
+  }
+
+  true.scale <- simulation.diagnostics$true.scale
+  dif.effect.size <- simulation.diagnostics$dif.effect.size
+  n.dif <- simulation.diagnostics$n.dif
+  n.items <- simulation.diagnostics$n.items
+  has.dif.mode <- is.null(n.dif) || is.na(n.dif) || n.dif > 0
+  p.dif <- if (!is.null(n.dif) && !is.null(n.items)) n.dif / n.items else NA_real_
+  true.delta <- if (is.finite(p.dif)) dif.effect.size * p.dif else NA_real_
+  dif.scale.mode <- if (has.dif.mode) true.scale + dif.effect.size else NA_real_
+  dist.good <- abs(est - true.scale)
+  dist.dif <- if (has.dif.mode) abs(est - dif.scale.mode) else NA_real_
+  mode.margin <- if (has.dif.mode) dist.dif - dist.good else NA_real_
+
+  list(
+    simulation.only = TRUE,
+    diagnostic = "simulation_only_known_mode_diagnostic",
+    good.scale.mode = true.scale,
+    dif.scale.mode = dif.scale.mode,
+    true.delta = true.delta,
+    dist.good.scale.mode = dist.good,
+    dist.dif.scale.mode = dist.dif,
+    mode.margin = mode.margin,
+    found.good.mode = !has.dif.mode || isTRUE(mode.margin >= 0),
+    found.dif.mode = has.dif.mode && isTRUE(mode.margin < 0))
+}
+
 # -------------------------------------------------------------------
 #' Estimate IRT scale parameters using the robust DIF procedure.
 #'
 #' Implements M-estimation of an IRT scale parameter using the bi-square loss function. Also returns the bi-square weights for each item. #'
 #' @inheritParams y_fun
 #' @param alpha the desired false positive rate for flagging items with DIF.
+#' @param alpha.adjust adjustment used to convert \code{alpha} into the bi-square tuning parameter. \code{"none"} uses the scalar cutoff \code{qnorm(1-alpha/2)}. \code{"BH"} uses starting-value item tests to create item-specific BH-rank cutoffs.
+#' @param simulation.diagnostics optional list used only by the Halpin2024 JEBS simulation code. If supplied, simulation-only known-mode diagnostics are added to the output.
 #' @param starting.value one of \code{c("med", "lts", "min_rho", "all")} or a numerical value to be used as the starting value. See description for details.
 #' @param tol convergence criterion for comparing subsequent values of estimate
 #' @param maxit maximum number of iterations
 #' @param method one of \code{c("irls", "newton")}. Currently, only IRLS is implemented.
 #'
-#' @return A named list containing the estimate of the IRT scale parameter, the bi-square weights, the number of iterations performed, and the value of the convergence criterion (difference of  estimate between subsequent iterations). If multiple solutions were found, the one with the lowest value of the bi-square objective function is returned and the other solutions are appended to the list as \code{other.solutions}.
+#' @return A named list containing the estimate of the IRT scale parameter, the bi-square weights, the number of iterations performed, the value of the convergence criterion, item-level \code{dif.test}, and overall \code{delta.test}. If multiple solutions were found, the one with the lowest value of the bi-square objective function is returned and the other solutions are appended to the list as \code{other.solutions}.
 #'
 #' @description
 #' Estimation can be performed using iteratively re-weighted least squares (IRLS) or Newton-Raphson (NR). Currently, only IRLS is implemented. If \code{starting.value = "all"}, three starting values are computed: the median of \code{\link[robustDIF]{y_fun}}, the least trimmed squares estimate of location for \code{\link[robustDIF]{y_fun}} with 50-percent trim rate, and the minimum of \code{\link[robustDIF]{rho_grid}}. The estimate is computed from each starting value, and the solution with the lowest value of the bi-square objective function is returned. If there are multiple solutions, the other solutions are appended to the output list as \code{other.solutions}.
@@ -371,27 +450,21 @@ bsq_weight <- function(u, k = 1.96) {
 rdif <- function(mle,
                  fun = "d_fun3",
                  alpha = .05,
+                 alpha.adjust = c("none", "BH"),
+                 simulation.diagnostics = NULL,
                  starting.value = "all",
                  tol = 1e-7,
                  maxit = 100,
                  method = "irls") {
-  nit <- 0
-  conv <- 1
+  alpha.adjust <- match.arg(alpha.adjust)
 
   # Item-level scaling functions
   y <- y_fun(mle, fun)
+  n <- length(y)
 
   # Starting values
   starts <- get_starts(mle, fun, alpha)
 
-  # # Tuning parameter
-  k <- qnorm(1 - alpha/2, 0, 1)
-  # if (abs(mean(y) - starts[3]) <= 1.5*abs(starts[1] - starts[3])) {
-  #    k <- 4.685
-  # } else {
-  #    k <- qnorm(1 - alpha/2, 0, 1)
-  # }
-  #
   if (starting.value == "med") {
     starts <- starts[1]
   }
@@ -410,13 +483,27 @@ rdif <- function(mle,
   # Loop over starting values
   for (i in 1:n.starts) {
     theta <- starts[i]
+    tuned <- rdif_k_from_alpha(
+      mle = mle,
+      theta = theta,
+      fun = fun,
+      alpha = alpha,
+      alpha.adjust = alpha.adjust)
+    k <- tuned$k
+    nit <- 0
+    conv <- 1
+    w.star <- rep(NA_real_, n)
 
   # IRLS
     while(nit < maxit & conv > tol) {
       var.y <- Matrix::diag(vcov_y(mle, theta, fun))
       u <- (y - theta) / sqrt(var.y)
       w.star <- bsq_weight(u, k)
-      w <- (w.star / var.y) / sum(w.star / var.y)
+      denominator <- sum(w.star / var.y)
+      if (!is.finite(denominator) || denominator <= 0) {
+        break
+      }
+      w <- (w.star / var.y) / denominator
       new.theta <- sum(w * y)
 
       # Convergence
@@ -438,21 +525,33 @@ rdif <- function(mle,
                   rho.value = rho.value,
                   n.iter = nit,
                   epsilon = conv,
-                  k = k)
-
-    # Reset for next starting value
-    nit <- 0
-    conv <- 1
+                  k = k,
+                  alpha.adjust = alpha.adjust,
+                  alpha.i = tuned$alpha.i,
+                  start = starts[i],
+                  start.index = i,
+                  start.calibration.p.val = tuned$p.val,
+                  n.bh.flag = tuned$n.flag)
   }
 
   # Return solution(s)
   rho.values <- sapply(sols, function(x) x$rho.value)
+  solution.values <- sapply(sols, function(x) x$est)
   min.sol <- which.min(rho.values)[1]
   out <- sols[[min.sol]]
+  out$start.solution.range <- diff(range(solution.values))
+  out$start.estimates <- solution.values
+  out$start.rho.values <- rho.values
   out$multiple.solutions <- length(unique(round(rho.values, 3))) > 1
   if (out$multiple.solutions) {
     out$other.solutions <- sols[ -min.sol]
   }
+  out$dif.test <- dif_test(mle, theta = out$est, fun = fun)
+  out$delta.test <- delta_test(mle, theta = out$est, k = out$k, fun = fun,
+                               alpha = alpha)
+  out$simulation.diagnostics <- rdif_simulation_diagnostics(
+    est = out$est,
+    simulation.diagnostics = simulation.diagnostics)
  out
 }
 
@@ -602,6 +701,8 @@ dif_test <- function(mle, theta = NULL, fun = "d_fun3") {
 #'
 #' Tests for overall DIF in the IRT scale parameter using several variations of the bi-square loss function.
 #' @inheritParams y_fun
+#' @param theta Optional RDIF scale estimate. If \code{NULL}, \code{\link[robustDIF]{rdif}} is run internally.
+#' @param k Optional bi-square tuning parameter. May be a scalar or a vector with one value for each item-level scaling function.
 #' @param alpha the desired false positive rate for flagging items with DIF.
 #' @return A data.frame whose rows containing the results of the test for each variation of the bi-square loss function.
 #' @examples
@@ -610,20 +711,31 @@ dif_test <- function(mle, theta = NULL, fun = "d_fun3") {
 #' @export
 # -------------------------------------------------------------------
 
-delta_test <- function(mle, fun = "d_fun3", alpha = 0.05)
+delta_test <- function(mle, theta = NULL, k = NULL, fun = "d_fun3", alpha = 0.05)
 {
   # Set up
   y <- y_fun(mle, fun)
   n <- length(y)
   y.bar <- mean(y)
-  rdif.out <- rdif(mle, fun, alpha)
-  rdif.theta <- rdif.out$est
+  if (is.null(theta)) {
+    rdif.out <- rdif(mle, fun = fun, alpha = alpha)
+    theta <- rdif.out$est
+    if (is.null(k)) {
+      k <- rdif.out$k
+    }
+  }
+
+  if (!is.numeric(theta) || length(theta) != 1 || !is.finite(theta)) {
+    stop("theta must be a single finite numeric value.", call. = FALSE)
+  }
+  k <- check_k(k, n = n, alpha = alpha)
+
+  rdif.theta <- theta
   delta <- y.bar - rdif.theta
 
   vcov.y <- vcov_y(mle, theta = NULL, fun) # for sandwich
   var.y <- Matrix::diag(vcov_y(mle, theta = rdif.theta, fun)) # for bsq
   u <- (y - rdif.theta) / sqrt(var.y)
-  k <-  rdif.out$k
   psi.prime <- psi_prime(u, k)
 
   # Variance weights
@@ -689,7 +801,3 @@ delta_test_from_dif <- function(dif.items, mle, fun = "d_fun3", alpha = 0.05)
     z.test = z,
     p.val = p.val)
 }
-
-
-
-

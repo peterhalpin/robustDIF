@@ -1,5 +1,8 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^\.git$
+^\.gitignore$
+^\.gitattributes$
 tests/
 R\test.R
 ^work_in_progress$
@@ -9,3 +12,8 @@ R\test.R
 ^README_files$
 ^robustDIF_12_20_2025\.qmd$
 ^robustDIF_12_20_2025\.html$
+^paper$
+^Halpin2024_R$
+^replication$
+^\.\.Rcheck$
+^Rplots\.pdf$
