@@ -5,14 +5,13 @@ archive branch.
 
 ## Rendered Reports
 
-- [Empirical FCI example](pdf/fci_example.pdf)
-- [Simulation 1](pdf/sim1_replication.pdf)
-- [Simulation 2](pdf/sim2_replication.pdf)
+- [Empirical FCI example](https://htmlpreview.github.io/?https://github.com/peterhalpin/robustDIF/blob/Halpin2024-archive/replication/html/fci_example.html)
+- [Simulation 1](https://htmlpreview.github.io/?https://github.com/peterhalpin/robustDIF/blob/Halpin2024-archive/replication/html/sim1_replication.html)
+- [Simulation 2](https://htmlpreview.github.io/?https://github.com/peterhalpin/robustDIF/blob/Halpin2024-archive/replication/html/sim2_replication.html)
 
 The empirical raw data cannot be redistributed, so the empirical QMD is
 not included. The rendered empirical report is included to document the
-analysis that was run locally. Self-contained HTML versions are also
-included under `html/` for local viewing.
+analysis that was run locally.
 
 ## Simulation QMDs
 

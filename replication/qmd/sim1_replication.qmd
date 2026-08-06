@@ -1,6 +1,6 @@
 ---
 title: "DTF via Robust Scaling: Replication Code for Simulation 1"
-author: Blinded
+author: Peter F Halpin
 date: today
 format:
   html:
@@ -22,13 +22,13 @@ library(ggplot2)
 library(see)
 
 check_archive_robustDIF <- function(version = "0.2.0.20260708",
-                                    archive.name = "review-archive") {
+                                    archive.name = "Halpin2024-JEBS-archive") {
   installed_version <- as.character(utils::packageVersion("robustDIF"))
   if (installed_version != version) {
     stop(
       "This report expects robustDIF ", version,
       ", but found robustDIF ", installed_version,
-      ". Install robustDIF from the archive branch.",
+      ". Install robustDIF from the Halpin2024-archive branch.",
       call. = FALSE)
   }
 
@@ -38,7 +38,7 @@ check_archive_robustDIF <- function(version = "0.2.0.20260708",
     stop(
       "This report expects robustDIF archive '", archive.name,
       "', but found archive label '", installed_archive,
-      "'. Install robustDIF from the archive branch.",
+      "'. Install robustDIF from the Halpin2024-archive branch.",
       call. = FALSE)
   }
   invisible(installed_version)

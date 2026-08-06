@@ -1,21 +1,20 @@
 # robustDIF
 
-Rendered online supplementary materials are available here as PDFs:
+Rendered online supplementary materials are available here:
 
-- [Empirical FCI example](replication/pdf/fci_example.pdf)
-- [Simulation 1](replication/pdf/sim1_replication.pdf)
-- [Simulation 2](replication/pdf/sim2_replication.pdf)
+- [Empirical FCI example](https://htmlpreview.github.io/?https://github.com/peterhalpin/robustDIF/blob/Halpin2024-archive/replication/html/fci_example.html)
+- [Simulation 1](https://htmlpreview.github.io/?https://github.com/peterhalpin/robustDIF/blob/Halpin2024-archive/replication/html/sim1_replication.html)
+- [Simulation 2](https://htmlpreview.github.io/?https://github.com/peterhalpin/robustDIF/blob/Halpin2024-archive/replication/html/sim2_replication.html)
 
 The empirical raw data are not included in this repository, so the
 empirical QMD is not distributed. Simulation QMDs are included under
-`replication/qmd/`. Self-contained HTML versions are also included under
-`replication/html/` for local viewing.
+`replication/qmd/`.
 
 # Installation
 
 ```{r, eval = FALSE}
-## Install this archive branch from the review repository.
-## remotes::install_github("<owner>/<repo>@<branch>")
+install.packages("remotes")
+remotes::install_github("peterhalpin/robustDIF@Halpin2024-archive")
 library(robustDIF)
 ```
 
