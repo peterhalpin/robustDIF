@@ -10,6 +10,7 @@ test.R
 *.tar.gz
 Rplots.pdf
 .rlib/
+tmp/
 paper/
 Halpin2024_R/
 *.RData
